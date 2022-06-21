@@ -5,6 +5,7 @@ from tabulate import tabulate
 import numpy as np
 import pandas as pd
 import os
+from data_manager import DataManager
 
 # TODO:
 #  sequence of staticmethods to
@@ -30,65 +31,8 @@ all_zero_columns = ["alarmtimer:alarmtimer_fired", "alarmtimer:alarmtimer_start"
 class EpisodeGenerator:
 
     @staticmethod
-    def parse_all_files_to_df(filter_suspected_external_events=True,
-                              filter_constant_columns=True,
-                              filter_outliers=True,
-                              keep_status_columns=False) -> pd.DataFrame:
-        file_name = f'../data/prototype_1/all_data_filtered_external_{str(filter_suspected_external_events)}' \
-                    f'_constant_{str(filter_constant_columns)}_outliers_{str(filter_outliers)}'
-
-        if keep_status_columns:
-            file_name += "_keepstatus"
-        file_name += ".csv"
-
-        if os.path.isfile(file_name):
-            return pd.read_csv(file_name)
-        full_df = pd.DataFrame()
-
-        for attack in data_file_paths:
-            df = pd.read_csv(data_file_paths[attack])
-
-            if filter_suspected_external_events:
-                # filter first hour of samples: 3600s / 50s = 72
-                # and drop last measurement due to the influence of logging in, respectively out of the server
-                df = df.iloc[72:-1]
-            # filter for measurements where the device was connected
-            df = df[df['connectivity'] == 1]
-
-            # remove model-irrelevant columns
-            if not keep_status_columns:
-                df = df.drop(time_status_columns, axis=1)
-            if filter_outliers:
-                # drop outliers per measurement, indicated by (absolute z score) > 3
-                df = df[(np.nan_to_num(np.abs(stats.zscore(df))) < 3).all(axis=1)]
-
-            if filter_constant_columns:
-                df = df.drop(all_zero_columns, axis=1)
-
-            df['attack'] = attack.value
-            full_df = pd.concat([full_df, df])
-
-        full_df.to_csv(file_name, index_label=False)
-        return full_df
-
-    @staticmethod
-    def show_data_availability(raw=False):
-        all_data = EpisodeGenerator.parse_all_files_to_df(filter_outliers=not raw, filter_suspected_external_events=not raw)
-        print(f'Total data points: {len(all_data)}')
-        drop_cols = [col for col in list(all_data) if col not in ['attack', 'block:block_bio_backmerge']]
-        grouped = all_data.drop(drop_cols, axis=1).rename(columns={'block:block_bio_backmerge': 'count'}).groupby(
-            ['attack'], as_index=False).count()
-        labels = ['Behavior', 'Count']
-        rows = []
-        for behavior in Behavior:
-            row = [behavior.value]
-            cnt_row = grouped.loc[(grouped['attack'] == behavior.value)]
-            row += [cnt_row['count'].iloc[0]]
-            rows.append(row)
-        print(tabulate(
-            rows, headers=labels, tablefmt="pretty"))
-
-
+    def sample_random_state():
+        pass
 
 
     @staticmethod
@@ -96,6 +40,4 @@ class EpisodeGenerator:
         pass
 
 if __name__ == "__main__":
-    #all_data = EpisodeGenerator.parse_all_files_to_df()
-    #print(all_data.shape)
-    EpisodeGenerator.show_data_availability()
+    DataManager.show_data_availability()
