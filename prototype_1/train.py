@@ -1,5 +1,4 @@
-
-
+from typing import Dict
 from collections import defaultdict
 from custom_types import MTDTechnique, Behavior
 
@@ -7,11 +6,9 @@ from custom_types import MTDTechnique, Behavior
 from collections import defaultdict
 from custom_types import MTDTechnique, Behavior
 
+from prototype_1.environment import SensorEnvironment
+from prototype_1.agent import Agent, DeepQNetwork
 
-
-import gym
-from prototype_1 import Agent
-from utils import plotLearning
 import numpy as np
 
 
@@ -29,7 +26,7 @@ supervisor_map: Dict[Behavior, MTDTechnique] = defaultdict(lambda: MTDTechnique.
 
 
 if __name__ == '__main__':
-    env = gym.make('LunarLander-v2')
+    env = SensorEnvironment()
     agent = Agent(gamma=0.99, epsilon=1.0, batch_size=64, n_actions=4, eps_end=0.01,
                   input_dims=[8], lr=0.001)
     scores, eps_history = [], []
