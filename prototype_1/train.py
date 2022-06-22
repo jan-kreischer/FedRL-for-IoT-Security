@@ -16,8 +16,11 @@ import numpy as np
 if __name__ == '__main__':
     # read in all data for a simulated, supervised environment to sample from
     env = SensorEnvironment(DataManager.parse_all_files_to_df())
-    new_state, isTerminalState = env.step(MTDTechnique.RANSOMWARE_DIRTRAP)
-    print(new_state.iloc[0]["attack"])
+    env.reset()
+    print(env.current_state.iloc[0]["attack"])
+    #new_state, reward, isTerminalState = env.step(MTDTechnique.RANSOMWARE_DIRTRAP)
+    #print(new_state.iloc[0]["attack"])
+    #print(isTerminalState)
 
     # agent = Agent(gamma=0.99, epsilon=1.0, batch_size=64, n_actions=4, eps_end=0.01,
     #               input_dims=[8], lr=0.001)

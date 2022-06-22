@@ -6,9 +6,8 @@ from tabulate import tabulate
 import numpy as np
 import pandas as pd
 import os
+import random
 from data_manager import DataManager
-
-
 
 # define MTD - Attack Mapping
 # TODO: Multiple attacks to same MTD, same attack to multiple MTD, i.e. Ransomware?
@@ -21,7 +20,6 @@ supervisor_map: Dict[MTDTechnique, Tuple[Behavior]] = defaultdict(lambda: (Behav
 })
 
 
-
 # handles the supervised, online-simulation of episodes
 class SensorEnvironment:
 
@@ -30,17 +28,15 @@ class SensorEnvironment:
         self.monitor = monitor
         self.current_state: pd.DataFrame = None
 
-
     def sample_random_state(self):
         """i.e. for starting state of an episode"""
         return self.data.sample()
 
     def sample_behaviour(self, b: Behavior):
         sample = self.sample_random_state()
-        while sample.iloc[0]["attack"] != b.value:
+        while sample.iloc[0]["attack"] != b:
             sample = self.sample_random_state()
         return sample
-
 
     def step(self, action: MTDTechnique):
         """
@@ -55,11 +51,11 @@ class SensorEnvironment:
         if self.monitor is None:
             if current_behaviour in [b.value for b in supervisor_map[action]]:
                 print("correct mtd chosen according to supervisor")
-                # TODO: return normal sample as new state
-                new_state = self.sample_behaviour(Behavior.NORMAL)
+                new_state = self.sample_behaviour(Behavior.NORMAL.value)
                 reward = self.calculate_reward(True)
                 isTerminalState = True
             else:
+                print("incorrect mtd chosen according to supervisor")
                 new_state = self.sample_behaviour(current_behaviour)
                 reward = self.calculate_reward(False)
                 isTerminalState = False
@@ -71,14 +67,11 @@ class SensorEnvironment:
 
         return new_state, reward, isTerminalState
 
-
     def reset(self):
-        self.current_state = self.sample_random_state()
+        rb = random.choice([b for b in Behavior if b != Behavior.NORMAL])
+        self.current_state = self.sample_behaviour(rb)
         self.reward = 0
         self.done = False
-
-        pass
-
 
     # TODO: possibly adapt to distinguish between MTDs that are particularly wasteful in case of wrong deployment
     def calculate_reward(self, success):
