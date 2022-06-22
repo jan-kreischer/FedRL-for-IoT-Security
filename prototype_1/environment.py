@@ -9,8 +9,7 @@ import os
 import random
 from data_manager import DataManager
 
-# define MTD - Attack Mapping
-# TODO: Multiple attacks to same MTD, same attack to multiple MTD, i.e. Ransomware?
+# define MTD - (target Attack) Mapping
 supervisor_map: Dict[MTDTechnique, Tuple[Behavior]] = defaultdict(lambda: (Behavior.NORMAL,), {
     MTDTechnique.NO_MTD: (Behavior.NORMAL,),
     MTDTechnique.CNC_IP_SHUFFLE: (Behavior.CNC_BACKDOOR_JAKORITAR, Behavior.CNC_THETICK),
@@ -23,7 +22,7 @@ supervisor_map: Dict[MTDTechnique, Tuple[Behavior]] = defaultdict(lambda: (Behav
 # handles the supervised, online-simulation of episodes
 class SensorEnvironment:
 
-    def __init__(self, all_data: Dict[Behavior, pd.DataFrame], monitor=None):
+    def __init__(self, all_data: Dict[Behavior, pd.DataFrame] = None, monitor=None):
         self.data = all_data
         self.monitor = monitor
         self.current_state: pd.DataFrame = None

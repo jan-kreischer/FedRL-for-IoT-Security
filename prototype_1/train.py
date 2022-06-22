@@ -15,9 +15,12 @@ import numpy as np
 
 if __name__ == '__main__':
     # read in all data for a simulated, supervised environment to sample from
-    env = SensorEnvironment(DataManager.parse_all_files_to_df())
+    env = SensorEnvironment(DataManager.parse_all_behavior_data())
     env.reset()
     print(env.current_state.iloc[0]["attack"])
+
+
+
     #new_state, reward, isTerminalState = env.step(MTDTechnique.RANSOMWARE_DIRTRAP)
     #print(new_state.iloc[0]["attack"])
     #print(isTerminalState)
