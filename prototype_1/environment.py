@@ -23,20 +23,18 @@ supervisor_map: Dict[MTDTechnique, Tuple[Behavior]] = defaultdict(lambda: (Behav
 # handles the supervised, online-simulation of episodes
 class SensorEnvironment:
 
-    def __init__(self, all_data: pd.DataFrame, monitor=None):
+    def __init__(self, all_data: Dict[Behavior, pd.DataFrame], monitor=None):
         self.data = all_data
         self.monitor = monitor
         self.current_state: pd.DataFrame = None
 
-    def sample_random_state(self):
+    def sample_random_attack_state(self):
         """i.e. for starting state of an episode"""
-        return self.data.sample()
+        rb = random.choice([b for b in Behavior if b != Behavior.NORMAL])
+        return self.data[rb].sample()
 
     def sample_behaviour(self, b: Behavior):
-        sample = self.sample_random_state()
-        while sample.iloc[0]["attack"] != b:
-            sample = self.sample_random_state()
-        return sample
+        return self.data[b].sample()
 
     def step(self, action: MTDTechnique):
         """
@@ -51,7 +49,7 @@ class SensorEnvironment:
         if self.monitor is None:
             if current_behaviour in [b.value for b in supervisor_map[action]]:
                 print("correct mtd chosen according to supervisor")
-                new_state = self.sample_behaviour(Behavior.NORMAL.value)
+                new_state = self.sample_behaviour(Behavior.NORMAL)
                 reward = self.calculate_reward(True)
                 isTerminalState = True
             else:
@@ -68,8 +66,7 @@ class SensorEnvironment:
         return new_state, reward, isTerminalState
 
     def reset(self):
-        rb = random.choice([b for b in Behavior if b != Behavior.NORMAL])
-        self.current_state = self.sample_behaviour(rb)
+        self.current_state = self.sample_random_attack_state()
         self.reward = 0
         self.done = False
 
