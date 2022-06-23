@@ -84,8 +84,6 @@ class Agent:
 
 
 
-
-
     def choose_action(self, observation):
         if np.random.random() > self.epsilon:
             state = torch.tensor([observation]).to(self.online_net.device)
