@@ -13,14 +13,14 @@ import random
 
 # Hyperparams
 GAMMA = 0.99
-BATCH_SIZE = 32
+BATCH_SIZE = 5
 BUFFER_SIZE = 50000
 MIN_REPLAY_SIZE = 10
 EPSILON_START = 1.0
 EPSILON_END = 0.02
 TARGET_UPDATE_FREQ = 1000
 LEARNING_RATE = 0.001
-N_EPISODES = 10
+N_EPISODES = 3
 
 
 
@@ -28,27 +28,18 @@ if __name__ == '__main__':
     # read in all data for a simulated, supervised environment to sample from
     env = SensorEnvironment(DataManager.parse_all_behavior_data())
 
-    # env.reset()
-    # print(f"state features num: {env.observation_space}")
-    # print(f"actions num: {env.action_space}")
-    # print(f"initial behavior: {env.current_state.iloc[0]['attack']}")
-    # action = MTDTechnique.RANSOMWARE_DIRTRAP
-    # new_state, reward, isTerminalState = env.step(action)
-    # print(f"new state: {new_state.iloc[0]['attack']}")
-    # print(f"is terminal: {isTerminalState}")
-
     agent = Agent(input_dims=env.observation_space_size, n_actions=len(env.actions),
                   batch_size=BATCH_SIZE, lr=LEARNING_RATE, gamma=GAMMA, epsilon=EPSILON_START, eps_end=EPSILON_END)
     episode_returns, eps_history = [], []
 
 
-    # initialize memory replay buffer
+    # initialize memory replay buffer (randomly)
     obs = env.reset()
     for _ in range(MIN_REPLAY_SIZE):
         action = random.choice(env.actions)
 
         new_obs, reward, done = env.step(action)
-        transition = (obs, action, reward, new_obs, done)
+        transition = (obs[:,:-1], action, reward, new_obs[:,:-1], done)
         agent.replay_buffer.append(transition)
 
         obs = new_obs
@@ -63,15 +54,19 @@ if __name__ == '__main__':
         obs = env.reset()
         while not done:
             action = agent.choose_action(obs)
+
             new_obs, reward, done = env.step(action)
             episode_return += reward
-            agent.replay_buffer.append((obs, action, reward,
-                                   new_obs, done))
+            agent.replay_buffer.append((obs[:,:-1], action, reward,
+                                   new_obs[:,:-1], done))
             agent.reward_buffer.append(reward)
+
             agent.learn()
             obs = new_obs
 
         episode_returns.append(episode_return)
+        print(episode_return)
+    
     #     eps_history.append(agent.epsilon)
     #
     #     avg_episode_return = np.mean(episode_returns[-100:])

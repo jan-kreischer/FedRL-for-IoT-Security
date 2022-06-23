@@ -4,6 +4,7 @@ from torch import nn
 import torch.nn.functional as F
 import numpy as np
 from collections import deque
+import random
 
 # TODO: main script for prototype one
 #  define MTDs & attacks mapping
@@ -96,38 +97,54 @@ class Agent:
 
 
     def learn(self):
-        if self.mem_cntr < self.batch_size:
-            return
 
-        self.Q_eval.optimizer.zero_grad()
+        self.online_net.optimizer.zero_grad()
 
-        max_mem = min(self.mem_cntr, self.mem_size)
+        # start gradient step
+        transitions = random.sample(self.replay_buffer, self.batch_size)
+        b_obses = np.stack([t[0].astype(np.float).squeeze(0) for t in transitions], axis=0)
+        b_actions = np.asarray([t[1] for t in transitions]).astype(np.int)
+        b_rewards = np.asarray([t[2] for t in transitions]).astype(np.int)
+        b_new_obses = np.stack([t[3].astype(np.float).squeeze(0) for t in transitions], axis=0)
+        b_dones = np.asarray([t[4] for t in transitions]).astype(np.bool)
+        t_obses = torch.from_numpy(b_obses)
+        t_actions = torch.from_numpy(b_actions)
+        t_rewards = torch.from_numpy(b_rewards)
+        t_new_obses = torch.as_tensor(b_new_obses)
+        t_dones = torch.as_tensor(b_dones)
 
-        batch = np.random.choice(max_mem, self.batch_size, replace=False)
-        batch_index = np.arange(self.batch_size, dtype=np.int32)
+        # compute targets
+        #target_q_values = self.target_net(t_new_obses)
+        #max_target_q_values = target_q_values.max
 
-        state_batch = torch.tensor(self.state_memory[batch]).to(self.Q_eval.device)
-        new_state_batch = torch.tensor(
-                self.new_state_memory[batch]).to(self.Q_eval.device)
-        action_batch = self.action_memory[batch]
-        reward_batch = torch.tensor(
-                self.reward_memory[batch]).to(self.Q_eval.device)
-        terminal_batch = torch.tensor(
-                self.terminal_memory[batch]).to(self.Q_eval.device)
 
-        q_eval = self.Q_eval.forward(state_batch)[batch_index, action_batch]
-        q_next = self.Q_eval.forward(new_state_batch)
-        q_next[terminal_batch] = 0.0
+        # #max_mem = min(self.mem_cntr, self.mem_size)
+        # batch = np.random.choice(len(self.replay_buffer), self.batch_size, replace=False)
+        # batch_index = np.arange(self.batch_size, dtype=np.int32)
 
-        q_target = reward_batch + self.gamma*torch.max(q_next, dim=1)[0]
+        # state_batch = torch.tensor(self.state_memory[batch]).to(self.Q_eval.device)
+        #
+        # new_state_batch = torch.tensor(
+        #         self.new_state_memory[batch]).to(self.Q_eval.device)
+        # action_batch = self.action_memory[batch]
+        # reward_batch = torch.tensor(
+        #         self.reward_memory[batch]).to(self.Q_eval.device)
+        # terminal_batch = torch.tensor(
+        #         self.terminal_memory[batch]).to(self.Q_eval.device)
 
-        loss = self.Q_eval.loss(q_target, q_eval).to(self.Q_eval.device)
-        loss.backward()
-        self.Q_eval.optimizer.step()
-
-        self.iter_cntr += 1
-        self.epsilon = self.epsilon - self.eps_dec \
-            if self.epsilon > self.eps_min else self.eps_min
+        # q_eval = self.Q_eval.forward(state_batch)[batch_index, action_batch]
+        # q_next = self.Q_eval.forward(new_state_batch)
+        # q_next[terminal_batch] = 0.0
+        #
+        # q_target = reward_batch + self.gamma*torch.max(q_next, dim=1)[0]
+        #
+        # loss = self.Q_eval.loss(q_target, q_eval).to(self.Q_eval.device)
+        # loss.backward()
+        # self.Q_eval.optimizer.step()
+        #
+        # self.iter_cntr += 1
+        # self.epsilon = self.epsilon - self.eps_dec \
+        #     if self.epsilon > self.eps_min else self.eps_min
 
 
 
