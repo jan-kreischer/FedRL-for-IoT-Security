@@ -26,6 +26,8 @@ class SensorEnvironment:
         self.data = all_data
         self.monitor = monitor
         self.current_state: pd.DataFrame = None
+        self.observation_space: int = len(self.data[Behavior.RANSOMWARE_POC].iloc[0])
+        self.action_space: int = len(supervisor_map) - 1
 
     def sample_random_attack_state(self):
         """i.e. for starting state of an episode"""

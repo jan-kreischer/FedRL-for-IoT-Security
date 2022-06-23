@@ -7,16 +7,16 @@ import pandas as pd
 import os
 
 # paths to data
-prototype = "prototype_1"
+path = "behaviors_no_mtd"
 
 
 data_file_paths: Dict[Behavior, str] = {
-    Behavior.NORMAL: f"../data/{prototype}/normal_samples_2022-06-13-11-25_50s",
-    Behavior.RANSOMWARE_POC: f"../data/{prototype}/ransomware_samples_2022-06-20-08-49_50s",
-    Behavior.ROOTKIT_BEURK: f"../data/{prototype}/rootkit_beurk_samples_2022-06-17-09-08_50s",
-    Behavior.ROOTKIT_BDVL: f"../data/{prototype}/rootkit_bdvl_samples_2022-06-16-19-16_50s",
-    Behavior.CNC_THETICK: f"../data/{prototype}/cnc_backdoor_jakoritar_samples_2022-06-18-09-35_50s",
-    Behavior.CNC_BACKDOOR_JAKORITAR: f"../data/{prototype}/cnc_thetick_samples_2022-06-19-16-54_50s"
+    Behavior.NORMAL: f"../data/{path}/normal_samples_2022-06-13-11-25_50s",
+    Behavior.RANSOMWARE_POC: f"../data/{path}/ransomware_samples_2022-06-20-08-49_50s",
+    Behavior.ROOTKIT_BEURK: f"../data/{path}/rootkit_beurk_samples_2022-06-17-09-08_50s",
+    Behavior.ROOTKIT_BDVL: f"../data/{path}/rootkit_bdvl_samples_2022-06-16-19-16_50s",
+    Behavior.CNC_THETICK: f"../data/{path}/cnc_backdoor_jakoritar_samples_2022-06-18-09-35_50s",
+    Behavior.CNC_BACKDOOR_JAKORITAR: f"../data/{path}/cnc_thetick_samples_2022-06-19-16-54_50s"
 }
 
 time_status_columns = ["time", "timestamp", "seconds", "connectivity"]
@@ -33,7 +33,7 @@ class DataManager:
                               filter_outliers=True,
                               keep_status_columns=False) -> Dict[Behavior, pd.DataFrame]:
         #print(os.getcwd())
-        file_name = f'../data/{prototype}/all_data_filtered_external_{str(filter_suspected_external_events)}' \
+        file_name = f'../data/{path}/all_data_filtered_external_{str(filter_suspected_external_events)}' \
                     f'_constant_{str(filter_constant_columns)}_outliers_{str(filter_outliers)}'
 
         if keep_status_columns:
@@ -79,7 +79,7 @@ class DataManager:
                                 filter_outliers=True,
                                 keep_status_columns=False) -> pd.DataFrame:
 
-        file_name = f'../data/{prototype}/all_data_filtered_external_{str(filter_suspected_external_events)}' \
+        file_name = f'../data/{path}/all_data_filtered_external_{str(filter_suspected_external_events)}' \
                     f'_constant_{str(filter_constant_columns)}_outliers_{str(filter_outliers)}'
 
         if keep_status_columns:
