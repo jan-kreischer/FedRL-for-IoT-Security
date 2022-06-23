@@ -10,15 +10,18 @@ import random
 from data_manager import DataManager
 
 # define MTD - (target Attack) Mapping
-supervisor_map: Dict[MTDTechnique, Tuple[Behavior]] = defaultdict(lambda: (Behavior.NORMAL,), {
-    MTDTechnique.NO_MTD: (Behavior.NORMAL,),
-    MTDTechnique.CNC_IP_SHUFFLE: (Behavior.CNC_BACKDOOR_JAKORITAR, Behavior.CNC_THETICK),
-    MTDTechnique.ROOTKIT_SANITIZER: (Behavior.ROOTKIT_BDVL, Behavior.ROOTKIT_BEURK),
-    MTDTechnique.RANSOMWARE_DIRTRAP: (Behavior.RANSOMWARE_POC,),
-    MTDTechnique.RANSOMWARE_FILE_EXT_HIDE: (Behavior.RANSOMWARE_POC,)
-})
+# indices corresponding to sequence
 actions = (MTDTechnique.CNC_IP_SHUFFLE, MTDTechnique.ROOTKIT_SANITIZER,
            MTDTechnique.RANSOMWARE_DIRTRAP, MTDTechnique.RANSOMWARE_FILE_EXT_HIDE)
+
+supervisor_map: Dict[int, Tuple[Behavior]] = defaultdict(lambda: -1, {
+    #MTDTechnique.NO_MTD: (Behavior.NORMAL,),
+    0: (Behavior.CNC_BACKDOOR_JAKORITAR, Behavior.CNC_THETICK),
+    1: (Behavior.ROOTKIT_BDVL, Behavior.ROOTKIT_BEURK),
+    2: (Behavior.RANSOMWARE_POC,),
+    3: (Behavior.RANSOMWARE_POC,)
+})
+
 
 
 
@@ -40,15 +43,8 @@ class SensorEnvironment:
     def sample_behaviour(self, b: Behavior):
         return self.data[b].sample()
 
-    def step(self, action: MTDTechnique):
-        """
-        reward: call calculate_reward(new_state)
-        """
-        new_state = None
-        isTerminalState = False
+    def step(self, action: int):
 
-        print(action.name)
-        print(action.value)
         current_behaviour = self.current_state.iloc[0]["attack"]
         if self.monitor is None:
             if current_behaviour in supervisor_map[action]:
@@ -64,7 +60,8 @@ class SensorEnvironment:
 
         else:
             # would integrate a monitoring component here for a live system
-            # new_state = self.monitor.get_current_behavior()
+            # new_state = self.monitor.get_current_behavior(),
+            # but reward would need to be calculated by autoencoder
             reward = None
 
         return new_state, reward, isTerminalState
@@ -73,6 +70,7 @@ class SensorEnvironment:
         self.current_state = self.sample_random_attack_state()
         self.reward = 0
         self.done = False
+        return self.current_state
 
 
 
@@ -80,7 +78,7 @@ class SensorEnvironment:
     # TODO: possibly adapt to distinguish between MTDs that are particularly wasteful in case of wrong deployment
     def calculate_reward(self, success):
         """
-        if action == supervisor_map[state.behavior]:
+        if current_behavior == supervisor_map[action]:
         then return positive
         else return negative
 

@@ -88,8 +88,8 @@ class Agent:
 
     def choose_action(self, observation):
         if np.random.random() > self.epsilon:
-            state = torch.tensor([observation]).to(self.Q_eval.device)
-            actions = self.Q_eval.forward(state)
+            state = torch.tensor([observation]).to(self.online_net.device)
+            actions = self.online_net.forward(state)
             action = torch.argmax(actions).item()
         else:
             action = np.random.choice(self.action_space)
