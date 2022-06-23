@@ -24,6 +24,8 @@ class DeepQNetwork(nn.Module):
         self.fc1_dims = fc1_dims
         self.fc2_dims = fc2_dims
         self.n_actions = n_actions
+
+        # Layers
         self.fc1 = nn.Linear(self.input_dims, self.fc1_dims)
         self.fc2 = nn.Linear(self.fc1_dims, self.fc2_dims)
         self.fc3 = nn.Linear(self.fc2_dims, self.n_actions)
@@ -60,28 +62,33 @@ class Agent:
         self.Q_eval = DeepQNetwork(lr, n_actions=n_actions,
                                    input_dims=input_dims,
                                    fc1_dims=256, fc2_dims=256)
-        self.state_memory = np.zeros((self.mem_size, *input_dims),
-                                     dtype=np.float32)
-        self.new_state_memory = np.zeros((self.mem_size, *input_dims),
-                                         dtype=np.float32)
-        self.action_memory = np.zeros(self.mem_size, dtype=np.int32)
-        self.reward_memory = np.zeros(self.mem_size, dtype=np.float32)
-        self.terminal_memory = np.zeros(self.mem_size, dtype=np.bool)
 
 
-
+        #
+        # self.state_memory = np.zeros((self.mem_size, *input_dims),
+        #                              dtype=np.float32)
+        # self.new_state_memory = np.zeros((self.mem_size, *input_dims),
+        #                                  dtype=np.float32)
+        # self.action_memory = np.zeros(self.mem_size, dtype=np.int32)
+        # self.reward_memory = np.zeros(self.mem_size, dtype=np.float32)
+        # self.terminal_memory = np.zeros(self.mem_size, dtype=np.bool)
 
 
 
     def store_transition(self, state, action, reward, state_, terminal):
-        index = self.mem_cntr % self.mem_size
-        self.state_memory[index] = state
-        self.new_state_memory[index] = state_
-        self.reward_memory[index] = reward
-        self.action_memory[index] = action
-        self.terminal_memory[index] = terminal
 
-        self.mem_cntr += 1
+
+        pass
+
+
+        # index = self.mem_cntr % self.mem_size
+        # self.state_memory[index] = state
+        # self.new_state_memory[index] = state_
+        # self.reward_memory[index] = reward
+        # self.action_memory[index] = action
+        # self.terminal_memory[index] = terminal
+        #
+        # self.mem_cntr += 1
 
 
 
@@ -94,7 +101,8 @@ class Agent:
             action = np.random.choice(self.action_space)
         return action
 
-
+    def init_replay_buffer(self):
+        pass
 
     def learn(self):
         if self.mem_cntr < self.batch_size:
@@ -129,6 +137,8 @@ class Agent:
         self.iter_cntr += 1
         self.epsilon = self.epsilon - self.eps_dec \
             if self.epsilon > self.eps_min else self.eps_min
+
+
 
     def derive_reward_from_new_state(self, new_state):
         """method only needed in unsupervised setting"""

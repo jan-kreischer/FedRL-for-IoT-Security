@@ -17,22 +17,21 @@ if __name__ == '__main__':
     # read in all data for a simulated, supervised environment to sample from
     env = SensorEnvironment(DataManager.parse_all_behavior_data())
     env.reset()
-    print(env.observation_space)
-    print(env.action_space)
-    print(env.current_state.iloc[0]["attack"])
+    print(f"state features num: {env.observation_space}")
+    print(f"actions num: {env.action_space}")
+    print(f"initial behavior: {env.current_state.iloc[0]['attack']}")
 
-
-
-    #new_state, reward, isTerminalState = env.step(MTDTechnique.RANSOMWARE_DIRTRAP)
-    #print(new_state.iloc[0]["attack"])
-    #print(isTerminalState)
+    action = MTDTechnique.RANSOMWARE_DIRTRAP
+    new_state, reward, isTerminalState = env.step(action)
+    print(f"new state: {new_state.iloc[0]['attack']}")
+    print(f"is terminal: {isTerminalState}")
 
     input_dims = env.observation_space
     # agent = Agent(gamma=0.99, epsilon=1.0, batch_size=64, n_actions=4, eps_end=0.01,
     #               input_dims=[8], lr=0.001)
     # scores, eps_history = [], []
     # n_games = 500
-    #
+
     # for i in range(n_games):
     #     score = 0
     #     done = False
