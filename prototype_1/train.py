@@ -14,13 +14,14 @@ import random
 # Hyperparams
 GAMMA = 0.99
 BATCH_SIZE = 5
-BUFFER_SIZE = 50000
+BUFFER_SIZE = 500
 MIN_REPLAY_SIZE = 10
 EPSILON_START = 1.0
 EPSILON_END = 0.02
 TARGET_UPDATE_FREQ = 1000
 LEARNING_RATE = 0.001
-N_EPISODES = 3
+N_EPISODES = 10000
+LOG_FREQ = 100
 
 
 
@@ -48,12 +49,13 @@ if __name__ == '__main__':
 
 
     # main training
+    step = 0
     for i in range(N_EPISODES):
         episode_return = 0
         done = False
         obs = env.reset()
         while not done:
-            action = agent.choose_action(obs)
+            action = agent.choose_action(obs[:,:-1])
 
             new_obs, reward, done = env.step(action)
             episode_return += reward
@@ -64,8 +66,17 @@ if __name__ == '__main__':
             agent.learn()
             obs = new_obs
 
+            # update target network
+            step += 1
+            if step % TARGET_UPDATE_FREQ == 0:
+                agent.update_target_network()
+
+            if step % LOG_FREQ == 0:
+                print("Step: ", step, ", Avg Reward: ", np.mean(agent.reward_buffer))
+
+
         episode_returns.append(episode_return)
-        print(episode_return)
+        #print(episode_return)
 
     #     eps_history.append(agent.epsilon)
     #
