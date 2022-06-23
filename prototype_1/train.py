@@ -73,7 +73,7 @@ if __name__ == '__main__':
                 agent.update_target_network()
 
             if step % LOG_FREQ == 0:
-                print("Step: ", step, ", Avg Reward: ", np.mean(agent.reward_buffer), "epsilon: ", agent.epsilon)
+                print("Episode: ", i, "Step: ", step, ", Avg Reward: ", np.mean(agent.reward_buffer), "epsilon: ", agent.epsilon)
 
 
         episode_returns.append(episode_return)
