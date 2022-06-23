@@ -7,25 +7,26 @@ from custom_types import MTDTechnique, Behavior
 from data_manager import DataManager
 from prototype_1.environment import SensorEnvironment
 from prototype_1.agent import Agent, DeepQNetwork
-
+from time import time
 import numpy as np
 import random
 
 # Hyperparams
 GAMMA = 0.99
-BATCH_SIZE = 5
-BUFFER_SIZE = 500
-MIN_REPLAY_SIZE = 10
+BATCH_SIZE = 100
+BUFFER_SIZE = 50000
+MIN_REPLAY_SIZE = 100
 EPSILON_START = 1.0
 EPSILON_END = 0.02
-TARGET_UPDATE_FREQ = 1000
-LEARNING_RATE = 0.001
-N_EPISODES = 10000
+TARGET_UPDATE_FREQ = 100
+LEARNING_RATE = 0.00001
+N_EPISODES = 100000
 LOG_FREQ = 100
 
 
 
 if __name__ == '__main__':
+    start = time()
     # read in all data for a simulated, supervised environment to sample from
     env = SensorEnvironment(DataManager.parse_all_behavior_data())
 
@@ -72,10 +73,13 @@ if __name__ == '__main__':
                 agent.update_target_network()
 
             if step % LOG_FREQ == 0:
-                print("Step: ", step, ", Avg Reward: ", np.mean(agent.reward_buffer))
+                print("Step: ", step, ", Avg Reward: ", np.mean(agent.reward_buffer), "epsilon: ", agent.epsilon)
 
 
         episode_returns.append(episode_return)
+
+    end = time()
+    print("Total training time: ", end - start)
         #print(episode_return)
 
     #     eps_history.append(agent.epsilon)
