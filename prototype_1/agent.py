@@ -66,10 +66,10 @@ class Agent:
 
         self.online_net = DeepQNetwork(lr, n_actions=n_actions,
                                    input_dims=input_dims,
-                                   fc1_dims=256, fc2_dims=256)
+                                   fc1_dims=128, fc2_dims=128)
         self.target_net = DeepQNetwork(lr, n_actions=n_actions,
                                    input_dims=input_dims,
-                                   fc1_dims=256, fc2_dims=256)
+                                   fc1_dims=128, fc2_dims=128)
         self.target_net.load_state_dict(self.online_net.state_dict())
 
 
@@ -98,24 +98,39 @@ class Agent:
 
     def learn(self):
 
-        self.online_net.optimizer.zero_grad()
-
-        # start gradient step
+        # init data batch from memory replay for dqn
         transitions = random.sample(self.replay_buffer, self.batch_size)
-        b_obses = np.stack([t[0].astype(np.float).squeeze(0) for t in transitions], axis=0)
-        b_actions = np.asarray([t[1] for t in transitions]).astype(np.int)
-        b_rewards = np.asarray([t[2] for t in transitions]).astype(np.int)
-        b_new_obses = np.stack([t[3].astype(np.float).squeeze(0) for t in transitions], axis=0)
-        b_dones = np.asarray([t[4] for t in transitions]).astype(np.bool)
-        t_obses = torch.from_numpy(b_obses)
-        t_actions = torch.from_numpy(b_actions)
-        t_rewards = torch.from_numpy(b_rewards)
-        t_new_obses = torch.as_tensor(b_new_obses)
-        t_dones = torch.as_tensor(b_dones)
+        b_obses = np.stack([t[0].astype(np.float32).squeeze(0) for t in transitions], axis=0)
+        b_actions = np.asarray([t[1] for t in transitions]).astype(np.int64)
+        b_rewards = np.asarray([t[2] for t in transitions]).astype(np.int16)
+        b_new_obses = np.stack([t[3].astype(np.float32).squeeze(0) for t in transitions], axis=0)
+        b_dones = np.asarray([t[4] for t in transitions]).astype(np.int16)
+        t_obses = torch.from_numpy(b_obses).to(self.target_net.device)
+        t_actions = torch.from_numpy(b_actions).to(self.target_net.device)
+        t_rewards = torch.from_numpy(b_rewards).to(self.target_net.device)
+        t_new_obses = torch.as_tensor(b_new_obses).to(self.target_net.device)
+        t_dones = torch.as_tensor(b_dones).to(self.target_net.device)
 
         # compute targets
-        #target_q_values = self.target_net(t_new_obses)
-        #max_target_q_values = target_q_values.max
+        target_q_values = self.target_net(t_new_obses)
+        max_target_q_values = target_q_values.max(dim=1, keepdim=True)[0]
+
+        targets = t_rewards + self.gamma * (1 - t_dones) * max_target_q_values
+
+        # compute loss
+        q_values = self.online_net(t_obses)
+        taken_action_q_values = torch.gather(input=q_values, dim=1, index=t_actions.unsqueeze(1))
+
+
+        loss = self.online_net.loss(taken_action_q_values, targets).to(self.target_net.device)
+
+        # gradient descent
+        self.online_net.optimizer.zero_grad()
+        loss.backward()
+        self.online_net.optimizer.step()
+
+
+
 
 
         # #max_mem = min(self.mem_cntr, self.mem_size)

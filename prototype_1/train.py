@@ -66,7 +66,7 @@ if __name__ == '__main__':
 
         episode_returns.append(episode_return)
         print(episode_return)
-    
+
     #     eps_history.append(agent.epsilon)
     #
     #     avg_episode_return = np.mean(episode_returns[-100:])
