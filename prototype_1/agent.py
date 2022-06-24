@@ -7,6 +7,7 @@ from collections import deque
 import random
 
 # TODO:
+#  - add softmax layer at the end of dqn
 #  - check code with debugger, run through, understanding of each loc
 #  - analyze reward buffer for first 100/200 contents
 #  - min max scaling on input?
@@ -16,6 +17,9 @@ import random
 #  - try adjusting the reward -> 0 for fail, 1 for success
 #  - reduce/increase exploration/epsilon
 #  - adapt hidden layers/size
+#  - integrate that an agent may not repeatedly select MTDs that have not worked!
+#  -> add a buffer of already utilized techniques in an episode!
+#  -> adapt choose_action!
 
 
 
