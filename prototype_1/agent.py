@@ -67,10 +67,10 @@ class Agent:
 
         self.online_net = DeepQNetwork(lr, n_actions=n_actions,
                                    input_dims=input_dims,
-                                   fc1_dims=128, fc2_dims=128)
+                                   fc1_dims=256, fc2_dims=256)
         self.target_net = DeepQNetwork(lr, n_actions=n_actions,
                                    input_dims=input_dims,
-                                   fc1_dims=128, fc2_dims=128)
+                                   fc1_dims=256, fc2_dims=256)
         self.target_net.load_state_dict(self.online_net.state_dict())
 
 
@@ -129,34 +129,7 @@ class Agent:
         loss.backward()
         self.online_net.optimizer.step()
 
-
-
-
-        # #max_mem = min(self.mem_cntr, self.mem_size)
-        # batch = np.random.choice(len(self.replay_buffer), self.batch_size, replace=False)
-        # batch_index = np.arange(self.batch_size, dtype=np.int32)
-
-        # state_batch = torch.tensor(self.state_memory[batch]).to(self.Q_eval.device)
-        #
-        # new_state_batch = torch.tensor(
-        #         self.new_state_memory[batch]).to(self.Q_eval.device)
-        # action_batch = self.action_memory[batch]
-        # reward_batch = torch.tensor(
-        #         self.reward_memory[batch]).to(self.Q_eval.device)
-        # terminal_batch = torch.tensor(
-        #         self.terminal_memory[batch]).to(self.Q_eval.device)
-
-        # q_eval = self.Q_eval.forward(state_batch)[batch_index, action_batch]
-        # q_next = self.Q_eval.forward(new_state_batch)
-        # q_next[terminal_batch] = 0.0
-        #
-        # q_target = reward_batch + self.gamma*torch.max(q_next, dim=1)[0]
-        #
-        # loss = self.Q_eval.loss(q_target, q_eval).to(self.Q_eval.device)
-        # loss.backward()
-        # self.Q_eval.optimizer.step()
-        #
-        # self.iter_cntr += 1
+        # epsilon decay
         self.epsilon = self.epsilon - self.eps_dec if self.epsilon > self.eps_min else self.eps_min
 
     def update_target_network(self):
