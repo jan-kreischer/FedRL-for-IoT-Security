@@ -93,8 +93,14 @@ class Agent:
         return action
 
 
-    def learn(self):
+    def take_action(self, observation):
+        state = torch.from_numpy(observation.astype(np.float32)).to(self.online_net.device)
+        actions = self.online_net.forward(state)
+        action = torch.argmax(actions).item()
+        return action
 
+
+    def learn(self):
         # init data batch from memory replay for dqn
         transitions = random.sample(self.replay_buffer, self.batch_size)
         b_obses = np.stack([t[0].astype(np.float32).squeeze(0) for t in transitions], axis=0)

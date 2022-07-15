@@ -1,8 +1,10 @@
 from data_manager import DataManager
-from prototype_1.environment import SensorEnvironment
+from prototype_1.environment import SensorEnvironment, supervisor_map
 from prototype_1.agent import Agent, DeepQNetwork
+from custom_types import Behavior
 from utils.utils import plot_learning, seed_random
 from time import time
+import torch
 import numpy as np
 import random
 
@@ -15,15 +17,17 @@ EPSILON_START = 1.0
 EPSILON_END = 0.01
 TARGET_UPDATE_FREQ = 100
 LEARNING_RATE = 1e-5
-N_EPISODES = 15000
+N_EPISODES = 5000
 LOG_FREQ = 100
 
 if __name__ == '__main__':
     seed_random()
     start = time()
 
+
     # read in all preprocessed data for a simulated, supervised environment to sample from
-    env = SensorEnvironment(DataManager.get_scaled_train_test_split()[0])
+    train_data, test_data, scaler = DataManager.get_scaled_train_test_split()
+    env = SensorEnvironment(train_data, test_data)
 
     agent = Agent(input_dims=env.observation_space_size, n_actions=len(env.actions), buffer_size=BUFFER_SIZE,
                   batch_size=BATCH_SIZE, lr=LEARNING_RATE, gamma=GAMMA, epsilon=EPSILON_START, eps_end=EPSILON_END)
@@ -81,8 +85,32 @@ if __name__ == '__main__':
     end = time()
     print("Total training time: ", end - start)
 
-    # agent.save_dqns(0)
+    agent.save_dqns(0)
 
     x = [i + 1 for i in range(N_EPISODES)]
     filename = 'mtd_agent.png'
     plot_learning(x, episode_returns, eps_history, filename)
+
+
+    # check predictions with learnt dqn
+    agent.online_net.eval()
+    results = {}
+    with torch.no_grad():
+        for b, d in test_data.items():
+            if b != Behavior.NORMAL:
+                cnt_corr = 0
+                cnt = 0
+                for state in d:
+                    action = agent.take_action(state[:-1])
+                    if b in supervisor_map[action]:
+                        cnt_corr += 1
+                    cnt += 1
+                results[b] = (cnt_corr, cnt)
+
+    print(results)
+
+
+
+
+
+
