@@ -2,9 +2,12 @@ from typing import Dict
 from custom_types import Behavior
 from scipy import stats
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
+from sklearn.decomposition import PCA
+import matplotlib.pyplot as plt
 from tabulate import tabulate
 import numpy as np
 import pandas as pd
+
 import os
 
 # paths to data
@@ -151,7 +154,7 @@ class DataManager:
             test_bdata[b] = d_test
             if b != Behavior.NORMAL:
                 train = np.vstack((train, d_train))
-                #test = np.vstack((test, d_test))
+                # test = np.vstack((test, d_test))
 
         # fit scaler on all training data combined
         scaler = StandardScaler() if not scaling_minmax else MinMaxScaler()
@@ -162,10 +165,49 @@ class DataManager:
         scaled_test = {}
         for b, d in train_bdata.items():
             scaled_train[b] = np.hstack((scaler.transform(d[:, :-1]), np.expand_dims(d[:, -1], axis=1)))
-            scaled_test[b] = np.hstack((scaler.transform(test_bdata[b][:, :-1]), np.expand_dims(test_bdata[b][:, -1], axis=1)))
+            scaled_test[b] = np.hstack(
+                (scaler.transform(test_bdata[b][:, :-1]), np.expand_dims(test_bdata[b][:, -1], axis=1)))
 
         # return also scaler in case of using the agent for online scaling
         return scaled_train, scaled_test, scaler
+
+    @staticmethod
+    def perform_pca():
+        print("perform pca!")
+        strain, stest, scaler = DataManager.get_scaled_train_test_split()
+        all_strain = strain[Behavior.NORMAL]
+        for b in strain:
+            if b != Behavior.NORMAL:
+                all_strain = np.vstack((all_strain, strain[b]))
+
+        pca = PCA()
+        pca.fit(all_strain[:, :-1])
+        pca_data = pca.transform(all_strain[:, :-1])
+
+        per_var = np.round(pca.explained_variance_ratio_ * 100, decimals=1)
+        labels = ['PC' + str(x) for x in range(1, len(per_var) + 1)]
+
+        plt.bar(x=range(1, len(per_var) + 1), height=per_var, tick_label=labels)
+        plt.ylabel('Percentage of Explained Variance')
+        plt.xlabel('Principal Component')
+        plt.title('Scree Plot')
+        plt.show()
+
+        df = pd.read_csv(data_file_paths[Behavior.CNC_BACKDOOR_JAKORITAR])
+
+        # the following code makes a fancy looking plot using PC1 and PC2
+        pca_df = pd.DataFrame(pca_data, index=df.index, columns=labels)
+
+        plt.scatter(pca_df.PC1, pca_df.PC2)
+        plt.title('My PCA Graph')
+        plt.xlabel('PC1 - {0}%'.format(per_var[0]))
+        plt.ylabel('PC2 - {0}%'.format(per_var[1]))
+
+        for sample in pca_df.index:
+            plt.annotate(sample, (pca_df.PC1.loc[sample], pca_df.PC2.loc[sample]))
+
+        plt.show()
+
 
 
     @staticmethod

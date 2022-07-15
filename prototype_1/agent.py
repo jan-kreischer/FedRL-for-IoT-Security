@@ -70,9 +70,6 @@ class Agent:
         self.reward_buffer = deque([0.0], maxlen=100) # for printing progress
 
         self.batch_size = batch_size
-        #self.mem_cntr = 0
-        #self.iter_cntr = 0
-        #self.replace_target = 100
 
         self.online_net = DeepQNetwork(lr, n_actions=n_actions,
                                    input_dims=input_dims,
@@ -93,7 +90,7 @@ class Agent:
         return action
 
 
-    def take_action(self, observation):
+    def take_greedy_action(self, observation):
         state = torch.from_numpy(observation.astype(np.float32)).to(self.online_net.device)
         actions = self.online_net.forward(state)
         action = torch.argmax(actions).item()

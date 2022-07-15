@@ -1,18 +1,6 @@
-
+from data_manager import DataManager
 
 
 
 if __name__ == "__main__":
-    # just evaluate agent on n samples of all attacks and measure accuracy
-    # learning and evaluation mode on agent
-    # train and test split?
-
-    # flow: exe train.py -> save models -> load models
-
-
-    # TODO: options to evaluate goodness of agent
-    # for each behavior get prediction of online_net and take accuracy
-    # exactly corresponds to supervised prediction
-
-
-    pass
+    DataManager.perform_pca()
