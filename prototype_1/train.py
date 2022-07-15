@@ -87,6 +87,8 @@ if __name__ == '__main__':
     end = time()
     print("Total training time: ", end - start)
 
+    # agent.save_dqns(0)
+
     x = [i + 1 for i in range(N_EPISODES)]
     filename = 'mtd_agent.png'
     plot_learning(x, episode_returns, eps_history, filename)

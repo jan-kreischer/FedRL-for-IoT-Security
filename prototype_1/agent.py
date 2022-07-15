@@ -17,9 +17,14 @@ import random
 #  - try adjusting the reward -> 0 for fail, 1 for success
 #  - reduce/increase exploration/epsilon
 #  - adapt hidden layers/size
+
+# TODO: Optimization
 #  - integrate that an agent may not repeatedly select MTDs that have not worked!
 #  -> add a buffer of already utilized techniques in an episode!
 #  -> adapt choose_action!
+#  - ensure that most resource-consuming MTDs are penalized harder than such that are not
+#  (i.e. -1 for dirtrap, -0.8 for ipshuffle, -0.7 filext, -0.5rootkit), because dirtrap is computationally intense, ipshuffle results in downtime, rootkit lasts miliseconds
+
 
 
 
@@ -88,8 +93,6 @@ class Agent:
         # self.terminal_memory = np.zeros(self.mem_size, dtype=np.bool)
 
 
-
-
     def choose_action(self, observation):
         if np.random.random() > self.epsilon:
             state = torch.from_numpy(observation.astype(np.float32)).to(self.online_net.device)
@@ -144,3 +147,7 @@ class Agent:
         """method only needed in unsupervised setting"""
         # TODO: call autoencoder here and check for normality
         pass
+
+    def save_dqns(self, n: int):
+        torch.save(self.online_net.state_dict(), f"trained_models/online_net{n}.pth")
+        torch.save(self.target_net.state_dict(), f"trained_models/target_net{n}.pth")
