@@ -10,7 +10,6 @@ import os
 # paths to data
 path = "behaviors_no_mtd"
 
-
 data_file_paths: Dict[Behavior, str] = {
     Behavior.NORMAL: f"../data/{path}/normal_samples_2022-06-13-11-25_50s",
     Behavior.RANSOMWARE_POC: f"../data/{path}/ransomware_samples_2022-06-20-08-49_50s",
@@ -30,10 +29,10 @@ class DataManager:
 
     @staticmethod
     def parse_all_behavior_data(filter_suspected_external_events=True,
-                              filter_constant_columns=True,
-                              filter_outliers=True,
-                              keep_status_columns=False) -> Dict[Behavior, np.ndarray]:
-        #print(os.getcwd())
+                                filter_constant_columns=True,
+                                filter_outliers=True,
+                                keep_status_columns=False) -> Dict[Behavior, np.ndarray]:
+        # print(os.getcwd())
         file_name = f'../data/{path}/all_data_filtered_external_{str(filter_suspected_external_events)}' \
                     f'_constant_{str(filter_constant_columns)}_outliers_{str(filter_outliers)}'
 
@@ -41,8 +40,8 @@ class DataManager:
             file_name += "_keepstatus"
         file_name += ".csv"
 
-        #if os.path.isfile(file_name):
-         #   full_df = pd.read_csv(file_name)
+        # if os.path.isfile(file_name):
+        #   full_df = pd.read_csv(file_name)
 
         bdata = {}
 
@@ -68,17 +67,16 @@ class DataManager:
 
             df['attack'] = attack
             bdata[attack] = df.to_numpy()
-            #if not os.path.isfile(file_name): full_df = pd.concat([full_df, df])
+            # if not os.path.isfile(file_name): full_df = pd.concat([full_df, df])
 
-        #full_df.to_csv(file_name, index_label=False)
+        # full_df.to_csv(file_name, index_label=False)
         return bdata
-
 
     @staticmethod
     def parse_all_files_to_df(filter_suspected_external_events=True,
-                                filter_constant_columns=True,
-                                filter_outliers=True,
-                                keep_status_columns=False) -> pd.DataFrame:
+                              filter_constant_columns=True,
+                              filter_outliers=True,
+                              keep_status_columns=False) -> pd.DataFrame:
 
         file_name = f'../data/{path}/all_data_filtered_external_{str(filter_suspected_external_events)}' \
                     f'_constant_{str(filter_constant_columns)}_outliers_{str(filter_outliers)}'
@@ -87,9 +85,8 @@ class DataManager:
             file_name += "_keepstatus"
         file_name += ".csv"
 
-
         if os.path.isfile(file_name):
-           return pd.read_csv(file_name)
+            return pd.read_csv(file_name)
         full_df = pd.DataFrame()
 
         for attack in data_file_paths:
@@ -120,7 +117,7 @@ class DataManager:
 
     @staticmethod
     def get_scaled_all_data(scaling_minmax=True):
-        all_data = DataManager.parse_all_files_to_df().to_numpy()[:,:-1]
+        all_data = DataManager.parse_all_files_to_df().to_numpy()[:, :-1]
         scaler = StandardScaler() if not scaling_minmax else MinMaxScaler()
         scaler.fit(all_data)
 
@@ -128,14 +125,43 @@ class DataManager:
         scaled_bdata = {}
         # return directory as
         for b in bdata:
-            scaled_bdata[b] = np.hstack((scaler.transform(bdata[b][:, :-1]), np.expand_dims(bdata[b][:,-1], axis=1)))
+            scaled_bdata[b] = np.hstack((scaler.transform(bdata[b][:, :-1]), np.expand_dims(bdata[b][:, -1], axis=1)))
 
         return scaled_bdata
 
     @staticmethod
+    def get_scaled_train_test_split(split=0.8, scaling_minmax=True):
+        bdata = DataManager.parse_all_behavior_data()
+
+        # take split of all behaviors, concat, calc scaling, scale both train and test split
+        first_b = bdata[Behavior.NORMAL]
+        np.random.shuffle(first_b)
+
+        train = first_b[:int(split * first_b.shape[0]), :]
+        test = first_b[int(split * first_b.shape[0]):, :]
+
+        for b, d in bdata.items():
+            if b != Behavior.NORMAL:
+                np.random.shuffle(d)
+                d_train = d[:int(split * d.shape[0]), :]
+                d_test = d[int(split * d.shape[0]):, :]
+
+                train = np.vstack((train, d_train))
+                test = np.vstack((test, d_test))
+
+        scaler = StandardScaler() if not scaling_minmax else MinMaxScaler()
+        scaler.fit(train[:, :-1])
+
+        scaled_train = np.hstack((scaler.transform(train[:, :-1]), np.expand_dims(train[:, -1], axis=1)))
+        scaled_test = np.hstack((scaler.transform(test[:, :-1]), np.expand_dims(test[:, -1], axis=1)))
+        
+        return scaled_train, scaled_test
+
+
+    @staticmethod
     def show_data_availability(raw=False):
         all_data = DataManager.parse_all_files_to_df(filter_outliers=not raw,
-                                                          filter_suspected_external_events=not raw)
+                                                     filter_suspected_external_events=not raw)
 
         print(f'Total data points: {len(all_data)}')
         drop_cols = [col for col in list(all_data) if col not in ['attack', 'block:block_bio_backmerge']]
@@ -150,5 +176,3 @@ class DataManager:
             rows.append(row)
         print(tabulate(
             rows, headers=labels, tablefmt="pretty"))
-
-
