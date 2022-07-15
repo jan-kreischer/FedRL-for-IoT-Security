@@ -35,8 +35,10 @@ class SensorEnvironment:
         self.observation_space_size: int = len(self.data[Behavior.RANSOMWARE_POC][0][:-1])
         self.actions: List[int] = [i for i in range(len(actions))]
 
+
     def sample_random_attack_state(self):
-        """i.e. for starting state of an episode"""
+        """i.e. for starting state of an episode,
+        (with replacement; it is possible that the same sample is chosen multiple times)"""
         rb = random.choice([b for b in Behavior if b != Behavior.NORMAL])
         attack_data = self.data[rb]
         return attack_data[np.random.randint(attack_data.shape[0], size=1), :]

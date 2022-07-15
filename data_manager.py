@@ -136,26 +136,36 @@ class DataManager:
         # take split of all behaviors, concat, calc scaling, scale both train and test split
         first_b = bdata[Behavior.NORMAL]
         np.random.shuffle(first_b)
-
         train = first_b[:int(split * first_b.shape[0]), :]
-        test = first_b[int(split * first_b.shape[0]):, :]
+        # test = first_b[int(split * first_b.shape[0]):, :]
 
+        # get behavior dicts for train and test
+        train_bdata = {}
+        test_bdata = {}
         for b, d in bdata.items():
+            np.random.shuffle(d)
+            d_train = d[:int(split * d.shape[0]), :]
+            d_test = d[int(split * d.shape[0]):, :]
+
+            train_bdata[b] = d_train
+            test_bdata[b] = d_test
             if b != Behavior.NORMAL:
-                np.random.shuffle(d)
-                d_train = d[:int(split * d.shape[0]), :]
-                d_test = d[int(split * d.shape[0]):, :]
-
                 train = np.vstack((train, d_train))
-                test = np.vstack((test, d_test))
+            #test = np.vstack((test, d_test))
 
+        # fit scaler on all training data combined
         scaler = StandardScaler() if not scaling_minmax else MinMaxScaler()
         scaler.fit(train[:, :-1])
 
-        scaled_train = np.hstack((scaler.transform(train[:, :-1]), np.expand_dims(train[:, -1], axis=1)))
-        scaled_test = np.hstack((scaler.transform(test[:, :-1]), np.expand_dims(test[:, -1], axis=1)))
-        
-        return scaled_train, scaled_test
+        # get behavior dicts for scaled train and test data
+        scaled_train = {}
+        scaled_test = {}
+        for b, d in train_bdata.items():
+            scaled_train[b] = np.hstack((scaler.transform(d[:, :-1]), np.expand_dims(d[:, -1], axis=1)))
+            scaled_test[b] = np.hstack((scaler.transform(test_bdata[b][:, :-1]), np.expand_dims(test_bdata[b][:, -1], axis=1)))
+
+        # return also scaler in case of using the agent for online scaling
+        return scaled_train, scaled_test, scaler
 
 
     @staticmethod
