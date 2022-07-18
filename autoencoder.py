@@ -4,9 +4,14 @@ import numpy as np
 from tqdm import tqdm
 
 
-def auto_encoder_model(in_features: int, hidden_size: int = 6):
+def auto_encoder_model(in_features: int, hidden_size: int = 8):
     return nn.Sequential(
         nn.Linear(in_features, hidden_size),
+        nn.BatchNorm1d(hidden_size),
+        nn.GELU(),
+        nn.Linear(hidden_size, int(hidden_size / 2)),
+        nn.GELU(),
+        nn.Linear(int(hidden_size / 2), hidden_size),
         nn.BatchNorm1d(hidden_size),
         nn.GELU(),
         nn.Linear(hidden_size, in_features),
@@ -81,7 +86,7 @@ class AutoEncoder():
 
 
 class AutoEncoderInterpreter():
-    def __init__(self, state_dict, threshold, in_features=15, hidden_size=6):
+    def __init__(self, state_dict, threshold, in_features=15, hidden_size=8):
         self.model = auto_encoder_model(in_features=in_features, hidden_size=hidden_size)
         self.model.load_state_dict(state_dict)
         self.threshold = threshold
@@ -95,11 +100,12 @@ class AutoEncoderInterpreter():
         all_predictions = torch.tensor([])  # .cuda()
 
         self.model.eval()
-        for idx, (batch_x,) in enumerate(data_loader):
-            batch_x = batch_x  # .cuda()
-            with torch.no_grad():
+        with torch.no_grad():
+            ae_loss = torch.nn.MSELoss(reduction="sum")
+            for idx, (batch_x,) in enumerate(data_loader):
+                batch_x = batch_x  # .cuda()
                 model_predictions = self.model(batch_x)
-                ae_loss = torch.nn.MSELoss(reduction="sum")
+
                 model_predictions = ae_loss(model_predictions, batch_x).unsqueeze(0)  # unsqueeze as batch_size set to 1
                 all_predictions = torch.cat((all_predictions, model_predictions))
 

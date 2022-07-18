@@ -133,7 +133,7 @@ class DataManager:
         return scaled_bdata
 
     @staticmethod
-    def get_scaled_train_test_split(split=0.8, scaling_minmax=True, pca=True):
+    def get_scaled_train_test_split(split=0.8, scaling_minmax=True):
         bdata = DataManager.parse_all_behavior_data()
 
         # take split of all behaviors, concat, calc scaling, scale both train and test split
