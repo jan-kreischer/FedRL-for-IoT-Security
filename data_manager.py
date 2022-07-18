@@ -193,25 +193,37 @@ class DataManager:
         return pca_train, pca_test
 
     @staticmethod
-    def print_pca_scree_plot():
-        strain, stest, scaler = DataManager.get_scaled_train_test_split()
-        all_strain = strain[Behavior.NORMAL]
-        for b in strain:
-            if b != Behavior.NORMAL:
-                all_strain = np.vstack((all_strain, strain[b]))
-
-        pca = PCA(n_components=30)
-        pca.fit(all_strain[:, :-1])
-        pca_data = pca.transform(all_strain[:, :-1])
-
+    def print_pca_scree_plot(n=30):
+        pca = DataManager.fit_pca()
         per_var = np.round(pca.explained_variance_ratio_ * 100, decimals=1)
         labels = ['PC' + str(x) for x in range(1, len(per_var) + 1)]
 
         plt.bar(x=range(1, len(per_var) + 1), height=per_var, tick_label=labels)
         plt.ylabel('Percentage of Explained Variance')
         plt.xlabel('Principal Component')
+        plt.xticks(fontsize=6)
         plt.title('Scree Plot')
-        plt.show()
+        plt.savefig(f"screeplot_n_{n}.pdf")
+
+    @staticmethod
+    def fit_pca(n=15):
+        strain, stest, scaler = DataManager.get_scaled_train_test_split()
+        all_strain = strain[Behavior.NORMAL]
+        for b in strain:
+            if b != Behavior.NORMAL:
+                all_strain = np.vstack((all_strain, strain[b]))
+
+        pca = PCA(n_components=n)
+        pca.fit(all_strain[:, :-1])
+        return pca
+
+    @staticmethod
+    def get_pca_loading_scores_dataframe(n=15):
+        pca = DataManager.fit_pca(n)
+        loadings = pd.DataFrame(pca.components_.T, columns=["PC" + str(i) for i in range(1, n+1)],
+                                index=pd.read_csv(data_file_paths[Behavior.CNC_BACKDOOR_JAKORITAR]).drop(
+                                    time_status_columns, axis=1).drop(all_zero_columns, axis=1).columns)
+        return loadings
 
     @staticmethod
     def show_data_availability(raw=False):
