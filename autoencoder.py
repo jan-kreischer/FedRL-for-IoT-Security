@@ -21,11 +21,11 @@ class AutoEncoderInterpreter():
         self.valid_loader = torch.utils.data.DataLoader(data_valid, batch_size=batch_size_valid, shuffle=True)
         self.validation_losses = []
 
-        self.model = self.auto_encoder_model(train_x.shape[1])
+        self.model = self.auto_encoder_model(in_features=train_x.shape[1])
         self.threshold = np.nan
 
 
-    def auto_encoder_model(in_features: int, hidden_size: int = 32):
+    def auto_encoder_model(self, in_features: int, hidden_size: int = 32):
         return nn.Sequential(
             nn.Linear(in_features, hidden_size),
             nn.BatchNorm1d(hidden_size),
