@@ -3,8 +3,9 @@ from prototype_2.environment import SensorEnvironment, supervisor_map
 from prototype_2.agent import Agent, DeepQNetwork
 from custom_types import Behavior
 from autoencoder import AutoEncoder, AutoEncoderInterpreter
-from utils.utils import plot_learning, seed_random
+from utils.utils import plot_learning, seed_random, calculate_metrics
 from time import time
+from tabulate import tabulate
 import torch
 import numpy as np
 import random
@@ -55,6 +56,26 @@ if __name__ == '__main__':
     pretrained_model = torch.load("trained_models/autoencoder_model.pth")
     ae_interpreter = AutoEncoderInterpreter(pretrained_model['model_state_dict'],
                                             pretrained_model['threshold'], in_features=15, hidden_size=6)
+
+    # AE can directly be tested on the data that will be used for RL: pass train_data to testing
+    # get a y vector for train_data per attack
+
+    res_dict = {}
+    for b, d in train_data.items():
+        y_test = np.array([0 if b == Behavior.NORMAL else 1] * len(d))
+        y_predicted = ae_interpreter.predict(d[:, :-1].astype(np.float32))
+
+        acc, f1, conf_mat = calculate_metrics(y_test.flatten(), y_predicted.flatten().numpy())
+        res_dict[b] = f'{(100 * acc):.2f}%'
+
+    labels = ["Behavior"] + ["Accuracy"]
+    results = []
+    for b, a in res_dict.items():
+        results.append([b.value, res_dict[b]])
+    print(tabulate(results, headers=labels, tablefmt="pretty"))
+
+
+
 
 
     exit()

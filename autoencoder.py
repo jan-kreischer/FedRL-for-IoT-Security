@@ -79,6 +79,7 @@ class AutoEncoder():
         }, "trained_models/autoencoder_model.pth")
 
 
+
 class AutoEncoderInterpreter():
     def __init__(self, state_dict, threshold, in_features=15, hidden_size=6):
         self.model = auto_encoder_model(in_features=in_features, hidden_size=hidden_size)
@@ -86,4 +87,22 @@ class AutoEncoderInterpreter():
         self.threshold = threshold
 
     def predict(self, x):
-        pass
+        test_data = torch.utils.data.TensorDataset(
+            torch.from_numpy(x).type(torch.float)
+        )
+        data_loader = torch.utils.data.DataLoader(test_data, batch_size=1, shuffle=False)
+
+        all_predictions = torch.tensor([])  # .cuda()
+
+        self.model.eval()
+        for idx, (batch_x,) in enumerate(data_loader):
+            batch_x = batch_x  # .cuda()
+            with torch.no_grad():
+                model_predictions = self.model(batch_x)
+                ae_loss = torch.nn.MSELoss(reduction="sum")
+                model_predictions = ae_loss(model_predictions, batch_x).unsqueeze(0)  # unsqueeze as batch_size set to 1
+                all_predictions = torch.cat((all_predictions, model_predictions))
+
+        #all_predictions = all_predictions.tolist()
+        all_predictions = (all_predictions > self.threshold).type(torch.long)
+        return all_predictions.flatten()
