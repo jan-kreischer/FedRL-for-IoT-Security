@@ -208,13 +208,17 @@ class DataManager:
     def print_pca_scree_plot(n=30):
         pca = DataManager.fit_pca()
         per_var = np.round(pca.explained_variance_ratio_ * 100, decimals=1)
-        labels = ['PC' + str(x) for x in range(1, len(per_var) + 1)]
+        acc_per_var = [per_var[i] + np.sum(per_var[:i]) for i in range(len(per_var))]
 
-        plt.bar(x=range(1, len(per_var) + 1), height=per_var, tick_label=labels)
+        labels = ['PC' + str(x) for x in range(1, len(per_var) + 1)]
+        xx = range(1, len(per_var) + 1)
+        plt.plot(xx, acc_per_var, 'ro', label="accumulated explained variance")
+        plt.bar(x=xx, height=per_var, tick_label=labels)
         plt.ylabel('Percentage of Explained Variance')
         plt.xlabel('Principal Component')
         plt.xticks(fontsize=6)
         plt.title('Scree Plot')
+        plt.legend()
         plt.savefig(f"screeplot_n_{n}.pdf")
 
     @staticmethod
