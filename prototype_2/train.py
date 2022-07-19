@@ -102,6 +102,7 @@ if __name__ == '__main__':
         episode_steps = 0
         done = False
         obs = env.reset()
+
         while not done:
             action = agent.choose_action(obs[:, :-1])
 
