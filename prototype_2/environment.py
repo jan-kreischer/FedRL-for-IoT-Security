@@ -1,6 +1,7 @@
 from typing import Dict, Tuple, List
 from collections import defaultdict
 from custom_types import Behavior, MTDTechnique
+from autoencoder import AutoEncoderInterpreter
 from scipy import stats
 from tabulate import tabulate
 import numpy as np
@@ -27,13 +28,16 @@ supervisor_map: Dict[int, Tuple[Behavior]] = defaultdict(lambda: -1, {
 class SensorEnvironment:
 
     def __init__(self, train_data: Dict[Behavior, np.ndarray] = None, test_data: Dict[Behavior, np.ndarray] = None,
-                 monitor=None, ):
+                 monitor=None, interpreter: AutoEncoderInterpreter = None):
         self.train_data = train_data
         self.test_data = test_data
-        self.monitor = monitor
         self.current_state: np.array = None
         self.observation_space_size: int = len(self.train_data[Behavior.RANSOMWARE_POC][0][:-1])
         self.actions: List[int] = [i for i in range(len(actions))]
+
+        self.monitor = monitor
+        self.interpreter = interpreter
+        self.reset_to_behavior = None
 
     def sample_random_attack_state(self):
         """i.e. for starting state of an episode,
@@ -46,21 +50,33 @@ class SensorEnvironment:
         behavior_data = self.train_data[b]
         return behavior_data[np.random.randint(behavior_data.shape[0], size=1), :]
 
-    # TODO: implement use of autoencoder here
     def step(self, action: int):
 
         current_behaviour = self.current_state.squeeze()[-1]
         if self.monitor is None:
             if current_behaviour in supervisor_map[action]:
                 # print("correct mtd chosen according to supervisor")
-                new_state = self.sample_behaviour(Behavior.NORMAL)
-                reward = self.calculate_reward(True)
-                isTerminalState = True
+                new_state = self.sample_behaviour(Behavior.NORMAL)  # real world sampling simulation
+                # ae predicts a false positive: episode should not end, but behaviour is normal (because MTD was correct)
+                if self.interpreter and self.interpreter.predict(new_state[:,:-1].astype(np.float32)) == 1:
+                    reward = self.calculate_reward(False)
+                    isTerminalState = False
+                else:
+                    reward = self.calculate_reward(True)
+                    isTerminalState = True
             else:
                 # print("incorrect mtd chosen according to supervisor")
                 new_state = self.sample_behaviour(current_behaviour)
-                reward = self.calculate_reward(False)
-                isTerminalState = False
+                # ae predicts a false negative: episode should end,  but behavior is not normal (because MTD was incorrect)
+                # in this case, the next episode should start again with current_behavior
+                if self.interpreter and self.interpreter.predict(new_state[:,:-1].astype(np.float32)) == 0:
+                    self.reset_to_behavior = current_behaviour
+                    reward = self.calculate_reward(True)
+                    isTerminalState = True
+                else:
+                    reward = self.calculate_reward(False)
+                    isTerminalState = False
+
         else:
             # would integrate a monitoring component here for a live system
             # new_state = self.monitor.get_current_behavior(),
@@ -72,7 +88,14 @@ class SensorEnvironment:
         return new_state, reward, isTerminalState
 
     def reset(self):
-        self.current_state = self.sample_random_attack_state()
+        # in case of wrongful termination of an episode due to a false negative,
+        # next episode should start with the given behavior again
+        if self.reset_to_behavior:
+            print(f"resetting to behavior: {self.reset_to_behavior}")
+            self.current_state = self.sample_behaviour(self.reset_to_behavior)
+            self.reset_to_behavior = None
+        else:
+            self.current_state = self.sample_random_attack_state()
         self.reward = 0
         self.done = False
         return self.current_state
