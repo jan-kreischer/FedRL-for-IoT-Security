@@ -101,7 +101,7 @@ class SensorEnvironment:
         # in case of wrongful termination of an episode due to a false negative,
         # next episode should start with the given behavior again
         if self.reset_to_behavior:
-            print(f"resetting to behavior: {self.reset_to_behavior}")
+            print(f"Resetting to behavior: {self.reset_to_behavior}")
             self.current_state = self.sample_behaviour(self.reset_to_behavior)
             self.reset_to_behavior = None
         else:
