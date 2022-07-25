@@ -51,7 +51,7 @@ class OnlineRL():
         # find filename
 
         prefixed = [filename for filename in os.listdir('.') if
-                    filename.startswith(OnlineRL.start_str_datafile + OnlineRL.monitor_counter)]
+                    filename.startswith(OnlineRL.start_str_datafile + str(OnlineRL.monitor_counter))]
 
         assert len(prefixed) == 1, "Only one file with counter number should exist"
 

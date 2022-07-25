@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from tabulate import tabulate
 import numpy as np
 import pandas as pd
-
+import joblib
 import os
 
 # paths to data
@@ -189,6 +189,14 @@ class DataManager:
         pca_test = {}
         for b, d in stest.items():
             pca_test[b] = np.hstack((pca.transform(d[:, :-1]), np.expand_dims(d[:, -1], axis=1)))
+
+        scaler_file, pca_file = "scaler.gz", "pcafit.gz"
+        if not os.path.isfile(scaler_file):
+            joblib.dump(scaler, scaler_file)
+            #my_scaler = joblib.load('scaler.gz')
+        if not os.path.isfile(pca_file):
+            joblib.dump(pca, pca_file)
+
 
         return pca_train, pca_test
 
