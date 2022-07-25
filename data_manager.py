@@ -193,7 +193,6 @@ class DataManager:
         scaler_file, pca_file = "scaler.gz", "pcafit.gz"
         if not os.path.isfile(scaler_file):
             joblib.dump(scaler, scaler_file)
-            #my_scaler = joblib.load('scaler.gz')
         if not os.path.isfile(pca_file):
             joblib.dump(pca, pca_file)
 

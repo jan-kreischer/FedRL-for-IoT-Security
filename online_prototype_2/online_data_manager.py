@@ -7,6 +7,7 @@ from scipy import stats
 import numpy as np
 import pandas as pd
 import os
+import joblib
 
 
 time_status_columns = ["time", "timestamp", "seconds", "connectivity"]
@@ -44,3 +45,13 @@ class DataManager:
 
         #df.to_csv(file_name + "preprocessed", index_label=False)
         return df
+
+    @staticmethod
+    def get_scale_and_pca_transformed_data():
+        data = DataManager.parse_file_to_df().to_numpy()
+        scaler = joblib.load('scaler.gz')
+        pca = joblib.load('pcafit.gz')
+        return pca.transform(scaler.transform(data))
+
+
+
