@@ -60,15 +60,10 @@ class OnlineRL():
         fname = prefixed[0]
         print(fname)
         print(os.getcwd())
-        df = DataManager.parse_file_to_df(fname)
-        print(df.shape)
+        data = DataManager.get_scale_and_pca_transformed_data(fname)
+        print(data.shape)
         # TODO: apply scaling and pca as offline
-        return df
-
-
-
-
-
+        return data
 
     def interprete_data(self, data):
         pass
@@ -105,6 +100,6 @@ if __name__ == '__main__':
     controller = OnlineRL()
 
     # testing
-    #controller.monitor(180)
+    # controller.monitor(180)
     OnlineRL.monitor_counter += 1
     controller.read_data()
