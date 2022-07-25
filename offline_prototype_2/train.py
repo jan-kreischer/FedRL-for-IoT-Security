@@ -1,9 +1,11 @@
 from data_manager import DataManager
-from prototype_1.environment import SensorEnvironment, supervisor_map
-from prototype_1.agent import Agent, DeepQNetwork
+from offline_prototype_2.environment import SensorEnvironment, supervisor_map
+from offline_prototype_2.agent import Agent, DeepQNetwork
 from custom_types import Behavior
-from utils.utils import plot_learning, seed_random
+from autoencoder import AutoEncoder, AutoEncoderInterpreter
+from utils.utils import plot_learning, seed_random, calculate_metrics
 from time import time
+from tabulate import tabulate
 import torch
 import numpy as np
 import random
@@ -25,12 +27,56 @@ if __name__ == '__main__':
     seed_random()
     start = time()
 
-    #AE = auto_encoder_model(DIMS)
-
     # read in all preprocessed data for a simulated, supervised environment to sample from
     #train_data, test_data, scaler = DataManager.get_scaled_train_test_split()
     train_data, test_data = DataManager.get_reduced_dimensions_with_pca(DIMS)
-    env = SensorEnvironment(train_data, test_data)
+
+    # get splits for RL & AD of normal data
+    n = 100
+    s = 0.8
+    b = Behavior.NORMAL
+    normal_data = train_data[b]
+    train_data[b] = normal_data[:n]  # use fixed number of samples for Reinforcement Agent training
+    # COMMENT/UNCOMMENT BELOW for retraining of autoencoder
+    # ae_data = normal_data[n:]  # use remaining samples for autoencoder
+    # idx = int(len(ae_data) * s)
+    # train_ae_x, train_ae_y = ae_data[:idx, :-1].astype(np.float32), np.arange(
+    #     idx)  # just a placeholder for the torch dataloader
+    # valid_ae_x, valid_ae_y = ae_data[idx:, :-1].astype(np.float32), np.arange(len(ae_data) - idx)
+    # print(f"size train: {train_ae_x.shape}, size valid: {valid_ae_x.shape}")
+    # # AD training
+    # ae = AutoEncoder(train_x=train_ae_x, train_y=train_ae_y, valid_x=valid_ae_x,
+    #                              valid_y=valid_ae_y)
+    # ae.train(optimizer=torch.optim.SGD(ae.get_model().parameters(), lr=0.0001, momentum=0.8), num_epochs=100)
+    # ae.determine_threshold()
+    # print(f"ae threshold: {ae.threshold}")
+    # ae.save_model()
+
+    # AE evaluation of pretrained model
+    pretrained_model = torch.load("trained_models/autoencoder_model.pth")
+    ae_interpreter = AutoEncoderInterpreter(pretrained_model['model_state_dict'],
+                                            pretrained_model['threshold'], in_features=DIMS)
+    print(f"ae_interpreter threshold: {ae_interpreter.threshold}")
+
+    # AE can directly be tested on the data that will be used for RL: pass train_data to testing
+
+    # res_dict = {}
+    # for b, d in train_data.items():
+    #     y_test = np.array([0 if b == Behavior.NORMAL else 1] * len(d))
+    #     y_predicted = ae_interpreter.predict(d[:, :-1].astype(np.float32))
+    #
+    #     acc, f1, conf_mat = calculate_metrics(y_test.flatten(), y_predicted.flatten().numpy())
+    #     res_dict[b] = f'{(100 * acc):.2f}%'
+    #
+    # labels = ["Behavior"] + ["Accuracy"]
+    # results = []
+    # for b, a in res_dict.items():
+    #     results.append([b.value, res_dict[b]])
+    # print(tabulate(results, headers=labels, tablefmt="pretty"))
+
+
+    # Reinforcement Learning
+    env = SensorEnvironment(train_data, test_data, interpreter=ae_interpreter)
 
     agent = Agent(input_dims=env.observation_space_size, n_actions=len(env.actions), buffer_size=BUFFER_SIZE,
                   batch_size=BATCH_SIZE, lr=LEARNING_RATE, gamma=GAMMA, epsilon=EPSILON_START, eps_end=EPSILON_END)
@@ -56,6 +102,7 @@ if __name__ == '__main__':
         episode_steps = 0
         done = False
         obs = env.reset()
+
         while not done:
             action = agent.choose_action(obs[:, :-1])
 
@@ -84,6 +131,8 @@ if __name__ == '__main__':
         print('episode ', i, '| episode_return %.2f' % episode_returns[-1],
               '| average episode_return %.2f' % avg_episode_return,
               '| epsilon %.2f' % agent.epsilon)
+        if i >= N_EPISODES-6:
+            print(episode_returns[-10:])
 
     end = time()
     print("Total training time: ", end - start)
@@ -93,7 +142,6 @@ if __name__ == '__main__':
     x = [i + 1 for i in range(N_EPISODES)]
     filename = 'mtd_agent.pdf'
     plot_learning(x, episode_returns, eps_history, filename)
-
 
     # check predictions with learnt dqn
     agent.online_net.eval()
@@ -111,9 +159,3 @@ if __name__ == '__main__':
                 results[b] = (cnt_corr, cnt)
 
     print(results)
-
-
-
-
-
-
