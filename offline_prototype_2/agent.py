@@ -6,6 +6,7 @@ import numpy as np
 from collections import deque
 import random
 
+
 # TODO: check
 #  - add softmax layer at the end of dqn
 #  - check code with debugger, run through, understanding of each loc
@@ -23,9 +24,6 @@ import random
 #  -> adapt choose_action!
 #  - ensure that most resource-consuming MTDs are penalized harder than such that are not
 #  (i.e. -1 for dirtrap, -0.8 for ipshuffle, -0.7 filext, -0.5rootkit), because dirtrap is computationally intense, ipshuffle results in downtime, rootkit lasts miliseconds
-
-
-
 
 
 class DeepQNetwork(nn.Module):
@@ -54,7 +52,6 @@ class DeepQNetwork(nn.Module):
         return actions
 
 
-
 class Agent:
     def __init__(self, input_dims, n_actions, batch_size,
                  lr, gamma, epsilon, eps_end=0.02, eps_dec=1e-4, buffer_size=100000):
@@ -67,18 +64,17 @@ class Agent:
 
         self.buffer_size = buffer_size
         self.replay_buffer = deque(maxlen=buffer_size)
-        self.reward_buffer = deque([0.0], maxlen=100) # for printing progress
+        self.reward_buffer = deque([0.0], maxlen=100)  # for printing progress
 
         self.batch_size = batch_size
 
         self.online_net = DeepQNetwork(lr, n_actions=n_actions,
-                                   input_dims=input_dims,
-                                   fc1_dims=256, fc2_dims=256)
+                                       input_dims=input_dims,
+                                       fc1_dims=256, fc2_dims=256)
         self.target_net = DeepQNetwork(lr, n_actions=n_actions,
-                                   input_dims=input_dims,
-                                   fc1_dims=256, fc2_dims=256)
+                                       input_dims=input_dims,
+                                       fc1_dims=256, fc2_dims=256)
         self.target_net.load_state_dict(self.online_net.state_dict())
-
 
     def choose_action(self, observation):
         if np.random.random() > self.epsilon:
@@ -89,13 +85,11 @@ class Agent:
             action = np.random.choice(self.action_space)
         return action
 
-
     def take_greedy_action(self, observation):
         state = torch.from_numpy(observation.astype(np.float32)).to(self.online_net.device)
         actions = self.online_net.forward(state)
         action = torch.argmax(actions).item()
         return action
-
 
     def learn(self):
         # init data batch from memory replay for dqn
@@ -133,13 +127,6 @@ class Agent:
 
     def update_target_network(self):
         self.target_net.load_state_dict(self.online_net.state_dict())
-
-
-    def derive_reward_from_new_state(self, new_state):
-        """method only needed in unsupervised setting"""
-        # TODO: call autoencoder here and check for normality
-        pass
-
 
     def save_dqns(self, n: int):
         torch.save(self.online_net.state_dict(), f"trained_models/online_net_{n}.pth")
