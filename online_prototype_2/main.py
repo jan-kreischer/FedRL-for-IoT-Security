@@ -12,12 +12,12 @@ import torch
 import numpy as np
 
 
-
 # TODO: make abstract (template method pattern) in case of multiple online methods
 class OnlineRL():
     monitor_counter = 0
     start_str_datafile = "online_samples_"
-    #start_str_datafile = "normal_samples_"
+
+    # start_str_datafile = "normal_samples_"
 
     def __init__(self, ae: AutoEncoderInterpreter, agent: Agent):
         self.ae_interpreter = ae
@@ -26,20 +26,20 @@ class OnlineRL():
     # TODO adapt to monitor every hour
     def learn_online(self):
         self.monitor(180)
-        data = self.read_data()
-        isAnomaly = self.interprete_data(data)
+        decision_data = self.read_data()
+        isAnomaly = self.interprete_data(decision_data)
         if isAnomaly:
             while isAnomaly:
-                action = self.choose_action(data)
+                action = self.choose_action(decision_data)
                 self.launch_mtd(action)
-                # wait for n seconds
-                time.sleep(180)
-                data = self.monitor(180)
-                isAnomaly = self.interprete_data(data)
-                self.provide_feedback_and_update(data, isAnomaly)
+                time.sleep(180)  # wait for 3 mins -> make dependent on pid of mtd script?
+                self.monitor(180)
+                after_data = self.read_data()
+                isAnomaly = self.interprete_data(after_data)
+                decision_data = self.provide_feedback_and_update(decision_data, action, after_data, isAnomaly)
+            print("successfully mitigated attack using action: " + str(action))
 
     def monitor(self, t: int):
-
         OnlineRL.monitor_counter += 1
 
         # call monitoring shell script from python
@@ -55,16 +55,14 @@ class OnlineRL():
         print(p.pid)
         kill(p.pid)
 
+    # TODO: adapt to monitor again if no samples left after filtering
     def read_data(self):
-        # use num to read "online_samples_{c}..."
-        # find filename
-
+        """should only be used after running self.montitor(n) first, since it relies
+        on the monitor_counter to open the file online_samples_{c}"""
         prefixed = [filename for filename in os.listdir('.') if
                     filename.startswith(OnlineRL.start_str_datafile + str(OnlineRL.monitor_counter))]
-
         print(prefixed)
         assert len(prefixed) == 1, "Only one file with counter number should exist"
-
         # read file and apply preprocessing
         fname = prefixed[0]
         print(fname)
@@ -104,7 +102,8 @@ class OnlineRL():
             if mtd_conf[SCRIPT_NAME] == ACTIONS[n]:
                 selected_mtd = mtd_conf
         print(selected_mtd)
-        print(os.getcwd())
+        old_dir = os.getcwd()
+        print(old_dir)
         os.chdir(selected_mtd[PATH])
         print(os.getcwd())
 
@@ -116,11 +115,35 @@ class OnlineRL():
 
         print("run: " + selected_mtd[RUN_PREFIX] + ' ' + str(selected_mtd[SCRIPT_NAME]) + ' ' + mtd_params)
         os.system(selected_mtd[RUN_PREFIX] + ' ' + str(selected_mtd[SCRIPT_NAME]) + ' ' + mtd_params)
+        os.chdir(old_dir)
+
+    def provide_feedback_and_update(self, decision_data, action, after_data, isAnomaly, max_len=10):
+        """feeds back [data] from afterstate behavior, along with a flag of whether it corresponds to normal behavior"""
+
+        reward = 1 if isAnomaly else -1
+        done = not isAnomaly
+
+        # adding max monitored samples to replay_buffer
+        ld, la = len(decision_data), len(after_data)
+        m = min(ld, la)
+        n_samples = max_len if m > max_len else m
+        for i in range(n_samples):
+            self.agent.replay_buffer.append((decision_data[i, :], action, reward,
+                                             after_data[i, :], done))
 
 
+        # add samples to agent memory
+        # call agent.learn
+        new_obs, reward, done = env.step(action)
 
-    def provide_feedback_and_update(self, data, isAnomaly):
-        pass
+        episode_return += reward
+
+        agent.reward_buffer.append(reward)
+
+        agent.learn()
+
+        self.agent
+        return after_data
 
 
 def kill(pid):
@@ -129,6 +152,7 @@ def kill(pid):
     for child in parent.children(recursive=True):
         child.kill()
     parent.kill()
+
 
 def validate_config_file(json_data):
     with open('config-schema.json') as json_schema_file:
@@ -144,19 +168,10 @@ def validate_config_file(json_data):
 # jsonschema data
 SCRIPT_NAME = 'ScriptName'
 PATH = 'RelativePath'
-#PRIORITY = 'Priority'
 TYPE = 'Type'
 MTD_SOLUTIONS = 'MTDSolutions'
-#ATTACK_TYPES = 'AttackTypes'
-#DEPL_POLICY = 'DeploymentPolicy'
-#ALLOW_EXT = 'AllowAllExternalReports'
-#WHITE_LIST = 'WhiteListForExternalReports'
 PARAMS = 'Params'
 RUN_PREFIX = 'RunWithPrefix'
-#PORT = 'PortToUse'
-
-
-
 
 DIMS = 15
 # !!!Order is important!!!
@@ -166,21 +181,17 @@ GAMMA = 0.99
 BATCH_SIZE = 100
 BUFFER_SIZE = 500
 MIN_REPLAY_SIZE = 100
-EPSILON_START = 0.5#1.0
+EPSILON_START = 1.0
 EPSILON_END = 0.01
 TARGET_UPDATE_FREQ = 100
 LEARNING_RATE = 1e-5
 N_EPISODES = 5000
 LOG_FREQ = 100
 
-
 if __name__ == '__main__':
 
     # TODO:
-    #  call monitoring, or at least read data -> last 10 samples (180s!)
-    #  call AD/pretrained AE network and get results
     #  call DQN if anomaly is flagged, else wait till next monitoring (every hour?)
-    #  call the MTD deployerframework with the MTD matching the action
     #  wait until MTD execution has finished, e.g. 2 mins
     #  call monitoring -> last 10 samples
     #  call AD on afterstate
@@ -199,10 +210,10 @@ if __name__ == '__main__':
     agent.online_net.load_state_dict(pretrained_online_net)
     agent.target_net.load_state_dict(pretrained_online_net)
 
-
     controller = OnlineRL(ae=ae_interpreter, agent=agent)
     controller.launch_mtd(0)
     exit(0)
+
     # uncomment before moving online
     # controller.monitor(180)
     OnlineRL.monitor_counter += 3
@@ -217,10 +228,6 @@ if __name__ == '__main__':
         print("chosen action: " + str(action))
         controller.launch_mtd(action)
 
-
-
-
-
     # TODO: options for improving the accuracy of the anomaly detector/dqn
     # -> 1. change testdata: closing shh session in normal monitor -> python script call with nohup
     # TODO:compare data monitored offline and via this script for differences, exclude features/ram/cpu which are intense for interpreters?
@@ -229,12 +236,3 @@ if __name__ == '__main__':
     # ---> flagged all as anomaly - conclusion: process python3 main.py mainly influences the normal behavior
     # -> 2. change traindata: retrain agent on more realistic data
     # ---> during monitoring python main.py must run in a similar stack situation
-
-
-
-
-
-
-
-
-
