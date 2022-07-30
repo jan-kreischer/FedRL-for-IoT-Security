@@ -12,6 +12,7 @@ from agent import Agent
 import torch
 import numpy as np
 
+# TODO: add storage of agent networks after some episodes
 
 # TODO: make abstract (template method pattern) in case of multiple online methods
 class OnlineRL():
@@ -27,14 +28,15 @@ class OnlineRL():
     # TODO: do something with learning data, progress monitoring
     def activate_learning(self, interval=900):
         episode_rewards = deque([0.0], maxlen=100)
+        steps = 0
         while True:
-            episode_reward = self.learn_online()
+            episode_reward, steps = self.start_monitoring_episode(steps)
             if episode_reward:
+
                 episode_rewards.append(episode_reward)
             time.sleep(interval)
 
-
-    def learn_online(self):
+    def start_monitoring_episode(self, steps):
         self.monitor(180)
         decision_data = self.read_data()
         isAnomaly = self.interprete_data(decision_data)
@@ -48,24 +50,24 @@ class OnlineRL():
                 after_data = self.read_data()
                 isAnomaly = self.interprete_data(after_data)
                 r += self.provide_feedback_and_update(decision_data, action, after_data, isAnomaly)
-                decision_data = after_data # to reuse newly monitored data from afterstate
-            print("successfully mitigated attack using action: " + str(action))
-            return r
-        else:
-            return None
+                steps += 1
+                if steps % TARGET_UPDATE_FREQ == 0:
+                    self.agent.update_target_network()
 
+                decision_data = after_data  # to reuse newly monitored data from afterstate
+            print("successfully mitigated attack using action: " + str(ACTIONS[action]))
+            return r, steps
+        else:
+            return None, steps
 
     def monitor(self, t: int):
         OnlineRL.monitor_counter += 1
-
         # call monitoring shell script from python
         print("running rl_sampler subprocess")
         # subprocess.run(["./rl_sampler_online.sh", str(OnlineRL.monitor_counter)])
         p = subprocess.Popen(["./rl_sampler_online.sh", str(OnlineRL.monitor_counter), "&"])
         print(p.pid)
-
         time.sleep(t)
-
         # killing all related processes
         print("killing process")
         print(p.pid)
@@ -106,8 +108,6 @@ class OnlineRL():
 
     def launch_mtd(self, n: int):
         print("Launching MTD " + ACTIONS[n])
-        # TODO:
-        #  call the right MTD by integrating the json schema
         with open('config.json') as json_file:
             data = json.load(json_file)
             validate_config_file(data)
