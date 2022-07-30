@@ -5,6 +5,7 @@ import psutil
 import json
 import jsonschema
 from abc import ABC, abstractmethod
+from collections import deque
 from online_data_manager import DataManager
 from anomaly_detector import AutoEncoderInterpreter
 from agent import Agent
@@ -23,12 +24,22 @@ class OnlineRL():
         self.ae_interpreter = ae
         self.agent = agent
 
-    # TODO adapt to monitor every hour
+    # TODO: do something with learning data, progress monitoring
+    def activate_learning(self, interval=900):
+        episode_rewards = deque([0.0], maxlen=100)
+        while True:
+            episode_reward = self.learn_online()
+            if episode_reward:
+                episode_rewards.append(episode_reward)
+            time.sleep(interval)
+
+
     def learn_online(self):
         self.monitor(180)
         decision_data = self.read_data()
         isAnomaly = self.interprete_data(decision_data)
         if isAnomaly:
+            r = 0
             while isAnomaly:
                 action = self.choose_action(decision_data)
                 self.launch_mtd(action)
@@ -36,8 +47,13 @@ class OnlineRL():
                 self.monitor(180)
                 after_data = self.read_data()
                 isAnomaly = self.interprete_data(after_data)
-                decision_data = self.provide_feedback_and_update(decision_data, action, after_data, isAnomaly)
+                r += self.provide_feedback_and_update(decision_data, action, after_data, isAnomaly)
+                decision_data = after_data # to reuse newly monitored data from afterstate
             print("successfully mitigated attack using action: " + str(action))
+            return r
+        else:
+            return None
+
 
     def monitor(self, t: int):
         OnlineRL.monitor_counter += 1
@@ -131,19 +147,9 @@ class OnlineRL():
             self.agent.replay_buffer.append((decision_data[i, :], action, reward,
                                              after_data[i, :], done))
 
-
-        # add samples to agent memory
         # call agent.learn
-        new_obs, reward, done = env.step(action)
-
-        episode_return += reward
-
-        agent.reward_buffer.append(reward)
-
-        agent.learn()
-
-        self.agent
-        return after_data
+        self.agent.learn()
+        return reward
 
 
 def kill(pid):
