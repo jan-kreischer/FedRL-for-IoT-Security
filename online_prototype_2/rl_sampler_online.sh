@@ -116,7 +116,7 @@ do
 
 	if [ "$ransomwareMonitor" = true ]
 	then
-		numEncrypted=$(find "TestFileStructure/" -type f | grep "wasted$" | wc -l)
+		numEncrypted=$(find "Ransomware/TestFileStructure/" -type f | grep "wasted$" | wc -l)
 
 		resourceSample="${resourceSample}${numEncrypted},"
 	fi
