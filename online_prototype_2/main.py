@@ -108,9 +108,9 @@ class OnlineRL():
 
     def launch_mtd(self, n: int):
         print("Launching MTD " + ACTIONS[n])
+
         with open('config.json') as json_file:
             data = json.load(json_file)
-            validate_config_file(data)
 
         # get commands from config file exactly:
         selected_mtd = None
@@ -194,7 +194,12 @@ LEARNING_RATE = 1e-5
 N_EPISODES = 5000
 LOG_FREQ = 100
 
+# TODO: initialize agent with full memory buffer -> as per last episode of offline training
 if __name__ == '__main__':
+
+    with open('config.json') as json_file:
+        data = json.load(json_file)
+        validate_config_file(data)
 
     # pretrained_model = torch.load("autoencoder_model.pth")
     # ae_interpreter = AutoEncoderInterpreter(pretrained_model['model_state_dict'],
@@ -211,7 +216,7 @@ if __name__ == '__main__':
     #
     # controller = OnlineRL(ae=ae_interpreter, agent=agent)
     controller = OnlineRL()
-    controller.launch_mtd(1)
+    controller.launch_mtd(2)
     exit(0)
 
     # uncomment before moving online
@@ -227,16 +232,3 @@ if __name__ == '__main__':
         action = controller.choose_action(data)
         print("chosen action: " + str(action))
         controller.launch_mtd(action)
-
-
-
-
-
-    # TODO: options for improving the accuracy of the anomaly detector/dqn
-    # -> 1. change testdata: closing shh session in normal monitor -> python script call with nohup
-    # TODO:compare data monitored offline and via this script for differences, exclude features/ram/cpu which are intense for interpreters?
-    #  more pcs?
-
-    # ---> flagged all as anomaly - conclusion: process python3 main.py mainly influences the normal behavior
-    # -> 2. change traindata: retrain agent on more realistic data
-    # ---> during monitoring python main.py must run in a similar stack situation
