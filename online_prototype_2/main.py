@@ -7,10 +7,11 @@ import jsonschema
 from abc import ABC, abstractmethod
 from collections import deque
 from online_data_manager import DataManager
-#from anomaly_detector import AutoEncoderInterpreter
-#from agent import Agent
-#import torch
+# from anomaly_detector import AutoEncoderInterpreter
+# from agent import Agent
+# import torch
 import numpy as np
+
 
 # TODO: add storage of agent networks after some episodes
 
@@ -21,22 +22,23 @@ class OnlineRL():
 
     # start_str_datafile = "normal_samples_"
 
-    def __init__(self, ae=None, agent=None):#AutoEncoderInterpreter=None, agent: Agent=None):
+    def __init__(self, ae=None, agent=None):  # AutoEncoderInterpreter=None, agent: Agent=None):
         self.ae_interpreter = ae
         self.agent = agent
 
     # TODO: do something with learning data, progress monitoring
-    def activate_learning(self, interval=900):
+    def activate_learning(self, interval=9000, monitor_duration=180):
+        print("start new monitoring loop every" + str(interval/60) + "minutes")
         episode_rewards = deque([0.0], maxlen=100)
         steps = 0
         while True:
-            episode_reward, steps = self.start_monitoring_episode(steps)
+            episode_reward, steps = self.start_monitoring_episode(steps, duration=monitor_duration)
             if episode_reward:
                 episode_rewards.append(episode_reward)
             time.sleep(interval)
 
-    def start_monitoring_episode(self, steps):
-        self.monitor(180)
+    def start_monitoring_episode(self, steps, duration):
+        self.monitor(duration)
         decision_data = self.read_data()
         isAnomaly = self.interprete_data(decision_data)
         if isAnomaly:
@@ -45,7 +47,7 @@ class OnlineRL():
                 action = self.choose_action(decision_data)
                 self.launch_mtd(action)
                 time.sleep(180)  # wait for 3 mins -> make dependent on pid of mtd script?
-                self.monitor(180)
+                self.monitor(duration)
                 after_data = self.read_data()
                 isAnomaly = self.interprete_data(after_data)
                 r += self.provide_feedback_and_update(decision_data, action, after_data, isAnomaly)
@@ -54,12 +56,12 @@ class OnlineRL():
                     self.agent.update_target_network()
 
                 decision_data = after_data  # to reuse newly monitored data from afterstate
-            print("successfully mitigated attack using action: " + str(ACTIONS[action]))
+            print("successfully mitigated attack using action: " + str(ACTIONS[action]) + "Step ")
             return r, steps
         else:
             return None, steps
 
-    def monitor(self, t: int):
+    def monitor(self, t: int = 180):
         OnlineRL.monitor_counter += 1
         # call monitoring shell script from python
         print("running rl_sampler subprocess")
@@ -89,11 +91,11 @@ class OnlineRL():
         return data
 
     def interprete_data(self, data):
-        # print(f"ae_interpreter threshold: {ae_interpreter.threshold}")
+        # print("ae_interpreter threshold: " + str(ae_interpreter.threshold))
         flagged_anomalies = self.ae_interpreter.predict(data)
         print(flagged_anomalies)
-        return False
-        #return (torch.sum(flagged_anomalies) / len(flagged_anomalies) > 0.5).item()
+        return True
+        # return (torch.sum(flagged_anomalies) / len(flagged_anomalies) > 0.5).item()
 
     def choose_action(self, data):
         actions = []
@@ -101,10 +103,9 @@ class OnlineRL():
             for state in data:
                 actions.append(self.agent.take_greedy_action(state))
             print(actions)
-            return max(set(actions), key=actions.count)
+            return max(set(actions), key=actions.count) # take action that the dqn predicts the most frequently
         else:
-            for _ in data:
-                return np.random.choice(self.agent.action_space)
+            return np.random.choice(self.agent.action_space)
 
     def launch_mtd(self, n: int):
         print("Launching MTD " + ACTIONS[n])
@@ -201,12 +202,13 @@ if __name__ == '__main__':
         data = json.load(json_file)
         validate_config_file(data)
 
+    # How it would look like in Online Monitoring/Training
     # get pretrained anomaly detector
-    # pretrained_model = torch.load("autoencoder_model.pth")
+    # pretrained_model = torch.load("trained_models/autoencoder_model.pth")
     # ae_interpreter = AutoEncoderInterpreter(pretrained_model['model_state_dict'],
     #                                         pretrained_model['threshold'], in_features=DIMS)
     #
-    # get pretrained agent with defined parameters
+    # # get pretrained agent with defined parameters
     # pretrained_state = torch.load("trained_models/agent_0.pth")
     # pretrained_agent = Agent(input_dims=DIMS, n_actions=len(ACTIONS), buffer_size=BUFFER_SIZE,
     #                          batch_size=pretrained_state['batch_size'], lr=pretrained_state['lr'],
@@ -217,20 +219,21 @@ if __name__ == '__main__':
     # pretrained_agent.replay_buffer = pretrained_state['replay_buffer']
     #
     # controller = OnlineRL(ae=ae_interpreter, agent=agent)
+
+
     controller = OnlineRL()
-    controller.launch_mtd(2)
-    exit(0)
+    controller.activate_learning(interval=90000, monitor_duration=18000)
 
     # uncomment before moving online
-    # controller.monitor(180)
-    OnlineRL.monitor_counter += 3
-    # read the monitored data from file and apply all preset scalings and transforms
-    data = controller.read_data()
-
-    # run data through pretrained anomaly detector
-    isAnomaly = controller.interprete_data(data)
-    print(isAnomaly)
-    if isAnomaly:
-        action = controller.choose_action(data)
-        print("chosen action: " + str(action))
-        controller.launch_mtd(action)
+    # # controller.monitor(180)
+    # OnlineRL.monitor_counter += 3
+    # # read the monitored data from file and apply all preset scalings and transforms
+    # data = controller.read_data()
+    #
+    # # run data through pretrained anomaly detector
+    # isAnomaly = controller.interprete_data(data)
+    # print(isAnomaly)
+    # if isAnomaly:
+    #     action = controller.choose_action(data)
+    #     print("chosen action: " + str(action))
+    #     controller.launch_mtd(action)
