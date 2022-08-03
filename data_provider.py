@@ -96,6 +96,7 @@ class DataProvider:
 
         for attack in data_file_paths:
             df = pd.read_csv(data_file_paths[attack])
+            assert df.isnull().values.any() == False, "behavior data should not contain NaN values"
 
             if filter_suspected_external_events:
                 # filter first hour of samples: 3600s / 50s = 72
@@ -104,9 +105,11 @@ class DataProvider:
             # filter for measurements where the device was connected
             df = df[df['connectivity'] == 1]
 
+
             # remove model-irrelevant columns
             if not keep_status_columns:
                 df = df.drop(time_status_columns, axis=1)
+
             if filter_outliers:
                 # drop outliers per measurement, indicated by (absolute z score) > 3
                 df = df[(np.nan_to_num(np.abs(stats.zscore(df))) < 3).all(axis=1)]

@@ -7,7 +7,6 @@ from custom_types import Behavior
 
 
 def show_data_availability(raw=False):
-    print(os.getcwd())
     all_data = DataProvider.parse_all_files_to_df(filter_outliers=not raw,
                                                   filter_suspected_external_events=not raw)
 
