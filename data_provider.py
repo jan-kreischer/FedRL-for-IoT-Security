@@ -10,8 +10,8 @@ import pandas as pd
 import joblib
 import os
 
-# paths to data
-path = "raw_behaviors_no_agent"
+# data to use
+path = "raw_behaviors_no_agent_rp4"
 
 data_file_paths: Dict[Behavior, str] = {
     Behavior.NORMAL: f"../data/{path}/normal_samples_2022-06-13-11-25_50s",
@@ -29,7 +29,7 @@ all_zero_columns = ['cpuNice', 'cpuHardIrq', 'alarmtimer:alarmtimer_fired',
        'cachefiles:cachefiles_lookup', 'cachefiles:cachefiles_mark_active',
        'dma_fence:dma_fence_init', 'udp:udp_fail_queue_rcv_skb']
 
-class DataManager:
+class DataProvider:
 
     @staticmethod
     def parse_all_behavior_data(filter_suspected_external_events=True,
@@ -82,6 +82,7 @@ class DataManager:
                               filter_outliers=True,
                               keep_status_columns=False) -> pd.DataFrame:
 
+        print(os.getcwd())
         file_name = f'../data/{path}/all_data_filtered_external_{str(filter_suspected_external_events)}' \
                     f'_constant_{str(filter_constant_columns)}_outliers_{str(filter_outliers)}'
 
@@ -121,11 +122,11 @@ class DataManager:
 
     @staticmethod
     def get_scaled_all_data(scaling_minmax=True):
-        all_data = DataManager.parse_all_files_to_df().to_numpy()[:, :-1]
+        all_data = DataProvider.parse_all_files_to_df().to_numpy()[:, :-1]
         scaler = StandardScaler() if not scaling_minmax else MinMaxScaler()
         scaler.fit(all_data)
 
-        bdata = DataManager.parse_all_behavior_data()
+        bdata = DataProvider.parse_all_behavior_data()
         scaled_bdata = {}
         # return directory as
         for b in bdata:
@@ -135,7 +136,7 @@ class DataManager:
 
     @staticmethod
     def get_scaled_train_test_split(split=0.8, scaling_minmax=True):
-        bdata = DataManager.parse_all_behavior_data()
+        bdata = DataProvider.parse_all_behavior_data()
 
         # take split of all behaviors, concat, calc scaling, scale both train and test split
         first_b = bdata[Behavior.NORMAL]
@@ -174,7 +175,7 @@ class DataManager:
 
     @staticmethod
     def get_reduced_dimensions_with_pca(dim=15):
-        strain, stest, scaler = DataManager.get_scaled_train_test_split()
+        strain, stest, scaler = DataProvider.get_scaled_train_test_split()
         all_strain = strain[Behavior.NORMAL]
         for b in strain:
             if b != Behavior.NORMAL:
@@ -202,7 +203,7 @@ class DataManager:
 
     @staticmethod
     def fit_pca(n=15):
-        strain, stest, scaler = DataManager.get_scaled_train_test_split()
+        strain, stest, scaler = DataProvider.get_scaled_train_test_split()
         all_strain = strain[Behavior.NORMAL]
         for b in strain:
             if b != Behavior.NORMAL:
@@ -214,7 +215,7 @@ class DataManager:
 
     @staticmethod
     def print_pca_scree_plot(n=30):
-        pca = DataManager.fit_pca()
+        pca = DataProvider.fit_pca()
         per_var = np.round(pca.explained_variance_ratio_ * 100, decimals=1)
         acc_per_var = [per_var[i] + np.sum(per_var[:i]) for i in range(len(per_var))]
 
@@ -231,7 +232,7 @@ class DataManager:
 
     @staticmethod
     def get_pca_loading_scores_dataframe(n=15):
-        pca = DataManager.fit_pca(n)
+        pca = DataProvider.fit_pca(n)
         loadings = pd.DataFrame(pca.components_,
                                 columns=pd.read_csv(data_file_paths[Behavior.CNC_BACKDOOR_JAKORITAR]).drop(
                                     time_status_columns, axis=1).drop(all_zero_columns, axis=1).columns,
@@ -241,28 +242,8 @@ class DataManager:
     @staticmethod
     def get_highest_weight_loading_scores_for_pc(n_pcs=15, pcn="PC1"):
         # maxCol = lambda x: max(x.min(), x.max(), key=abs)
-        df = DataManager.get_pca_loading_scores_dataframe(n_pcs)
+        df = DataProvider.get_pca_loading_scores_dataframe(n_pcs)
         # df['max_loading_score'] = df.apply(maxCol, axis=1)
         sorted_pc = df.loc[pcn].reindex(df.loc[pcn].abs().sort_values(ascending=False).index)
         return sorted_pc
 
-
-
-    @staticmethod
-    def show_data_availability(raw=False):
-        all_data = DataManager.parse_all_files_to_df(filter_outliers=not raw,
-                                                     filter_suspected_external_events=not raw)
-
-        print(f'Total data points: {len(all_data)}')
-        drop_cols = [col for col in list(all_data) if col not in ['attack', 'block:block_bio_backmerge']]
-        grouped = all_data.drop(drop_cols, axis=1).rename(columns={'block:block_bio_backmerge': 'count'}).groupby(
-            ['attack'], as_index=False).count()
-        labels = ['Behavior', 'Count']
-        rows = []
-        for behavior in Behavior:
-            row = [behavior.value]
-            cnt_row = grouped.loc[(grouped['attack'] == behavior.value)]
-            row += [cnt_row['count'].iloc[0]]
-            rows.append(row)
-        print(tabulate(
-            rows, headers=labels, tablefmt="pretty"))

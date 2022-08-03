@@ -17,7 +17,7 @@ all_zero_columns = ["alarmtimer:alarmtimer_fired", "alarmtimer:alarmtimer_start"
 
 
 
-class DataManager:
+class OnlineDataProvider:
     @staticmethod
     def __parse_file_to_df(file_name, filter_suspected_external_events=True,
                               filter_constant_columns=True,
@@ -48,7 +48,7 @@ class DataManager:
 
     @staticmethod
     def get_scale_and_pca_transformed_data(file_name):
-        data = DataManager.__parse_file_to_df(file_name).to_numpy()
+        data = OnlineDataProvider.__parse_file_to_df(file_name).to_numpy()
         scaler = joblib.load('data_transforms/scaler.gz')
         pca = joblib.load('data_transforms/pcafit.gz')
         return pca.transform(scaler.transform(data))
