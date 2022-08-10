@@ -11,6 +11,7 @@ from anomaly_detector import AutoEncoderInterpreter
 from agent import Agent
 import torch
 import numpy as np
+import pickle
 
 
 # TODO: add storage of agent networks after some episodes
@@ -28,7 +29,7 @@ class OnlineRL():
 
     # TODO: do something with learning data, progress monitoring
     def activate_learning(self, interval=9000, monitor_duration=180):
-        print("start new monitoring loop every" + str(interval/60) + "minutes")
+        print("start new monitoring loop every " + str(interval / 60) + "minutes")
         episode_rewards = deque([0.0], maxlen=100)
         steps = 0
         episode = 0
@@ -38,7 +39,10 @@ class OnlineRL():
             episode_reward, steps = self.start_monitoring_episode(steps, duration=monitor_duration)
             if episode_reward:
                 episode_rewards.append(episode_reward)
+            print(episode_rewards)
+            print("sleeping for " + str(interval) + "s, then finish early")
             time.sleep(interval)
+            exit(0)
 
     def start_monitoring_episode(self, steps, duration):
         self.monitor(duration)
@@ -57,9 +61,11 @@ class OnlineRL():
                 steps += 1
                 if steps % TARGET_UPDATE_FREQ == 0:
                     self.agent.update_target_network()
-
+                print("steps: " + str(steps) + ", isAnomaly: " + str(isAnomaly))
+                print("terminating after a single agent update")
+                break
                 decision_data = after_data  # to reuse newly monitored data from afterstate
-            print("successfully mitigated attack using action: " + str(ACTIONS[action]) + "Step ")
+            print("successfully mitigated attack using action: " + str(ACTIONS[action]) + "Step " + str(steps))
             return r, steps
         else:
             return None, steps
@@ -69,7 +75,8 @@ class OnlineRL():
         # call monitoring shell script from python
         print("running rl_sampler subprocess")
         # subprocess.run(["./rl_sampler_online.sh", str(OnlineRL.monitor_counter)])
-        p = subprocess.Popen(["./rl_sampler_online.sh", str(OnlineRL.monitor_counter), "&"]) # technically "&" not needed, here for debugging
+        p = subprocess.Popen(["./rl_sampler_online.sh", str(OnlineRL.monitor_counter),
+                              "&"])  # technically "&" not needed, here for debugging
         print(p.pid)
         time.sleep(t)
         # killing all related processes
@@ -97,18 +104,18 @@ class OnlineRL():
         print("ae_interpreter threshold: " + str(ae_interpreter.threshold))
         flagged_anomalies = self.ae_interpreter.predict(data)
         print(flagged_anomalies)
-        #return True
+        # return True
         return (torch.sum(flagged_anomalies).item() / len(flagged_anomalies)) > 0.5
 
     def choose_action(self, data):
-        #return 0 # ransom
+        # return 0 # ransom
         print("action choice agent epsilon: " + str(self.agent.epsilon))
         actions = []
         if np.random.random() > self.agent.epsilon:
             for state in data:
                 actions.append(self.agent.take_greedy_action(state))
             print(actions)
-            return max(set(actions), key=actions.count) # take action that the dqn predicts the most frequently
+            return max(set(actions), key=actions.count)  # take action that the dqn predicts the most frequently
         else:
             return np.random.choice(self.agent.action_space)
 
@@ -150,8 +157,8 @@ class OnlineRL():
         m = min(ld, la)
         n_samples = max_len if m > max_len else m
         for i in range(n_samples):
-            self.agent.replay_buffer.append((np.expand_dims(decision_data[i,:], axis=0), action, reward,
-                                             np.expand_dims(after_data[i,:], axis=0), done))
+            self.agent.replay_buffer.append((np.expand_dims(decision_data[i, :], axis=0), action, reward,
+                                             np.expand_dims(after_data[i, :], axis=0), done))
 
         # call agent.learn
         self.agent.learn()
@@ -202,7 +209,6 @@ LOG_FREQ = 100
 
 # TODO: initialize agent with full memory buffer -> as per last episode of offline training
 if __name__ == '__main__':
-
     with open('config.json') as json_file:
         data = json.load(json_file)
         validate_config_file(data)
@@ -225,14 +231,11 @@ if __name__ == '__main__':
 
     controller = OnlineRL(ae=ae_interpreter, agent=pretrained_agent)
 
-
-    #controller = OnlineRL()
-    #controller.activate_learning(interval=600, monitor_duration=100)
+    #controller.activate_learning(interval=60, monitor_duration=100)
 
     # remove before moving online
     # # controller.monitor(180)
     # OnlineRL.monitor_counter += 3
-
 
     # read the monitored data from file and apply all preset scalings and transforms
     decision_data = controller.read_data()
@@ -242,9 +245,9 @@ if __name__ == '__main__':
     isAnomaly = controller.interprete_data(decision_data)
     action = controller.choose_action(decision_data)
     controller.provide_feedback_and_update(decision_data, action, after_data, isAnomaly)
-
-    print(isAnomaly)
-    if isAnomaly:
-        action = controller.choose_action(data)
-        print("chosen action: " + str(action))
-        controller.launch_mtd(action)
+    #
+    # print(isAnomaly)
+    # if isAnomaly:
+    #     action = controller.choose_action(decision_data)
+    #     print("chosen action: " + str(action))
+    #     controller.launch_mtd(action)
