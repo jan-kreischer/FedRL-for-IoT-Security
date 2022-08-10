@@ -102,7 +102,7 @@ class OnlineRL():
 
     def choose_action(self, data):
         #return 0 # ransom
-        print("agent epsilon action choice: " + str(self.agent.epsilon))
+        print("action choice agent epsilon: " + str(self.agent.epsilon))
         actions = []
         if np.random.random() > self.agent.epsilon:
             for state in data:
