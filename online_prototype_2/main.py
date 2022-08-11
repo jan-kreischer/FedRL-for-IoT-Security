@@ -40,7 +40,7 @@ class OnlineRL():
             if episode_reward:
                 episode_rewards.append(episode_reward)
             print(episode_rewards)
-            print("sleeping for " + str(interval) + "s, then finish early")
+            print("!!!sleeping for " + str(interval) + "s, then finish early!!!")
             time.sleep(interval)
             exit(0)
 
@@ -53,7 +53,8 @@ class OnlineRL():
             while isAnomaly:
                 action = self.choose_action(decision_data)
                 self.launch_mtd(action)
-                time.sleep(120)  # wait for 2 mins -> make dependent on pid of mtd script?
+                print("sleep for 100s")
+                time.sleep(100)  # wait for 2 mins -> make dependent on pid of mtd script?
                 self.monitor(duration)
                 after_data = self.read_data()
                 isAnomaly = self.interprete_data(after_data)
@@ -148,7 +149,7 @@ class OnlineRL():
 
     def provide_feedback_and_update(self, decision_data, action, after_data, isAnomaly, max_len=10):
         """feeds back [data] from afterstate behavior, along with a flag of whether it corresponds to normal behavior"""
-
+        print("provide feedback and update")
         reward = -1 if isAnomaly else 1
         done = not isAnomaly
 
@@ -231,22 +232,23 @@ if __name__ == '__main__':
 
     controller = OnlineRL(ae=ae_interpreter, agent=pretrained_agent)
 
-    #controller.activate_learning(interval=60, monitor_duration=100)
+    controller.activate_learning(interval=60, monitor_duration=100)
 
     # remove before moving online
-    # # controller.monitor(180)
-    OnlineRL.monitor_counter += 1
-    data = controller.read_data()
-
-    # read the monitored data from file and apply all preset scalings and transforms
+    # controller.monitor(100)
+    # #OnlineRL.monitor_counter += 1
+    # #data = controller.read_data()
+    #
+    # # read the monitored data from file and apply all preset scalings and transforms
     # decision_data = controller.read_data()
     # after_data = controller.read_data()
     #
     # # run data through pretrained anomaly detector
     # isAnomaly = controller.interprete_data(decision_data)
     # action = controller.choose_action(decision_data)
+    # print(action)
     # controller.provide_feedback_and_update(decision_data, action, after_data, isAnomaly)
-    #
+
     # print(isAnomaly)
     # if isAnomaly:
     #     action = controller.choose_action(decision_data)
