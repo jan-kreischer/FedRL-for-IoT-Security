@@ -45,7 +45,7 @@ class OnlineRL():
             exit(0)
     # monitor ds for 1min, read, AD, c-action, launch mtd, wait, monitor as for 3h
     def start_monitoring_episode(self, steps, duration):
-        print("testmonitor 100s")
+        print("testmonitor 3mins")
         self.monitor(180)
         decision_data = self.read_data()
         isAnomaly = self.interprete_data(decision_data)
@@ -55,7 +55,7 @@ class OnlineRL():
                 action = self.choose_action(decision_data)
                 self.launch_mtd(action)
                 print("sleep for 120s")
-                time.sleep(120)  # make dependent on pid of mtd script?
+                time.sleep(120)  # TODO make dependent on pid of mtd script to save time?
                 print("start monitoring afterstate")
                 self.monitor(14400)
                 after_data = self.read_data()
@@ -166,7 +166,6 @@ class OnlineRL():
             self.agent.replay_buffer.append((np.expand_dims(decision_data[i, :], axis=0), action, reward,
                                              np.expand_dims(after_data[i, :], axis=0), done))
 
-        # call agent.learn
         self.agent.learn()
         return reward
 

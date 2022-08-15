@@ -11,7 +11,7 @@ apt-get install git -y
 
 # python dependencies
 python3 -m pip install --upgrade pip
-python3 -m pip install scipy==1.3.3 # last version for which wheel is available (speed)
+python3 -m pip install scipy==1.3.3 # last version for which piwheel is available (speed)
 python3 -m pip install -U scikit-learn # installs all other dependencies automatically
 python3 -m pip install setproctitle
 python3 -m pip install jsonschema
