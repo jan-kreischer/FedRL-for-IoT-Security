@@ -63,7 +63,7 @@ class DataPlotter:
         fig.set_figheight(len(cols_to_plot))
         fig.set_figwidth(50)
         palette = {f'{device.value} {Behavior.NORMAL.value}': "green",
-                   f'{device.value} {Behavior.ROOTKIT_BDVL.value}': "lightgreen",
+                   f'{device.value} {Behavior.ROOTKIT_BDVL.value}': "black",
                    f'{device.value} {Behavior.ROOTKIT_BEURK.value}': "darkblue",
                    f'{device.value} {Behavior.RANSOMWARE_POC.value}': "orange",
                    f'{device.value} {Behavior.CNC_THETICK.value}': "grey",
@@ -76,8 +76,9 @@ class DataPlotter:
                                    ymin=1e-4, ymax=2, color=palette[f'{device.value} {b.value}'])
                     continue
                 sns.kdeplot(data=all_data_parsed[all_data_parsed.attack == b.value], x=cols_to_plot[i], palette=palette, hue="Monitoring",
-                            common_norm=False, common_grid=True, ax=axs[i], cut=2,
+                            common_norm=False, common_grid=True, ax=axs[i], cut=2, label=f"{device.value} {b.value}",
                             log_scale=(False, True))  # False, True
+            axs[i].legend()
 
         if plot_name is not None:
             fig.savefig(f'data_plot_{plot_name}.png', dpi=100)
