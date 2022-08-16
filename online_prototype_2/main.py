@@ -54,7 +54,7 @@ class OnlineRL():
                 action = self.choose_action(decision_data)
                 self.launch_mtd(action)
                 print("sleep for 100s")
-                time.sleep(100)  # wait for 2 mins -> make dependent on pid of mtd script?
+                time.sleep(100)  # this is theoretically not needed
                 self.monitor(duration)
                 after_data = self.read_data()
                 isAnomaly = self.interprete_data(after_data)
@@ -144,6 +144,7 @@ class OnlineRL():
             pass
 
         print("run: " + selected_mtd[RUN_PREFIX] + ' ' + str(selected_mtd[SCRIPT_NAME]) + ' ' + mtd_params)
+        # the script waits here until the new process is finished
         os.system(selected_mtd[RUN_PREFIX] + ' ' + str(selected_mtd[SCRIPT_NAME]) + ' ' + mtd_params)
         os.chdir(old_dir)
 
