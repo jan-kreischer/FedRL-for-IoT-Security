@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from math import ceil
 import numpy as np
+from docutils.nodes import title
 
 from custom_types import Behavior, RaspberryPi
 from data_provider import DataProvider
@@ -41,10 +42,11 @@ class DataPlotter:
                 label = "RP3" if device == RaspberryPi.PI3_1GB else "RP4"
                 axs[i].plot(xes_b, ys_upsampled_b, color=line_color, label=(label + " " + str(behavior.value)))
             axs[i].set_title(cols_to_plot[i], fontsize='xx-large')
-            # axs[i].set_ylabel("log features")
-            # axs[i].set_xlabel("time steps")
+            axs[i].set_ylabel("log features")
+            axs[i].set_xlabel("time steps")
             axs[i].legend(title='Device & Behavior')
 
+        fig.tight_layout()
         if plot_name is not None:
             fig.savefig(f'data_plot_{plot_name}.png', dpi=100)
             print(f'Saved {plot_name}')
@@ -84,7 +86,7 @@ class DataPlotter:
                 sns.kdeplot(data=all_data_parsed[all_data_parsed.attack == b.value], x=cols_to_plot[i], palette=palette, hue="Device & Behavior",
                             common_norm=True, common_grid=True, ax=axs[i], cut=2, label=f"{dv} {b.value}",
                             log_scale=(False, True))  # False, True
-            axs[i].legend()
+            axs[i].legend(title="Device & Behavior")
             axs[i].set_title(cols_to_plot[i], fontsize='xx-large')
             #axs[i].set(xlabel=None)
 
