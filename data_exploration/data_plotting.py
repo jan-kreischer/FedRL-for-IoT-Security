@@ -3,6 +3,7 @@ from typing import List, Tuple, Union
 import matplotlib.pyplot as plt
 import seaborn as sns
 from math import ceil
+import numpy as np
 
 from custom_types import Behavior, RaspberryPi
 from data_provider import DataProvider
@@ -54,7 +55,9 @@ class DataPlotter:
         plot_name = f"all_behaviors_{device.value}_kde"
         all_data_parsed = DataProvider.parse_all_files_to_df(filter_outliers=True)
         cols_to_plot = [col for col in all_data_parsed if col not in ['attack']]
-        all_data_parsed['Monitoring'] = all_data_parsed.apply(lambda row: f'{device.value} {row.attack}', axis=1)
+        dv = "RP3" if device == RaspberryPi.PI3_1GB else "RP4"
+        all_data_parsed['Device & Behavior'] = all_data_parsed.apply(lambda row: f'{dv} {row.attack}', axis=1)
+        #all_data_parsed['Monitoring'] = all_data_parsed.apply(lambda row: f'{device.value} {row.attack}', axis=1)
         #all_data_parsed = all_data_parsed.drop(['device'], axis=1)
         all_data_parsed = all_data_parsed.reset_index()
         fig, axs = plt.subplots(nrows=ceil(len(cols_to_plot) / 4), ncols=4)
@@ -62,68 +65,33 @@ class DataPlotter:
         fig.suptitle(plot_name)
         fig.set_figheight(len(cols_to_plot))
         fig.set_figwidth(50)
-        palette = {f'{device.value} {Behavior.NORMAL.value}': "green",
-                   f'{device.value} {Behavior.ROOTKIT_BDVL.value}': "black",
-                   f'{device.value} {Behavior.ROOTKIT_BEURK.value}': "darkblue",
-                   f'{device.value} {Behavior.RANSOMWARE_POC.value}': "orange",
-                   f'{device.value} {Behavior.CNC_THETICK.value}': "grey",
-                   f'{device.value} {Behavior.CNC_BACKDOOR_JAKORITAR.value}': "red"}
-        for i in range(len(cols_to_plot)):
-            axs[i].set_ylim([1e-4, 6])
-            for b in Behavior:
-                if all_data_parsed[all_data_parsed.attack == b.value][cols_to_plot[i]].unique().size == 1:
-                    axs[i].axvline(all_data_parsed[all_data_parsed.attack == b.value][cols_to_plot[i]].iloc[0],
-                                   ymin=1e-4, ymax=2, color=palette[f'{device.value} {b.value}'])
-                    continue
-                sns.kdeplot(data=all_data_parsed[all_data_parsed.attack == b.value], x=cols_to_plot[i], palette=palette, hue="Monitoring",
-                            common_norm=False, common_grid=True, ax=axs[i], cut=2, label=f"{device.value} {b.value}",
-                            log_scale=(False, True))  # False, True
-            axs[i].legend()
-
-        if plot_name is not None:
-            fig.savefig(f'data_plot_{plot_name}.png', dpi=100)
-
-    @staticmethod
-    def plot_devices_as_kde_pub(device: RaspberryPi):
-
-        plot_name = f"all_behaviors_{device.value}_kde"
-        all_data_parsed = DataProvider.parse_all_files_to_df(filter_outliers=True)
-        #all_data_parsed = all_data_parsed[all_data_parsed.device == device.value]
-        cols_to_plot = [col for col in all_data_parsed if col not in ['attack']]
-        dv = "RP3" if device == RaspberryPi.PI3_1GB else "RP4"
-        all_data_parsed['Device & Behavior'] = all_data_parsed.apply(lambda row: f'{dv} {row.attack}',axis=1)
-        #all_data_parsed = all_data_parsed.drop(['attack'], axis=1)
-        all_data_parsed = all_data_parsed.reset_index()
-        fig, axs = plt.subplots(nrows=ceil(len(cols_to_plot) / 4), ncols=4)
-        axs = axs.ravel().tolist()
-        fig.suptitle(plot_name)
-        fig.set_figheight(len(cols_to_plot))
-        fig.set_figwidth(50)
-
         palette = {f'{dv} {Behavior.NORMAL.value}': "green",
-                   f'{dv} {Behavior.ROOTKIT_BDVL.value}': "lightgreen",
+                   f'{dv} {Behavior.ROOTKIT_BDVL.value}': "black",
                    f'{dv} {Behavior.ROOTKIT_BEURK.value}': "darkblue",
                    f'{dv} {Behavior.RANSOMWARE_POC.value}': "orange",
                    f'{dv} {Behavior.CNC_THETICK.value}': "grey",
                    f'{dv} {Behavior.CNC_BACKDOOR_JAKORITAR.value}': "red"}
-                   # f'{dv} {Behavior.MIMIC.value}': "violet",
-                   # f'{dv} {Behavior.NOISE.value}': "turquoise",
-                   # f'{dv} {Behavior.REPEAT.value}': "black",
-                   # f'{dv} {Behavior.SPOOF.value}': "darkred"}
         for i in range(len(cols_to_plot)):
-            axs[i].set_ylim([1e-4, 2])
+            axs[i].set_ylim([1e-6, 2*1e-4]) # adapt limitations specifically for features
             axs[i].set_xlabel("feature range")
             axs[i].set_ylabel("density")
             for b in Behavior:
-                if all_data_parsed[all_data_parsed.attack == b.value][cols_to_plot[i]].unique().size == 1:
-                    axs[i].axvline(all_data_parsed[all_data_parsed.attack == b.value][cols_to_plot[i]].iloc[0],
-                                   ymin=1e-4, ymax=2, color=palette[f'{dv} {b.value}'])
-            sns.kdeplot(data=all_data_parsed, x=cols_to_plot[i], #palette=palette, hue="Device & Behavior",
-                        common_norm=False, common_grid=True, ax=axs[i], cut=2,
-                        log_scale=(False, True))  # False, True
+                series = all_data_parsed[all_data_parsed.attack == b.value][cols_to_plot[i]]
+                if series.unique().size == 1:
+                    axs[i].axvline(series.iloc[0], ymin=1e-4, ymax=2, color=palette[f'{dv} {b.value}'])
+                    continue
+                series = series[(np.isnan(series) == False) & (np.isinf(series) == False)]
+                sns.kdeplot(data=all_data_parsed[all_data_parsed.attack == b.value], x=cols_to_plot[i], palette=palette, hue="Device & Behavior",
+                            common_norm=True, common_grid=True, ax=axs[i], cut=2, label=f"{dv} {b.value}",
+                            log_scale=(False, True))  # False, True
+            axs[i].legend()
+            axs[i].set_title(cols_to_plot[i], fontsize='xx-large')
+            #axs[i].set(xlabel=None)
 
+        fig.tight_layout()
         if plot_name is not None:
-            fig.savefig(f'data_plot_{plot_name}.pdf', dpi=100)
+            fig.savefig(f'data_plot_{plot_name}.png', dpi=100)
+
 
     # @staticmethod
     # def plot_behaviors_as_kde(device: RaspberryPi):
