@@ -6,11 +6,70 @@ from math import ceil
 import numpy as np
 from docutils.nodes import title
 
-from custom_types import Behavior, RaspberryPi
-from data_provider import DataProvider
+from custom_types import Behavior, RaspberryPi, MTDTechnique
+from data_provider import DataProvider, decision_state
 
 
 class DataPlotter:
+
+    @staticmethod
+    def plot_decision_afterstate_comparison(decision_states: List[Tuple[Behavior, str]],
+                                            afterstates: List[Tuple[Behavior, MTDTechnique, str]],
+                                            plot_name: Union[str, None] = None):
+        all_data = DataProvider.parse_agent_data_files_to_df(filter_outliers=False,
+                                                             filter_suspected_external_events=False)
+        # find max num samples
+        max_number_of_samples = 0
+        for behavior in decision_states:
+            df_behavior = all_data.loc[(all_data['attack'] == behavior[0].value)]
+            if len(df_behavior) > max_number_of_samples:
+                max_number_of_samples = len(df_behavior)
+        for behavior in afterstates:
+            df_behavior = all_data.loc[(all_data['attack'] == behavior[0].value) &
+                                       (all_data['state'].str.contains(behavior[1].value))]
+            if len(df_behavior) > max_number_of_samples:
+                max_number_of_samples = len(df_behavior)
+
+        cols_to_plot = [col for col in all_data if col not in ['attack', 'state']]
+        fig, axs = plt.subplots(nrows=ceil(len(cols_to_plot) / 4), ncols=4)
+        axs = axs.ravel().tolist()
+        fig.suptitle(plot_name)
+        fig.set_figheight(len(cols_to_plot))
+        fig.set_figwidth(50)
+
+        all_decision = all_data[all_data['state'] == decision_state]
+        all_after = all_data[all_data['state'] != decision_state]
+        for i in range(len(cols_to_plot)):
+            for behavior, line_color in decision_states:
+                df_b = all_decision.loc[(all_decision['attack'] == behavior.value)]
+                if (df_b[cols_to_plot[i]] < 0).any():
+                    df_b = df_b[(df_b[cols_to_plot[i]] > 0)]
+                xes_b = [i for i in range(max_number_of_samples)]
+                ys_actual_b = df_b[cols_to_plot[i]].tolist()
+                ys_upsampled_b = [ys_actual_b[i % len(ys_actual_b)] for i in range(max_number_of_samples)]
+                axs[i].set_yscale('log')
+                axs[i].plot(xes_b, ys_upsampled_b, color=line_color, label=(decision_state + " " + str(behavior.value)))
+            for behavior, mtd, line_color in afterstates:
+                df_b = all_after.loc[(all_after['attack'] == behavior.value) &
+                                        (all_after['state'].str.contains(mtd.value))]
+                if (df_b[cols_to_plot[i]] < 0).any():
+                    df_b = df_b[(df_b[cols_to_plot[i]] > 0)]
+                xes_b = [i for i in range(max_number_of_samples)]
+                ys_actual_b = df_b[cols_to_plot[i]].tolist()
+                ys_upsampled_b = [ys_actual_b[i % len(ys_actual_b)] for i in range(max_number_of_samples)]
+                axs[i].plot(xes_b, ys_upsampled_b, color=line_color, label=(mtd.value + " " + str(behavior.value)))
+
+            axs[i].set_title(cols_to_plot[i], fontsize='xx-large')
+            axs[i].set_ylabel("log features")
+            axs[i].set_xlabel("time steps")
+            axs[i].legend(title='Behavior and MTD Results')
+
+        fig.tight_layout()
+        if plot_name is not None:
+            fig.savefig(f'data_plot_{plot_name}.png', dpi=100)
+            print(f'Saved {plot_name}')
+
+
     @staticmethod
     def plot_behaviors(behaviors: List[Tuple[RaspberryPi, Behavior, str]], plot_name: Union[str, None] = None):
         # first find max number of samples
@@ -22,8 +81,8 @@ class DataPlotter:
                 (all_data_parsed['attack'] == behavior[1].value)]  # & (all_data_parsed['device'] == behavior[0].value)]
             if len(df_behavior) > max_number_of_samples:
                 max_number_of_samples = len(df_behavior)
-        cols_to_plot = [col for col in all_data_parsed if col not in ['attack']]
 
+        cols_to_plot = [col for col in all_data_parsed if col not in ['attack']]
         fig, axs = plt.subplots(nrows=ceil(len(cols_to_plot) / 4), ncols=4)
         axs = axs.ravel().tolist()
         fig.suptitle(plot_name)
@@ -59,8 +118,8 @@ class DataPlotter:
         cols_to_plot = [col for col in all_data_parsed if col not in ['attack']]
         dv = "RP3" if device == RaspberryPi.PI3_1GB else "RP4"
         all_data_parsed['Device & Behavior'] = all_data_parsed.apply(lambda row: f'{dv} {row.attack}', axis=1)
-        #all_data_parsed['Monitoring'] = all_data_parsed.apply(lambda row: f'{device.value} {row.attack}', axis=1)
-        #all_data_parsed = all_data_parsed.drop(['device'], axis=1)
+        # all_data_parsed['Monitoring'] = all_data_parsed.apply(lambda row: f'{device.value} {row.attack}', axis=1)
+        # all_data_parsed = all_data_parsed.drop(['device'], axis=1)
         all_data_parsed = all_data_parsed.reset_index()
         fig, axs = plt.subplots(nrows=ceil(len(cols_to_plot) / 4), ncols=4)
         axs = axs.ravel().tolist()
@@ -74,7 +133,7 @@ class DataPlotter:
                    f'{dv} {Behavior.CNC_THETICK.value}': "grey",
                    f'{dv} {Behavior.CNC_BACKDOOR_JAKORITAR.value}': "red"}
         for i in range(len(cols_to_plot)):
-            axs[i].set_ylim([1e-6, 2*1e-4]) # adapt limitations specifically for features
+            axs[i].set_ylim([1e-6, 2 * 1e-4])  # adapt limitations specifically for features
             axs[i].set_xlabel("feature range")
             axs[i].set_ylabel("density")
             for b in Behavior:
@@ -83,17 +142,17 @@ class DataPlotter:
                     axs[i].axvline(series.iloc[0], ymin=1e-4, ymax=2, color=palette[f'{dv} {b.value}'])
                     continue
                 series = series[(np.isnan(series) == False) & (np.isinf(series) == False)]
-                sns.kdeplot(data=all_data_parsed[all_data_parsed.attack == b.value], x=cols_to_plot[i], palette=palette, hue="Device & Behavior",
+                sns.kdeplot(data=all_data_parsed[all_data_parsed.attack == b.value], x=cols_to_plot[i], palette=palette,
+                            hue="Device & Behavior",
                             common_norm=True, common_grid=True, ax=axs[i], cut=2, label=f"{dv} {b.value}",
                             log_scale=(False, True))  # False, True
             axs[i].legend(title="Device & Behavior")
             axs[i].set_title(cols_to_plot[i], fontsize='xx-large')
-            #axs[i].set(xlabel=None)
+            # axs[i].set(xlabel=None)
 
         fig.tight_layout()
         if plot_name is not None:
             fig.savefig(f'data_plot_{plot_name}.png', dpi=100)
-
 
     # @staticmethod
     # def plot_behaviors_as_kde(device: RaspberryPi):
