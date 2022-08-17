@@ -30,8 +30,9 @@ def show_decision_and_afterstate_data_availability(raw=False):
     drop_cols = [col for col in list(all_data) if col not in ['attack', 'state', 'block:block_bio_backmerge']]
     grouped = all_data.drop(drop_cols, axis=1).rename(columns={'block:block_bio_backmerge': 'count'}).groupby(
         ['attack', 'state'], as_index=False).count()
-    decision_grouped = grouped[grouped.state == decision_state]
-    after_grouped = grouped[grouped.state != decision_state]
+
+    decision_grouped = grouped[grouped['state'] == decision_state]
+    after_grouped = grouped[grouped['state'] != decision_state]
 
     labels = ['Behavior', 'State', 'Count']
     print("decision states data availability")
@@ -94,6 +95,6 @@ if __name__ == "__main__":
     show_decision_and_afterstate_data_availability(raw=True)
     print("----------------Filtered Data Availability---------------")
     # show_raw_behaviors_data_availability(raw=False)
-    # show_decision_and_afterstate_data_availability(raw=False)
+    show_decision_and_afterstate_data_availability(raw=False)
 
     # print_column_info(raw_behaviors=False)

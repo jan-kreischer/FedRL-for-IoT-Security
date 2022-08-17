@@ -157,7 +157,7 @@ class DataProvider:
 
         for asb in afterstates_file_paths:
             for mtd in afterstates_file_paths[asb]:
-                df = DataProvider.__get_filtered_df(afterstates_file_paths[dsb][mtd],
+                df = DataProvider.__get_filtered_df(afterstates_file_paths[asb][mtd],
                                                     filter_suspected_external_events=filter_suspected_external_events,
                                                     filter_constant_columns=filter_constant_columns,
                                                     filter_outliers=filter_outliers,
