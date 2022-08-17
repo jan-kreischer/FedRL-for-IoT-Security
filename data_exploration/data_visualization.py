@@ -4,7 +4,7 @@ from custom_types import Behavior, RaspberryPi
 from data_plotting import DataPlotter
 
 plot_kde = True
-plot_timeline = True
+plot_timeline = False
 
 if __name__ == "__main__":
     if plot_kde:
