@@ -26,18 +26,20 @@ def show_decision_and_afterstate_data_availability(raw=False):
 
 
 
-
-if __name__ == "__main__":
-    #os.chdir("..")
-    print("------------------Raw Data Availability------------------")
-    show_raw_behaviors_data_availability(raw=True)
-    print("----------------Filtered Data Availability---------------")
-    show_raw_behaviors_data_availability(raw=False)
-    print("------------------Constant Columns-----------------------")
-    df = DataProvider.parse_raw_behavior_files_to_df(filter_suspected_external_events=False, filter_constant_columns=False,
+def print_column_info(raw_behaviors=True):
+    if raw_behaviors:
+        df = DataProvider.parse_raw_behavior_files_to_df(filter_suspected_external_events=False,
+                                                     filter_constant_columns=False,
                                                      filter_outliers=False, keep_status_columns=True)
+    else:
+        df = DataProvider.parse_agent_data_files_to_df(filter_suspected_external_events=False,
+                                                     filter_constant_columns=False,
+                                                     filter_outliers=False, keep_status_columns=True)
+        df = df.drop(['state'], axis=1)
+        
     df = df.drop(['attack'], axis=1)
     constant_columns = df.columns[df.nunique() <= 1].values
+    print("------------------Constant Columns-----------------------")
     print(constant_columns)
     print("---------------------CSV Columns-------------------------")
     labels = ['CSV Column', 'Event Source', 'Event', 'Constant', 'Status', "Feature"]
@@ -56,3 +58,12 @@ if __name__ == "__main__":
         rows.append(row)
     print(tabulate(rows[:45], headers=labels, tablefmt='pretty'))
     print(tabulate(rows[45:], headers=labels, tablefmt='pretty'))
+
+
+if __name__ == "__main__":
+    #os.chdir("..")
+    print("------------------Raw Data Availability------------------")
+    show_raw_behaviors_data_availability(raw=True)
+    print("----------------Filtered Data Availability---------------")
+    show_raw_behaviors_data_availability(raw=False)
+
