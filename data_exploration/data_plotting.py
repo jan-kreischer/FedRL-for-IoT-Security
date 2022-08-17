@@ -14,8 +14,8 @@ class DataPlotter:
     @staticmethod
     def plot_behaviors(behaviors: List[Tuple[RaspberryPi, Behavior, str]], plot_name: Union[str, None] = None):
         # first find max number of samples
-        all_data_parsed = DataProvider.parse_all_files_to_df(filter_outliers=False,
-                                                             filter_suspected_external_events=False)
+        all_data_parsed = DataProvider.parse_raw_behavior_files_to_df(filter_outliers=False,
+                                                                      filter_suspected_external_events=False)
         max_number_of_samples = 0
         for behavior in behaviors:
             df_behavior = all_data_parsed.loc[
@@ -55,7 +55,7 @@ class DataPlotter:
     def plot_devices_as_kde(device: RaspberryPi):
 
         plot_name = f"all_behaviors_{device.value}_kde"
-        all_data_parsed = DataProvider.parse_all_files_to_df(filter_outliers=True)
+        all_data_parsed = DataProvider.parse_raw_behavior_files_to_df(filter_outliers=True)
         cols_to_plot = [col for col in all_data_parsed if col not in ['attack']]
         dv = "RP3" if device == RaspberryPi.PI3_1GB else "RP4"
         all_data_parsed['Device & Behavior'] = all_data_parsed.apply(lambda row: f'{dv} {row.attack}', axis=1)
@@ -99,7 +99,7 @@ class DataPlotter:
     # def plot_behaviors_as_kde(device: RaspberryPi):
     #     for b in Behavior:
     #         plot_name = f"all_devices_{b.value}_kde"
-    #         all_data_parsed = DataProvider.parse_all_files_to_df(filter_outliers=True)
+    #         all_data_parsed = DataProvider.parse_raw_behavior_files_to_df(filter_outliers=True)
     #         all_data_parsed = all_data_parsed[all_data_parsed.attack == b.value]
     #         cols_to_plot = [col for col in all_data_parsed if col not in ['attack']]
     #
@@ -132,7 +132,7 @@ class DataPlotter:
     # def plot_behaviors_as_kde_pub():
     #     for behav in Behavior:
     #         plot_name = f"all_devices_{behav.value}_kde"
-    #         all_data_parsed = DataHandler.parse_all_files_to_df(filter_outliers=True)
+    #         all_data_parsed = DataHandler.parse_raw_behavior_files_to_df(filter_outliers=True)
     #         all_data_parsed = all_data_parsed[all_data_parsed.attack == behav.value]
     #         cols_to_plot = [col for col in all_data_parsed if col not in ['device', 'attack']]
     #
@@ -175,7 +175,7 @@ class DataPlotter:
     # @staticmethod
     # def plot_delay_and_normal_as_kde():
     #     plot_name = f"delay_normal_all_devices_hist"
-    #     all_data_parsed = DataHandler.parse_all_files_to_df(filter_outliers=True)
+    #     all_data_parsed = DataHandler.parse_raw_behavior_files_to_df(filter_outliers=True)
     #     all_data_parsed = all_data_parsed[
     #         (all_data_parsed.attack == Behavior.DELAY.value) | (all_data_parsed.attack == Behavior.NORMAL.value)]
     #     cols_to_plot = [col for col in all_data_parsed if col not in ['device', 'attack']]
