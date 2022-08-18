@@ -15,7 +15,6 @@ import pickle
 
 
 # TODO: add storage of agent networks after some episodes
-
 # TODO: make abstract (template method pattern) in case of multiple online methods
 class OnlineRL():
     monitor_counter = 0
