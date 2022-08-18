@@ -42,7 +42,7 @@ afterstates_dir = "afterstates_online_agent"
 afterstates_file_paths: Dict[Behavior, Dict[MTDTechnique, str]] = {
     Behavior.NORMAL: {
         MTDTechnique.RANSOMWARE_DIRTRAP: f"data/{afterstates_dir}/normal_as_dirtrap_expfs_online_samples_2_2022-08-17-14-23_5s",
-        #MTDTechnique.RANSOMWARE_FILE_EXT_HIDE: f"data/{afterstates_dir}/",
+        MTDTechnique.RANSOMWARE_FILE_EXT_HIDE: f"data/{afterstates_dir}/normal_as_filetypes_noexpfs_online_samples_2_2022-08-18-08-29_5s",
         MTDTechnique.ROOTKIT_SANITIZER: f"data/{afterstates_dir}/normal_as_removerk_noexpfs_online_samples_2_2022-08-17-08-17_5s",
         MTDTechnique.CNC_IP_SHUFFLE: f"data/{afterstates_dir}/normal_as_changeip_noexpfs_online_samples_2_2022-08-17-14-22_5s"
     },
