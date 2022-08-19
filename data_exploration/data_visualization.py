@@ -11,8 +11,8 @@ if __name__ == "__main__":
     if plot_kde:
         # DataPlotter.plot_delay_and_normal_as_kde()
         # DataPlotter.plot_behaviors_as_kde(RaspberryPi.PI4_2GB_WC)
-        pass
-        # DataPlotter.plot_normals_kde("compare_normals_kde")
+
+        DataPlotter.plot_normals_kde("compare_normals_kde")
         #
         #
         # DataPlotter.plot_decision_or_afterstates_as_kde(

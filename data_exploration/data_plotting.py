@@ -120,7 +120,7 @@ class DataPlotter:
             fig.savefig(f'data_exploration/data_plot_{plot_name}.png', dpi=100)
 
     @staticmethod
-    def plot_normals_kde(plot_name):
+    def plot_normals_kde(plot_name,num_behaviors=4, colors=["green", "red", "blue", "violet"]):
         ndata = DataProvider.parse_normals(filter_outliers=False,
                                            filter_suspected_external_events=False)
         print(len(ndata))
@@ -132,10 +132,10 @@ class DataPlotter:
         fig.set_figheight(len(cols_to_plot))
         fig.set_figwidth(50)
         for i in range(len(cols_to_plot)):
-            axs[i].set_ylim([1e-6, 2])  # adapt limitations specifically for features
+            axs[i].set_ylim([1e-6, 0.5])  # adapt limitations specifically for features
             axs[i].set_xlabel("feature range")
             axs[i].set_ylabel("density")
-            for j, color in zip(range(2), ["green", "red"]):
+            for j, color in zip(range(num_behaviors), colors):
                 series = all_data[all_data['state'].str.contains(str(j))][cols_to_plot[i]]
                 if series.unique().size == 1:
                     print("unique")
@@ -149,7 +149,7 @@ class DataPlotter:
             axs[i].set_title(cols_to_plot[i], fontsize='xx-large')
             # axs[i].set(xlabel=None)
 
-        #fig.tight_layout()
+        fig.tight_layout()
         if plot_name is not None:
             fig.savefig(f'data_exploration/data_plot_{plot_name}.png', dpi=100)
 
@@ -238,6 +238,23 @@ class DataPlotter:
         fig.tight_layout()
         if plot_name is not None:
             fig.savefig(f'data_exploration/data_plot_{plot_name}.png', dpi=100)
+
+    @staticmethod
+    def print_pca_scree_plot(n=30):
+        pca = DataProvider.fit_pca()
+        per_var = np.round(pca.explained_variance_ratio_ * 100, decimals=1)
+        acc_per_var = [per_var[i] + np.sum(per_var[:i]) for i in range(len(per_var))]
+
+        labels = ['PC' + str(x) for x in range(1, len(per_var) + 1)]
+        xx = range(1, len(per_var) + 1)
+        plt.plot(xx, acc_per_var, 'ro', label="accumulated explained variance")
+        plt.bar(x=xx, height=per_var, tick_label=labels)
+        plt.ylabel('Percentage of Explained Variance')
+        plt.xlabel('Principal Component')
+        plt.xticks(fontsize=6)
+        plt.title('Scree Plot')
+        plt.legend()
+        plt.savefig(f"data_exploration/screeplot_n_{n}.png")
 
     # @staticmethod
     # def plot_behaviors_as_kde(device: RaspberryPi):
