@@ -71,12 +71,15 @@ afterstates_file_paths: Dict[Behavior, Dict[MTDTechnique, str]] = {
 class DataProvider:
 
     @staticmethod
-    def parse_all_raw_behavior_data(filter_suspected_external_events=True,
-                                    filter_constant_columns=True,
-                                    filter_outliers=True,
-                                    keep_status_columns=False) -> Dict[Behavior, np.ndarray]:
+    def parse_no_mtd_behavior_data(filter_suspected_external_events=True,
+                                   filter_constant_columns=True,
+                                   filter_outliers=True,
+                                   keep_status_columns=False, decision=False) -> Dict[Behavior, np.ndarray]:
         # print(os.getcwd())
-        file_name = f'../data/{raw_behaviors_dir}/all_data_filtered_external_{str(filter_suspected_external_events)}' \
+        b_directory, b_file_paths = (decision_states_dir, decision_states_file_paths) if decision else \
+            (raw_behaviors_dir, raw_behaviors_file_paths)
+        file_name = f'../data/{b_directory}/all_data_filtered_external{"_decision" if decision else ""}' \
+                    f'_{str(filter_suspected_external_events)}' \
                     f'_constant_{str(filter_constant_columns)}_outliers_{str(filter_outliers)}'
 
         if keep_status_columns:
@@ -88,10 +91,10 @@ class DataProvider:
         # full_df = pd.DataFrame()
         bdata = {}
 
-        for attack in raw_behaviors_file_paths:
-            df = DataProvider.__get_filtered_df(raw_behaviors_file_paths[attack],
+        for attack in b_file_paths:
+            df = DataProvider.__get_filtered_df(b_file_paths[attack],
                                                 filter_suspected_external_events=filter_suspected_external_events,
-                                                startidx=72,
+                                                startidx=50,
                                                 filter_constant_columns=filter_constant_columns,
                                                 filter_outliers=filter_outliers,
                                                 keep_status_columns=keep_status_columns)
@@ -232,7 +235,7 @@ class DataProvider:
     #     scaler = StandardScaler() if not scaling_minmax else MinMaxScaler()
     #     scaler.fit(all_data)
     #
-    #     bdata = DataProvider.parse_all_raw_behavior_data()
+    #     bdata = DataProvider.parse_no_mtd_behavior_data()
     #     scaled_bdata = {}
     #     # return directory as
     #     for b in bdata:
@@ -241,8 +244,9 @@ class DataProvider:
     #     return scaled_bdata
 
     @staticmethod
-    def get_scaled_train_test_split(split=0.8, scaling_minmax=True):
-        bdata = DataProvider.parse_all_raw_behavior_data()
+    def get_scaled_train_test_split(split=0.8, scaling_minmax=True, decision=False):
+
+        bdata = DataProvider.parse_no_mtd_behavior_data(decision=decision)
 
         # take split of all behaviors, concat, calc scaling, scale both train and test split
         first_b = bdata[Behavior.NORMAL]
@@ -325,7 +329,6 @@ class DataProvider:
         pca = PCA(n_components=n)
         pca.fit(all_strain[:, :-1])
         return pca
-
 
     @staticmethod
     def get_pca_loading_scores_dataframe(n=15):
