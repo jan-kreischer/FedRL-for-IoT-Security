@@ -71,10 +71,10 @@ afterstates_file_paths: Dict[Behavior, Dict[MTDTechnique, str]] = {
 class DataProvider:
 
     @staticmethod
-    def parse_all_behavior_data(filter_suspected_external_events=True,
-                                filter_constant_columns=True,
-                                filter_outliers=True,
-                                keep_status_columns=False) -> Dict[Behavior, np.ndarray]:
+    def parse_all_raw_behavior_data(filter_suspected_external_events=True,
+                                    filter_constant_columns=True,
+                                    filter_outliers=True,
+                                    keep_status_columns=False) -> Dict[Behavior, np.ndarray]:
         # print(os.getcwd())
         file_name = f'../data/{raw_behaviors_dir}/all_data_filtered_external_{str(filter_suspected_external_events)}' \
                     f'_constant_{str(filter_constant_columns)}_outliers_{str(filter_outliers)}'
@@ -226,23 +226,23 @@ class DataProvider:
 
         return df
 
-    @staticmethod
-    def get_scaled_all_data(scaling_minmax=True):
-        all_data = DataProvider.parse_raw_behavior_files_to_df().to_numpy()[:, :-1]
-        scaler = StandardScaler() if not scaling_minmax else MinMaxScaler()
-        scaler.fit(all_data)
-
-        bdata = DataProvider.parse_all_behavior_data()
-        scaled_bdata = {}
-        # return directory as
-        for b in bdata:
-            scaled_bdata[b] = np.hstack((scaler.transform(bdata[b][:, :-1]), np.expand_dims(bdata[b][:, -1], axis=1)))
-
-        return scaled_bdata
+    # @staticmethod
+    # def get_scaled_all_data(scaling_minmax=True):
+    #     all_data = DataProvider.parse_raw_behavior_files_to_df().to_numpy()[:, :-1]
+    #     scaler = StandardScaler() if not scaling_minmax else MinMaxScaler()
+    #     scaler.fit(all_data)
+    #
+    #     bdata = DataProvider.parse_all_raw_behavior_data()
+    #     scaled_bdata = {}
+    #     # return directory as
+    #     for b in bdata:
+    #         scaled_bdata[b] = np.hstack((scaler.transform(bdata[b][:, :-1]), np.expand_dims(bdata[b][:, -1], axis=1)))
+    #
+    #     return scaled_bdata
 
     @staticmethod
     def get_scaled_train_test_split(split=0.8, scaling_minmax=True):
-        bdata = DataProvider.parse_all_behavior_data()
+        bdata = DataProvider.parse_all_raw_behavior_data()
 
         # take split of all behaviors, concat, calc scaling, scale both train and test split
         first_b = bdata[Behavior.NORMAL]
