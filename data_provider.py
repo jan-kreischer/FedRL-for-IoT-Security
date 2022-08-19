@@ -32,7 +32,8 @@ all_zero_columns = ['cpuNice', 'cpuHardIrq', 'alarmtimer:alarmtimer_fired',
 decision_state = "decision"
 decision_states_dir = "decision_states_online_agent"
 decision_states_file_paths: Dict[Behavior, str] = {
-    Behavior.NORMAL: f"data/{decision_states_dir}/normal_noexpfs_online_samples_1_2022-08-15-14-07_5s",
+    Behavior.NORMAL: f"data/{decision_states_dir}/normal_expfs_online_samples_1_2022-08-18-08-31_5s",
+    # Behavior.NORMAL: f"data/{decision_states_dir}/normal_noexpfs_online_samples_1_2022-08-15-14-07_5s",
     Behavior.RANSOMWARE_POC: f"data/{decision_states_dir}/ransom_noexpfs_online_samples_1_2022-08-16-08-43_5s",
     Behavior.ROOTKIT_BDVL: f"data/{decision_states_dir}/rootkit_bdvl_online_samples_1_2022-08-12-16-40_5s",
     Behavior.CNC_BACKDOOR_JAKORITAR: f"data/{decision_states_dir}/cnc_jakoritar_online_samples_1_2022-08-13-06-50_5s"
@@ -131,6 +132,28 @@ class DataProvider:
 
         full_df.to_csv(file_name, index_label=False)
         return full_df
+
+    @staticmethod
+    def parse_normals(filter_suspected_external_events=True,
+                                     filter_constant_columns=True,
+                                     filter_outliers=True,
+                                     keep_status_columns=False) -> pd.DataFrame:
+        normal_paths = [
+            f"data/{decision_states_dir}/normal_noexpfs_online_samples_1_2022-08-15-14-07_5s",
+            f"data/{decision_states_dir}/normal_expfs_online_samples_1_2022-08-18-08-31_5s"
+        ]
+        full_df = pd.DataFrame()
+        for i, norm_p in enumerate(normal_paths):
+            df = DataProvider.__get_filtered_df(norm_p,
+                                                filter_suspected_external_events=filter_suspected_external_events,
+                                                filter_constant_columns=filter_constant_columns,
+                                                filter_outliers=filter_outliers,
+                                                keep_status_columns=keep_status_columns)
+            df['attack'] = Behavior.NORMAL.value
+            df['state'] = decision_state + str(i)
+            full_df = pd.concat([full_df, df])
+        return full_df
+
 
     @staticmethod
     def parse_agent_data_files_to_df(filter_suspected_external_events=True,
