@@ -1,6 +1,8 @@
+import os
+
 from data_provider import DataProvider
-from offline_prototype_1.environment import SensorEnvironment, supervisor_map
-from offline_prototype_1.agent import Agent, DeepQNetwork
+from offline_prototype_1_raw_behaviors.environment import SensorEnvironment, supervisor_map
+from agent import Agent
 from custom_types import Behavior
 from utils.utils import plot_learning, seed_random
 from time import time
@@ -22,10 +24,9 @@ LOG_FREQ = 100
 DIMS = 15
 
 if __name__ == '__main__':
+    os.chdir("..")
     seed_random()
     start = time()
-
-    #AE = auto_encoder_model(DIMS)
 
     # read in all preprocessed data for a simulated, supervised environment to sample from
     #train_data, test_data, scaler = DataProvider.get_scaled_train_test_split()
@@ -88,10 +89,10 @@ if __name__ == '__main__':
     end = time()
     print("Total training time: ", end - start)
 
-    agent.save_dqns(0)
+    agent.save_agent_state(0, "offline_prototype_1_raw_behaviors")
 
     x = [i + 1 for i in range(N_EPISODES)]
-    filename = 'mtd_agent.pdf'
+    filename = 'offline_prototype_1_raw_behaviors/mtd_agent_p1.pdf'
     plot_learning(x, episode_returns, eps_history, filename)
 
 
