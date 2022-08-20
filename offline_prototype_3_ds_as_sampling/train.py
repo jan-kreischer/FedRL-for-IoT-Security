@@ -31,7 +31,8 @@ if __name__ == '__main__':
     # read in all preprocessed data for a simulated, supervised environment to sample from
     # train_data, test_data, scaler = DataProvider.get_scaled_train_test_split()
     # train_data, test_data = DataProvider.get_reduced_dimensions_with_pca(DIMS)
-    dtrain, dtest, atrain, atest, scaler = DataProvider.get_scaled_scaled_train_test_split_with_afterstates()
+    #dtrain, dtest, atrain, atest, scaler = DataProvider.get_scaled_scaled_train_test_split_with_afterstates()
+    dtrain, dtest, atrain, atest = DataProvider.get_reduced_dimensions_with_pca_ds_as(DIMS)
     exit(0)
     # get splits for RL & AD of normal data
     n = 100

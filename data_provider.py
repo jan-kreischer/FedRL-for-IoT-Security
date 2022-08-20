@@ -382,6 +382,51 @@ class DataProvider:
         return scaled_train, scaled_test, scaler
 
     @staticmethod
+    def get_reduced_dimensions_with_pca_ds_as(dim=15):
+        dtrain, dtest, atrain, atest, scaler = DataProvider.get_scaled_scaled_train_test_split_with_afterstates()
+        all_strain = dtrain[Behavior.NORMAL]
+        for b in dtrain:
+            if b != Behavior.NORMAL:
+                all_strain = np.vstack((all_strain, dtrain[b]))
+        for t, d in atrain.items():
+            all_strain = np.vstack((all_strain, atrain[t][:, :-1]))
+
+        pca = PCA(n_components=dim)
+        pca.fit(all_strain[:, :-1])
+
+        pca_dtrain = {}
+        for b, d in dtrain.items():
+            pca_dtrain[b] = np.hstack((pca.transform(d[:, :-1]), np.expand_dims(d[:, -1], axis=1)))
+
+        pca_dtest = {}
+        for b, d in dtest.items():
+            pca_dtest[b] = np.hstack((pca.transform(d[:, :-1]), np.expand_dims(d[:, -1], axis=1)))
+
+        pca_atrain = {}
+        for t, d in atrain.items():
+            pca_atrain[t] = np.hstack((pca.transform(d[:, :-2]), d[:, -2:]))
+
+        pca_atest = {}
+        for t, d in atest.items():
+            pca_atest[t] = np.hstack((pca.transform(d[:, :-2]), d[:, -2:]))
+
+        # save for later use for predictions preprocessing
+        # scaler_file, pca_file = "scaler.gz", "pcafit.gz"
+        scaler_file, pca_file = "scalerdsas.obj", "pcafitdsas.obj"
+
+        if not os.path.isfile(scaler_file):
+            # joblib.dump(scaler, scaler_file)
+            with open(scaler_file, "wb") as sf:
+                pickle.dump(scaler, sf)
+
+        if not os.path.isfile(pca_file):
+            # joblib.dump(pca, pca_file)
+            with open(pca_file, "wb") as pf:
+                pickle.dump(pca, pf)
+
+        return pca_dtrain, pca_dtest, pca_atrain, pca_atest
+
+    @staticmethod
     def get_reduced_dimensions_with_pca(dim=15):
         strain, stest, scaler = DataProvider.get_scaled_train_test_split()
         all_strain = strain[Behavior.NORMAL]
