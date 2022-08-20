@@ -35,7 +35,7 @@ class SensorEnvironment:
                  decision_test_data: Dict[Behavior, np.ndarray] = None,
                  after_train_data: Dict[Tuple[Behavior, MTDTechnique], np.ndarray] = None,
                  after_test_data: Dict[Tuple[Behavior, MTDTechnique], np.ndarray] = None,
-                 monitor=None, interpreter: AutoEncoderInterpreter = None):
+                 interpreter: AutoEncoderInterpreter = None):
         self.dtrain_data = decision_train_data
         self.dtest_data = decision_test_data
         self.atrain_data = after_train_data
@@ -65,7 +65,8 @@ class SensorEnvironment:
         return after_data[np.random.randint(after_data.shape[0], size=1), :]
 
     def step(self, action: int):
-        current_behavior = self.current_state.squeeze()[-1]
+        current_behavior = self.current_state.squeeze()[-1] if self.current_state.squeeze()[-1] in Behavior else \
+        self.current_state.squeeze()[-2]
         print(f"current behavior = {current_behavior}")
         chosen_mtd = actions[action]
 
@@ -76,9 +77,9 @@ class SensorEnvironment:
             # ae predicts too many false positives: episode should not end, but behavior is normal (because MTD was correct)
             # note that this should not happen, as ae should learn to recognize normal behavior with near perfect accuracy
             if self.interpreter:
-                for i in range(9):  # real world simulation with 10 samples
+                for i in range(15):  # real world simulation with 15 samples
                     new_state = np.vstack((new_state, self.sample_afterstate(Behavior.NORMAL, chosen_mtd)))
-                if torch.sum(self.interpreter.predict(new_state[:, :-1].astype(np.float32))) / len(new_state) > 0.5:
+                if torch.sum(self.interpreter.predict(new_state[:, :-2].astype(np.float32))) / len(new_state) > 0.5:
                     raise UserWarning("Should not happen! AE fails to predict majority of normal samples")
                     # reward = self.calculate_reward(False)
                     # isTerminalState = False
@@ -91,7 +92,7 @@ class SensorEnvironment:
             new_state = self.sample_afterstate(current_behavior, chosen_mtd)
             # ae predicts a false negative: episode should end,  but behavior is not normal (because MTD was incorrect)
             # in this case, the next episode should start again with current_behavior
-            if self.interpreter and self.interpreter.predict(new_state[:, :-1].astype(np.float32)) == 0:
+            if self.interpreter and self.interpreter.predict(new_state[:, :-2].astype(np.float32)) == 0:
                 self.reset_to_behavior = current_behavior
                 reward = self.calculate_reward(True)
                 isTerminalState = True

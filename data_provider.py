@@ -382,7 +382,7 @@ class DataProvider:
         return scaled_train, scaled_test, scaler
 
     @staticmethod
-    def get_reduced_dimensions_with_pca_ds_as(dim=15):
+    def get_reduced_dimensions_with_pca_ds_as(dim=15, dir=""):
         dtrain, dtest, atrain, atest, scaler = DataProvider.get_scaled_scaled_train_test_split_with_afterstates()
         all_strain = dtrain[Behavior.NORMAL]
         for b in dtrain:
@@ -412,7 +412,7 @@ class DataProvider:
 
         # save for later use for predictions preprocessing
         # scaler_file, pca_file = "scaler.gz", "pcafit.gz"
-        scaler_file, pca_file = "scalerdsas.obj", "pcafitdsas.obj"
+        scaler_file, pca_file = f"{dir}scalerdsas.obj", f"{dir}pcafitdsas.obj"
 
         if not os.path.isfile(scaler_file):
             # joblib.dump(scaler, scaler_file)
