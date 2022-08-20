@@ -106,6 +106,39 @@ class DataProvider:
         return bdata
 
     @staticmethod
+    def parse_mtd_behavior_data(filter_suspected_external_events=True,
+                                       filter_constant_columns=True,
+                                       filter_outliers=True,
+                                       keep_status_columns=False) -> Dict[Behavior, np.ndarray]:
+        # function should return a dictionary of all the
+        file_name = f'../data/{afterstates_dir}/all_afterstate_data_filtered_external' \
+                    f'_{str(filter_suspected_external_events)}' \
+                    f'_constant_{str(filter_constant_columns)}_outliers_{str(filter_outliers)}'
+
+        if keep_status_columns:
+            file_name += "_keepstatus"
+        file_name += ".csv"
+
+        # if os.path.isfile(file_name):
+        #   full_df = pd.read_csv(file_name)
+        # full_df = pd.DataFrame()
+        adata = {}
+        for asb in afterstates_file_paths:
+            for mtd in afterstates_file_paths[asb]:
+                df = DataProvider.__get_filtered_df(afterstates_file_paths[asb][mtd],
+                                                    filter_suspected_external_events=filter_suspected_external_events,
+                                                    filter_constant_columns=filter_constant_columns,
+                                                    filter_outliers=filter_outliers,
+                                                    keep_status_columns=keep_status_columns)
+                df['attack'] = asb
+                df['state'] = mtd
+                # if not os.path.isfile(file_name): full_df = pd.concat([full_df, df])
+
+                adata[asb] = df.to_numpy()
+        # full_df.to_csv(file_name, index_label=False)
+        return adata
+
+    @staticmethod
     def parse_raw_behavior_files_to_df(filter_suspected_external_events=True,
                                        filter_constant_columns=True,
                                        filter_outliers=True,
@@ -134,29 +167,6 @@ class DataProvider:
             full_df = pd.concat([full_df, df])
 
         full_df.to_csv(file_name, index_label=False)
-        return full_df
-
-    @staticmethod
-    def parse_normals(filter_suspected_external_events=True,
-                      filter_constant_columns=True,
-                      filter_outliers=True,
-                      keep_status_columns=False) -> pd.DataFrame:
-        normal_paths = [
-            f"data/{decision_states_dir}/normal_noexpfs_online_samples_1_2022-08-15-14-07_5s",
-            f"data/{decision_states_dir}/normal_expfs_online_samples_1_2022-08-18-08-31_5s",
-            f"data/{decision_states_dir}/incompl_installs_normal_online_samples_1_2022-08-02-20-36_5s",
-            f"data/{decision_states_dir}/incompl_installs_normal_online_samples_1_ssh_conn_open_2022-08-02-15-51_5s"
-        ]
-        full_df = pd.DataFrame()
-        for i, norm_p in enumerate(normal_paths):
-            df = DataProvider.__get_filtered_df(norm_p,
-                                                filter_suspected_external_events=filter_suspected_external_events,
-                                                filter_constant_columns=filter_constant_columns,
-                                                filter_outliers=filter_outliers,
-                                                keep_status_columns=keep_status_columns)
-            df['attack'] = Behavior.NORMAL.value
-            df['state'] = decision_state + str(i)
-            full_df = pd.concat([full_df, df])
         return full_df
 
     @staticmethod
@@ -197,6 +207,29 @@ class DataProvider:
                 full_df = pd.concat([full_df, df])
 
         full_df.to_csv(file_name, index_label=False)
+        return full_df
+
+    @staticmethod
+    def parse_normals(filter_suspected_external_events=True,
+                      filter_constant_columns=True,
+                      filter_outliers=True,
+                      keep_status_columns=False) -> pd.DataFrame:
+        normal_paths = [
+            f"data/{decision_states_dir}/normal_noexpfs_online_samples_1_2022-08-15-14-07_5s",
+            f"data/{decision_states_dir}/normal_expfs_online_samples_1_2022-08-18-08-31_5s",
+            f"data/{decision_states_dir}/incompl_installs_normal_online_samples_1_2022-08-02-20-36_5s",
+            f"data/{decision_states_dir}/incompl_installs_normal_online_samples_1_ssh_conn_open_2022-08-02-15-51_5s"
+        ]
+        full_df = pd.DataFrame()
+        for i, norm_p in enumerate(normal_paths):
+            df = DataProvider.__get_filtered_df(norm_p,
+                                                filter_suspected_external_events=filter_suspected_external_events,
+                                                filter_constant_columns=filter_constant_columns,
+                                                filter_outliers=filter_outliers,
+                                                keep_status_columns=keep_status_columns)
+            df['attack'] = Behavior.NORMAL.value
+            df['state'] = decision_state + str(i)
+            full_df = pd.concat([full_df, df])
         return full_df
 
     @staticmethod
@@ -244,7 +277,30 @@ class DataProvider:
     #     return scaled_bdata
 
     @staticmethod
+    def get_scaled_scaled_train_test_split_with_afterstates(split=0.8, scaling_minmax=True):
+
+        # TODO:
+        #  1 get both dicts for decision and afterstates
+        #  2 get splits
+        #  3 concat all train splits
+        #  4 fit the scaler
+        #  5 transform both train and test data for all dicts
+        #  6 return dicts: scaled_dtrain, scaled_dtest, scaled_atrain, scaled_atest
+
+        ddata = DataProvider.parse_no_mtd_behavior_data(decision=True)
+        adata = DataProvider.parse_mtd_behavior_data()
+        print("test")
+
+
+
+
+    @staticmethod
     def get_scaled_train_test_split(split=0.8, scaling_minmax=True, decision=False):
+        """
+        Method returns dictionaries mapping behaviors to scaled train and test data, as well as the scaler used
+        Either decision states or raw behaviors can be utilized (decision flag) as no combinations
+        with mtd need to be considered
+        """
 
         bdata = DataProvider.parse_no_mtd_behavior_data(decision=decision)
 
