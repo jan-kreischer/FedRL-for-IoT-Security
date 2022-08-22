@@ -75,7 +75,7 @@ class AutoEncoder():
                 loss = loss_function(model_out, x)
                 mses.append(loss.item())
         mses = np.array(mses)
-        self.threshold = mses.mean() + 0.5 * mses.std()
+        self.threshold = mses.mean() + 2 * mses.std()
         return self.threshold
 
     def save_model(self, dir=""):

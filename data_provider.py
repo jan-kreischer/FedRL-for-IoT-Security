@@ -36,7 +36,8 @@ decision_states_file_paths: Dict[Behavior, str] = {
     # Behavior.NORMAL: f"data/{decision_states_dir}/normal_noexpfs_online_samples_1_2022-08-15-14-07_5s",
     Behavior.RANSOMWARE_POC: f"data/{decision_states_dir}/ransom_noexpfs_online_samples_1_2022-08-16-08-43_5s",
     Behavior.ROOTKIT_BDVL: f"data/{decision_states_dir}/rootkit_bdvl_online_samples_1_2022-08-12-16-40_5s",
-    Behavior.CNC_BACKDOOR_JAKORITAR: f"data/{decision_states_dir}/cnc_jakoritar_online_samples_1_2022-08-13-06-50_5s"
+    # Behavior.CNC_BACKDOOR_JAKORITAR: f"data/{decision_states_dir}/cnc_jakoritar_online_samples_1_2022-08-13-06-50_5s"
+    Behavior.CNC_BACKDOOR_JAKORITAR: f"data/{decision_states_dir}/cnc_backdoor_jakoritar_noexpfs_online_samples_1_2022-08-22-09-09_5s"
 }
 afterstate = "after"
 afterstates_dir = "afterstates_online_agent"
