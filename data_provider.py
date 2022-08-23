@@ -12,7 +12,7 @@ import os
 import pickle
 
 # raw behaviors without any MTD framework/Agent Components running
-raw_behaviors_dir_rp3 = "raw_behaviors_no_agent_rp4"
+raw_behaviors_dir_rp3 = "raw_behaviors_no_agent_rp3"
 raw_behaviors_file_paths_rp3: Dict[Behavior, str] = {
     Behavior.NORMAL: f"data/{raw_behaviors_dir_rp3}/normal_expfs_online_samples_1_2022-08-20-09-16_5s",
     Behavior.RANSOMWARE_POC: f"data/{raw_behaviors_dir_rp3}/ransom_expfs_online_samples_1_2022-08-22-14-04_5s",
