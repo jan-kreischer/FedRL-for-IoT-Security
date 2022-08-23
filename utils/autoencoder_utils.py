@@ -2,11 +2,18 @@ import numpy as np
 from autoencoder import AutoEncoder, AutoEncoderInterpreter
 import torch
 from utils.evaluation_utils import calculate_metrics
-from custom_types import Behavior
+from custom_types import Behavior, MTDTechnique
 from tabulate import tabulate
 
 
-# functions to learn autoencoders:
+def split_data_for_ae_and_rl(train_data, n=500):
+    ae_dict = {}
+    for mtd in MTDTechnique:
+        normal_mtd_train = train_data[(Behavior.NORMAL, mtd)]
+        train_data[(Behavior.NORMAL, mtd)] = normal_mtd_train[:n]
+        ae_dict[mtd] = normal_mtd_train[n:]
+    return ae_dict, train_data
+
 
 def pretrain_ae_model(ae_data, split=0.8, lr=1e-4, momentum=0.8, num_epochs=300,
                       path="offline_prototype_3_ds_as_sampling/trained_models/ae_model.pth"):
@@ -21,6 +28,22 @@ def pretrain_ae_model(ae_data, split=0.8, lr=1e-4, momentum=0.8, num_epochs=300,
     ae.determine_threshold()
     print(f"AE threshold: {ae.threshold}")
     ae.save_model(path=path)
+    return train_ae_x, valid_ae_x
+
+
+def pretrain_all_afterstate_ae_models(ae_train_dict):
+    for i, mtd in enumerate(ae_train_dict):
+        path = dir + "ae_model_" + mtd.value + ".pth"
+        if i == 0:
+            all_train, all_valid = pretrain_ae_model(ae_train_dict[mtd][:, :-1], path=path)
+        else:
+            train_data, valid_data = pretrain_ae_model(ae_train_dict[mtd][:, :-1], path=path)
+            all_train = np.vstack((all_train, train_data))
+            all_valid = np.vstack((all_valid, valid_data))
+    all_data = np.vstack((all_train, all_valid))
+    pretrain_ae_model(all_data, path=dir+"ae_model_all_as.pth")
+
+
 
 
 def get_pretrained_ae(path, dims):
