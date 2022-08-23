@@ -1,7 +1,7 @@
 from data_provider import DataProvider
 from offline_prototype_3_ds_as_sampling.environment import SensorEnvironment, supervisor_map
 from agent import Agent
-from custom_types import Behavior
+from custom_types import Behavior, MTDTechnique
 from autoencoder import AutoEncoder, AutoEncoderInterpreter
 from utils.utils import plot_learning, seed_random, calculate_metrics
 from tabulate import tabulate
@@ -37,26 +37,26 @@ if __name__ == '__main__':
                                                                                       dir="offline_prototype_3_ds_as_sampling/")
 
     # get splits for RL & AD of normal data
-    n = 100
+    n = 300
     s = 0.8
     b = Behavior.NORMAL
     normal_data = dtrain[b]
     dtrain[b] = normal_data[:n]  # use fixed number of samples for Reinforcement Agent training
     # COMMENT/UNCOMMENT BELOW for retraining of autoencoder
-    ae_data = normal_data[n:]  # use remaining samples for autoencoder
-    idx = int(len(ae_data) * s)
-    # TODO: clean up placeholder
-    train_ae_x, train_ae_y = ae_data[:idx, :-1].astype(np.float32), np.arange(
-        idx)  # just a placeholder for the torch dataloader
-    valid_ae_x, valid_ae_y = ae_data[idx:, :-1].astype(np.float32), np.arange(len(ae_data) - idx)
-    print(f"size train: {train_ae_x.shape}, size valid: {valid_ae_x.shape}")
-    # AD training
-    ae = AutoEncoder(train_x=train_ae_x, train_y=train_ae_y, valid_x=valid_ae_x,
-                     valid_y=valid_ae_y)
-    ae.train(optimizer=torch.optim.SGD(ae.get_model().parameters(), lr=0.0001, momentum=0.8), num_epochs=1000)
-    ae.determine_threshold()
-    print(f"ae threshold: {ae.threshold}")
-    ae.save_model(dir="offline_prototype_3_ds_as_sampling/")
+    # ae_data = normal_data[n:]  # use remaining samples for autoencoder
+    # idx = int(len(ae_data) * s)
+    # # TODO: clean up placeholder
+    # train_ae_x, train_ae_y = ae_data[:idx, :-1].astype(np.float32), np.arange(
+    #     idx)  # just a placeholder for the torch dataloader
+    # valid_ae_x, valid_ae_y = ae_data[idx:, :-1].astype(np.float32), np.arange(len(ae_data) - idx)
+    # print(f"size train: {train_ae_x.shape}, size valid: {valid_ae_x.shape}")
+    # # AD training
+    # ae = AutoEncoder(train_x=train_ae_x, train_y=train_ae_y, valid_x=valid_ae_x,
+    #                  valid_y=valid_ae_y)
+    # ae.train(optimizer=torch.optim.SGD(ae.get_model().parameters(), lr=0.0001, momentum=0.8), num_epochs=1000)
+    # ae.determine_threshold()
+    # print(f"ae threshold: {ae.threshold}")
+    # ae.save_model(dir="offline_prototype_3_ds_as_sampling/")
 
     # AE evaluation of pretrained model
     pretrained_model = torch.load("offline_prototype_3_ds_as_sampling/trained_models/autoencoder_model.pth")
@@ -65,22 +65,100 @@ if __name__ == '__main__':
     print(f"ae_interpreter threshold: {ae_interpreter.threshold}")
 
     # AE can directly be tested on the data that will be used for RL: pass train_data to testing
-    res_dict = {}
-    for b, d in dtrain.items():
-        y_test = np.array([0 if b == Behavior.NORMAL else 1] * len(d))
-        y_predicted = ae_interpreter.predict(d[:, :-1].astype(np.float32))
-
-        acc, f1, conf_mat = calculate_metrics(y_test.flatten(), y_predicted.flatten().numpy())
-        res_dict[b] = f'{(100 * acc):.2f}%'
-
-    labels = ["Behavior"] + ["Accuracy"]
-    results = []
-    for b, a in res_dict.items():
-        results.append([b.value, res_dict[b]])
-    print(tabulate(results, headers=labels, tablefmt="pretty"))
+    # print("---AE trained on decision state normal data---")
+    # print("---Evaluation on decision behaviors train---")
+    # res_dict = {}
+    # for b, d in dtrain.items():
+    #     y_test = np.array([0 if b == Behavior.NORMAL else 1] * len(d))
+    #     y_predicted = ae_interpreter.predict(d[:, :-1].astype(np.float32))
+    #
+    #     acc, f1, conf_mat = calculate_metrics(y_test.flatten(), y_predicted.flatten().numpy())
+    #     res_dict[b] = f'{(100 * acc):.2f}%'
+    #
+    # labels = ["Behavior"] + ["Accuracy"]
+    # results = []
+    # for b, a in res_dict.items():
+    #     results.append([b.value, res_dict[b]])
+    # print(tabulate(results, headers=labels, tablefmt="pretty"))
+    # print("---Evaluation on afterstate behaviors train---")
+    # res_dict = {}
+    # for t in atrain:
+    #     y_test = np.array([0 if t[0] == Behavior.NORMAL else 1] * len(atrain[t]))
+    #     y_predicted = ae_interpreter.predict(atrain[t][:, :-2].astype(np.float32))
+    #
+    #     acc, f1, conf_mat = calculate_metrics(y_test.flatten(), y_predicted.flatten().numpy())
+    #     res_dict[t] = f'{(100 * acc):.2f}%'
+    # labels = ["Behavior", "MTD", "Accuracy"]
+    # results = []
+    # for t, a in res_dict.items():
+    #     results.append([t[0].value, t[1].value, a])
+    # print(tabulate(results, headers=labels, tablefmt="pretty"))
 
     # TODO: train here another autoencoder on normal-mtd afterstate data to be used by env.step
     #  -> possibly multiple AEs (one per mtd if needed...)
+
+    normal_mtd_train = atrain[(Behavior.NORMAL, MTDTechnique.ROOTKIT_SANITIZER)]
+    atrain[(Behavior.NORMAL, MTDTechnique.ROOTKIT_SANITIZER)] = normal_mtd_train[:n]
+    ae_data = normal_mtd_train[n:]
+    idx = int(len(ae_data) * s)
+    all_train_ae_x, all_train_ae_y = ae_data[:idx, :-2].astype(np.float32), np.arange(
+        idx)  # just a placeholder for the torch dataloader
+    all_valid_ae_x, all_valid_ae_y = ae_data[idx:, :-2].astype(np.float32), np.arange(len(ae_data) - idx)
+
+    # Train AD on each normal-mtd afterstate combination
+    for i, mtd in enumerate(MTDTechnique):
+        print("training:" + str(i) + " " + mtd.value)
+        if mtd == MTDTechnique.ROOTKIT_SANITIZER:
+            ae = AutoEncoder(train_x=train_ae_x, train_y=train_ae_y, valid_x=valid_ae_x,
+                             valid_y=valid_ae_y)
+            ae.train(optimizer=torch.optim.SGD(ae.get_model().parameters(), lr=0.0001, momentum=0.8), num_epochs=1000)
+            ae.determine_threshold()
+            print(f"ae threshold: {ae.threshold}")
+            ae.save_model(dir=f"offline_prototype_3_ds_as_sampling/", num=i)
+
+        normal_mtd_train = atrain[(Behavior.NORMAL, mtd)]
+        atrain[(Behavior.NORMAL, mtd)] = normal_mtd_train[:n]
+        ae_data = normal_mtd_train[n:]
+        idx = int(len(ae_data) * s)
+        train_ae_x, train_ae_y = ae_data[:idx, :-2].astype(np.float32), np.arange(
+            idx)  # just a placeholder for the torch dataloader
+        valid_ae_x, valid_ae_y = ae_data[idx:, :-2].astype(np.float32), np.arange(len(ae_data) - idx)
+        all_train_ae_x, all_train_ae_y = np.vstack((all_train_ae_x, train_ae_x)), np.vstack((all_train_ae_y, train_ae_y))
+        all_valid_ae_x, all_valid_ae_y = np.vstack((all_valid_ae_x, valid_ae_x)), np.vstack((all_valid_ae_y, valid_ae_y))
+
+        print(f"size train: {train_ae_x.shape}, size valid: {valid_ae_x.shape}")
+        print(f"size alltrain: {all_train_ae_x.shape}, size valid: {all_valid_ae_x.shape}")
+        # AD training
+        ae = AutoEncoder(train_x=train_ae_x, train_y=train_ae_y, valid_x=valid_ae_x,
+                         valid_y=valid_ae_y)
+        ae.train(optimizer=torch.optim.SGD(ae.get_model().parameters(), lr=0.0001, momentum=0.9), num_epochs=500)
+        ae.determine_threshold()
+        print(f"ae threshold: {ae.threshold}")
+        ae.save_model(dir=f"offline_prototype_3_ds_as_sampling/", num=i)
+
+    # train all after data AE
+    ae = AutoEncoder(train_x=all_train_ae_x, train_y=all_train_ae_y, valid_x=all_valid_ae_x,
+                     valid_y=all_valid_ae_y)
+    ae.train(optimizer=torch.optim.SGD(ae.get_model().parameters(), lr=0.0001, momentum=0.9), num_epochs=500)
+    ae.determine_threshold()
+    print(f"ae threshold: {ae.threshold}")
+    ae.save_model(dir="offline_prototype_3_ds_as_sampling/", num=i+1)
+
+    # LOOP over all test data
+    # for t in atrain:
+    #     y_test = np.array([0 if t[0] == Behavior.NORMAL else 1] * len(atrain[t]))
+    #         y_predicted = ae_interpreter.predict(atrain[t][:, :-2].astype(np.float32))
+    #
+    #         acc, f1, conf_mat = calculate_metrics(y_test.flatten(), y_predicted.flatten().numpy())
+    #         res_dict[t] = f'{(100 * acc):.2f}%'
+    #     labels = ["Behavior", "MTD", "Accuracy"]
+    #     results = []
+    #     for t, a in res_dict.items():
+    #         results.append([t[0].value, t[1].value, a])
+    #     print(tabulate(results, headers=labels, tablefmt="pretty"))
+
+
+
 
 
     # Reinforcement Learning

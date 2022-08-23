@@ -71,16 +71,16 @@ class SensorEnvironment:
         chosen_mtd = actions[action]
 
         if current_behavior in supervisor_map[action]:
-            # print("correct mtd chosen according to supervisor")
-            new_state = self.sample_afterstate(Behavior.NORMAL, chosen_mtd)
+            print("correct mtd chosen according to supervisor")
+            new_state = self.sample_afterstate(current_behavior, chosen_mtd)
 
             # ae predicts too many false positives: episode should not end, but behavior is normal (because MTD was correct)
             # note that this should not happen, as ae should learn to recognize normal behavior with near perfect accuracy
             if self.interpreter:
                 for i in range(15):  # real world simulation with 15 samples
-                    new_state = np.vstack((new_state, self.sample_afterstate(Behavior.NORMAL, chosen_mtd)))
+                    new_state = np.vstack((new_state, self.sample_afterstate(current_behavior, chosen_mtd)))
                 if torch.sum(self.interpreter.predict(new_state[:, :-2].astype(np.float32))) / len(new_state) > 0.5:
-                    raise UserWarning("Should not happen! AE fails to predict majority of normal samples")
+                    raise UserWarning("Should not happen! AE fails to predict majority of normal samples! Too many False Positives!")
                     # reward = self.calculate_reward(False)
                     # isTerminalState = False
                 else:
