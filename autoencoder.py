@@ -21,19 +21,19 @@ def auto_encoder_model(in_features: int, hidden_size: int = 8):
 
 class AutoEncoder():
 
-    def __init__(self, train_x: np.ndarray, train_y: np.ndarray,
-                 valid_x: np.ndarray, valid_y: np.ndarray,
+    def __init__(self, train_x: np.ndarray,
+                 valid_x: np.ndarray,
                  batch_size: int = 64, batch_size_valid=1):
 
         data_train = torch.utils.data.TensorDataset(
             torch.from_numpy(train_x).type(torch.float),
-            torch.from_numpy(train_y).type(torch.float)
+            #torch.from_numpy(train_y).type(torch.float)
         )
         self.data_loader = torch.utils.data.DataLoader(data_train, batch_size=batch_size, shuffle=True, drop_last=True)
 
         data_valid = torch.utils.data.TensorDataset(
             torch.from_numpy(valid_x).type(torch.float),
-            torch.from_numpy(valid_y).type(torch.float)
+            #torch.from_numpy(valid_y).type(torch.float)
         )
         self.valid_loader = torch.utils.data.DataLoader(data_valid, batch_size=batch_size_valid, shuffle=True)
         self.validation_losses = []
@@ -53,7 +53,7 @@ class AutoEncoder():
         for e in range(num_epochs):
             self.model.train()
             current_losses = []
-            for batch_idx, (x, _) in enumerate(self.data_loader):
+            for batch_idx, (x,) in enumerate(self.data_loader):
                 x = x  # x.cuda()
                 optimizer.zero_grad()
                 model_out = self.model(x)
@@ -69,7 +69,7 @@ class AutoEncoder():
         self.model.eval()
         with torch.no_grad():
             loss_function = torch.nn.MSELoss(reduction='sum')
-            for batch_idx, (x, _) in enumerate(self.valid_loader):
+            for batch_idx, (x,) in enumerate(self.valid_loader):
                 x = x  # x.cuda()
                 model_out = self.model(x)
                 loss = loss_function(model_out, x)

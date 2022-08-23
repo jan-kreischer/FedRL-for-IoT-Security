@@ -4,7 +4,7 @@ from data_provider import DataProvider
 from offline_prototype_1_raw_behaviors.environment import SensorEnvironment, supervisor_map
 from agent import Agent
 from custom_types import Behavior
-from utils.utils import plot_learning, seed_random
+from utils.evaluation_utils import plot_learning, seed_random
 from time import time
 import torch
 import numpy as np

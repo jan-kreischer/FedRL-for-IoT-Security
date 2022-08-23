@@ -92,8 +92,8 @@ if __name__ == "__main__":
         #                                                                 (Behavior.CNC_BACKDOOR_JAKORITAR, "blue"),
         #                                                                 (Behavior.RANSOMWARE_POC, "red")],
         #                                                 plot_name="ds_comparison_pi_3_1gb_kde")
-        DataPlotter.plot_devices_as_kde(RaspberryPi.PI4_2GB_WC)
-        #DataPlotter.plot_devices_as_kde(RaspberryPi.PI3_1GB)
+        #DataPlotter.plot_devices_as_kde(RaspberryPi.PI4_2GB_WC)
+        DataPlotter.plot_devices_as_kde(RaspberryPi.PI3_1GB)
 
         # UserWarning: Logscale warning can be ignored (some samples have negative values for feature iface0TX)
     if plot_timeline:
