@@ -6,7 +6,13 @@ from custom_types import Behavior, MTDTechnique
 from tabulate import tabulate
 
 
-def split_data_for_ae_and_rl(train_data, n=500):
+def split_ds_data_for_ae_and_rl(dtrain, n=500):
+    normal_data = dtrain[Behavior.NORMAL]
+    dtrain[Behavior.NORMAL] = normal_data[:n]
+    return normal_data[n:], dtrain
+
+
+def split_as_data_for_ae_and_rl(train_data, n=500):
     ae_dict = {}
     for mtd in MTDTechnique:
         normal_mtd_train = train_data[(Behavior.NORMAL, mtd)]
@@ -31,9 +37,9 @@ def pretrain_ae_model(ae_data, split=0.8, lr=1e-4, momentum=0.8, num_epochs=300,
     return train_ae_x, valid_ae_x
 
 
-def pretrain_all_afterstate_ae_models(ae_train_dict):
+def pretrain_all_afterstate_ae_models(ae_train_dict, dir="offline_prototype_3_ds_as_sampling/trained_models/"):
     for i, mtd in enumerate(ae_train_dict):
-        path = dir + "ae_model_" + mtd.value + ".pth"
+        path = dir + "ae_model_" + str(mtd.value) + ".pth"
         if i == 0:
             all_train, all_valid = pretrain_ae_model(ae_train_dict[mtd][:, :-1], path=path)
         else:
@@ -41,6 +47,7 @@ def pretrain_all_afterstate_ae_models(ae_train_dict):
             all_train = np.vstack((all_train, train_data))
             all_valid = np.vstack((all_valid, valid_data))
     all_data = np.vstack((all_train, all_valid))
+    all_data = np.hstack((all_data, np.ones((len(all_data),1))))
     pretrain_ae_model(all_data, path=dir+"ae_model_all_as.pth")
 
 
@@ -82,3 +89,22 @@ def evaluate_ae_on_afterstates(ae_interpreter: AutoEncoderInterpreter, test_data
     for t, a in res_dict.items():
         results.append([t[0].value, t[1].value, a])
     print(tabulate(results, headers=labels, tablefmt="pretty"))
+
+def evaluate_all_as_ae_models(dtrain, atrain, dims, dir):
+    for mtd in MTDTechnique:
+        path = dir + "ae_model_" + str(mtd.value) + ".pth"
+        print("---Evaluating AE " + str(mtd.value) + "---")
+        ae_interpreter = get_pretrained_ae(path=path, dims=dims)
+        print("---Evaluation on decision behaviors train---")
+        evaluate_ae_on_no_mtd_behavior(ae_interpreter, test_data=dtrain)
+        print("---Evaluation on afterstate behaviors train---")
+        evaluate_ae_on_afterstates(ae_interpreter, test_data=atrain)
+
+    print("Evaluating AE trained on all afterstates normal")
+    path = dir + "ae_model_all_as.pth"
+    ae_interpreter = get_pretrained_ae(path=path, dims=dims)
+    print("---Evaluation on decision behaviors train---")
+    evaluate_ae_on_no_mtd_behavior(ae_interpreter, test_data=dtrain)
+    print("---Evaluation on afterstate behaviors train---")
+    evaluate_ae_on_afterstates(ae_interpreter, test_data=atrain)
+

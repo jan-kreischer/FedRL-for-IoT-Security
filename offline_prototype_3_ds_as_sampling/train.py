@@ -5,7 +5,8 @@ from custom_types import Behavior, MTDTechnique
 from autoencoder import AutoEncoder, AutoEncoderInterpreter
 from utils.evaluation_utils import plot_learning, seed_random, calculate_metrics
 from utils.autoencoder_utils import pretrain_ae_model, get_pretrained_ae, evaluate_ae_on_no_mtd_behavior, \
-    evaluate_ae_on_afterstates, pretrain_all_afterstate_ae_models, split_data_for_ae_and_rl
+    evaluate_ae_on_afterstates, pretrain_all_afterstate_ae_models, split_as_data_for_ae_and_rl, \
+    split_ds_data_for_ae_and_rl, evaluate_all_as_ae_models
 from tabulate import tabulate
 from time import time
 import torch
@@ -38,50 +39,30 @@ if __name__ == '__main__':
     dtrain, dtest, atrain, atest = DataProvider.get_reduced_dimensions_with_pca_ds_as(DIMS,
                                                                                       dir="offline_prototype_3_ds_as_sampling/")
     # get splits for RL & AD of normal data
-    n = 700
-    s = 0.8
-    b = Behavior.NORMAL
-    normal_data = dtrain[b]
-    dtrain[b] = normal_data[:n]  # use fixed number of samples for Reinforcement Agent training, rest for AE
-
     dir = "offline_prototype_3_ds_as_sampling/trained_models/"
     model_name = "ae_model_ds.pth"
     path = dir + model_name
-    #pretrain_ae_model(normal_data[n:], path=path)
+    ae_ds_train, dtrain_rl = split_ds_data_for_ae_and_rl(dtrain)
+    # pretrain_ae_model(ae_ds_train, path=path)
 
     # AE evaluation of pretrained model
     ae_interpreter = get_pretrained_ae(path=path, dims=DIMS)
     # AE can directly be tested on the data that will be used for RL: pass train_data to testing
-    print("---AE trained on decision state normal data---")
-    print("---Evaluation on decision behaviors train---")
-    # evaluate_ae_on_no_mtd_behavior(ae_interpreter, test_data=dtrain)
-    print("---Evaluation on afterstate behaviors train---")
+    # print("---AE trained on decision state normal data---")
+    # print("---Evaluation on decision behaviors train---")
+    # evaluate_ae_on_no_mtd_behavior(ae_interpreter, test_data=dtrain_rl)
+    # print("---Evaluation on afterstate behaviors train---")
     # evaluate_ae_on_afterstates(ae_interpreter, test_data=atrain)
 
-    # TODO: train here another autoencoder on normal-mtd afterstate data to be used by env.step
-    #  -> possibly multiple AEs (one per mtd if needed...)
-    ae_train_dict, atrain_rl = split_data_for_ae_and_rl(atrain)
 
-    pretrain_all_afterstate_ae_models(atrain=ae_train_dict)
-
+    ae_train_dict, atrain_rl = split_as_data_for_ae_and_rl(atrain)
+    #pretrain_all_afterstate_ae_models(ae_train_dict, dir=dir)
+    evaluate_all_as_ae_models(dtrain_rl, atrain_rl, dims=DIMS, dir=dir)
 
     exit(0)
 
-    # LOOP over all test data
-    # for t in atrain:
-    #     y_test = np.array([0 if t[0] == Behavior.NORMAL else 1] * len(atrain[t]))
-    #         y_predicted = ae_interpreter.predict(atrain[t][:, :-2].astype(np.float32))
-    #
-    #         acc, f1, conf_mat = calculate_metrics(y_test.flatten(), y_predicted.flatten().numpy())
-    #         res_dict[t] = f'{(100 * acc):.2f}%'
-    #     labels = ["Behavior", "MTD", "Accuracy"]
-    #     results = []
-    #     for t, a in res_dict.items():
-    #         results.append([t[0].value, t[1].value, a])
-    #     print(tabulate(results, headers=labels, tablefmt="pretty"))
-
     # Reinforcement Learning
-    env = SensorEnvironment(decision_train_data=dtrain, decision_test_data=dtest,
+    env = SensorEnvironment(decision_train_data=dtrain_rl, decision_test_data=dtest,
                             after_train_data=atrain, after_test_data=atest, interpreter=ae_interpreter)
 
     agent = Agent(input_dims=env.observation_space_size, n_actions=len(env.actions), buffer_size=BUFFER_SIZE,
