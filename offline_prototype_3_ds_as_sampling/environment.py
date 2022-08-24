@@ -25,10 +25,6 @@ supervisor_map: Dict[int, Tuple[Behavior]] = defaultdict(lambda: -1, {
 
 
 # handles the supervised, online-simulation of episodes using decision and afterstate data
-
-# TODO: train_data and test_data must contain
-#  1. decision states for all attacks
-#  2. afterstates for all behavior/mtd combinations
 class SensorEnvironment:
     # training data split/test data
     def __init__(self, decision_train_data: Dict[Behavior, np.ndarray] = None,
@@ -56,7 +52,7 @@ class SensorEnvironment:
             attack_data = self.dtrain_data[self.reset_to_behavior]
             self.reset_to_behavior = None
         else:
-            rb = random.choice([b for b in Behavior if b != Behavior.NORMAL])
+            rb = random.choice([b for b in Behavior if b != Behavior.NORMAL and b != Behavior.ROOTKIT_BEURK and b != Behavior.CNC_THETICK])
             attack_data = self.dtrain_data[rb]
         return attack_data[np.random.randint(attack_data.shape[0], size=1), :]
 
@@ -74,10 +70,12 @@ class SensorEnvironment:
             print("correct mtd chosen according to supervisor")
             new_state = self.sample_afterstate(current_behavior, chosen_mtd)
 
+            # TODO: check if false positives cannot be exchanged for another sample?
+            #  does it matter in simulation to do it with an average of AE sample predictions?
             # ae predicts too many false positives: episode should not end, but behavior is normal (because MTD was correct)
             # note that this should not happen, as ae should learn to recognize normal behavior with near perfect accuracy
             if self.interpreter:
-                for i in range(15):  # real world simulation with 15 samples
+                for i in range(100):  # real world simulation with 15 samples
                     new_state = np.vstack((new_state, self.sample_afterstate(current_behavior, chosen_mtd)))
                 if torch.sum(self.interpreter.predict(new_state[:, :-2].astype(np.float32))) / len(new_state) > 0.5:
                     raise UserWarning("Should not happen! AE fails to predict majority of normal samples! Too many False Positives!")
