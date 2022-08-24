@@ -47,10 +47,8 @@ def pretrain_all_afterstate_ae_models(ae_train_dict, dir="offline_prototype_3_ds
             all_train = np.vstack((all_train, train_data))
             all_valid = np.vstack((all_valid, valid_data))
     all_data = np.vstack((all_train, all_valid))
-    all_data = np.hstack((all_data, np.ones((len(all_data),1))))
-    pretrain_ae_model(all_data, path=dir+"ae_model_all_as.pth")
-
-
+    all_data = np.hstack((all_data, np.ones((len(all_data), 1))))
+    pretrain_ae_model(all_data, path=dir + "ae_model_all_as.pth")
 
 
 def get_pretrained_ae(path, dims):
@@ -76,10 +74,12 @@ def evaluate_ae_on_no_mtd_behavior(ae_interpreter: AutoEncoderInterpreter, test_
         results.append([b.value, res_dict[b]])
     print(tabulate(results, headers=labels, tablefmt="pretty"))
 
+
 def evaluate_ae_on_afterstates(ae_interpreter: AutoEncoderInterpreter, test_data):
     res_dict = {}
     for t in test_data:
-        y_test = np.array([0 if t[0] == Behavior.NORMAL else 1] * len(test_data[t]))
+        isAnomaly = check_normal(t[0], t[1])
+        y_test = np.array([isAnomaly] * len(test_data[t]))
         y_predicted = ae_interpreter.predict(test_data[t][:, :-2].astype(np.float32))
 
         acc, f1, conf_mat = calculate_metrics(y_test.flatten(), y_predicted.flatten().numpy())
@@ -89,6 +89,7 @@ def evaluate_ae_on_afterstates(ae_interpreter: AutoEncoderInterpreter, test_data
     for t, a in res_dict.items():
         results.append([t[0].value, t[1].value, a])
     print(tabulate(results, headers=labels, tablefmt="pretty"))
+
 
 def evaluate_all_as_ae_models(dtrain, atrain, dims, dir):
     for mtd in MTDTechnique:
@@ -108,3 +109,14 @@ def evaluate_all_as_ae_models(dtrain, atrain, dims, dir):
     print("---Evaluation on afterstate behaviors train---")
     evaluate_ae_on_afterstates(ae_interpreter, test_data=atrain)
 
+
+def check_normal(b: Behavior, m: MTDTechnique):
+    if b == Behavior.NORMAL:
+        return 0
+    if b == Behavior.ROOTKIT_BDVL and m == MTDTechnique.ROOTKIT_SANITIZER:
+        return 0
+    if b == Behavior.RANSOMWARE_POC and (m == MTDTechnique.RANSOMWARE_DIRTRAP or m == MTDTechnique.RANSOMWARE_FILE_EXT_HIDE):
+        return 0
+    if b == Behavior.CNC_BACKDOOR_JAKORITAR and m == MTDTechnique.CNC_IP_SHUFFLE:
+        return 0
+    return 1
