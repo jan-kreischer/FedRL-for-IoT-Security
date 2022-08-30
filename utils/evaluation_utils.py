@@ -52,6 +52,17 @@ def calculate_metrics(y_test: np.ndarray, y_pred: np.ndarray) -> Tuple[float, fl
     return correct / len(y_pred), f1, cm_fed
 
 
+def get_pretrained_agent(path, input_dims, n_actions, buffer_size):
+    pretrained_state = torch.load(path)
+    pretrained_agent = Agent(input_dims=input_dims, n_actions=n_actions, buffer_size=buffer_size,
+                             batch_size=pretrained_state['batch_size'], lr=pretrained_state['lr'],
+                             gamma=pretrained_state['gamma'], epsilon=pretrained_state['eps'],
+                             eps_end=pretrained_state['eps_min'], eps_dec=pretrained_state['eps_dec'])
+    pretrained_agent.online_net.load_state_dict(pretrained_state['online_net_state_dict'])
+    pretrained_agent.target_net.load_state_dict(pretrained_state['target_net_state_dict'])
+    pretrained_agent.replay_buffer = pretrained_state['replay_buffer']
+    return pretrained_agent
+
 def evaluate_agent(agent: Agent, test_data):
     # check predictions with learnt dqn
     agent.online_net.eval()
