@@ -4,9 +4,9 @@ from data_provider import DataProvider, time_status_columns, all_zero_columns, d
 from custom_types import Behavior, MTDTechnique
 
 
-def show_raw_behaviors_data_availability(raw=False):
+def show_raw_behaviors_data_availability(raw=False, pi=3):
     all_data = DataProvider.parse_raw_behavior_files_to_df(filter_outliers=not raw,
-                                                           filter_suspected_external_events=not raw)
+                                                           filter_suspected_external_events=not raw, pi=pi)
     print(f'Total data points: {len(all_data)}')
     drop_cols = [col for col in list(all_data) if col not in ['attack', 'block:block_bio_backmerge']]
     grouped = all_data.drop(drop_cols, axis=1).rename(columns={'block:block_bio_backmerge': 'count'}).groupby(
@@ -16,10 +16,11 @@ def show_raw_behaviors_data_availability(raw=False):
     for behavior in Behavior:
         row = [behavior.value]
         cnt_row = grouped.loc[(grouped['attack'] == behavior.value)]
+        if len(cnt_row) == 0: continue
         row += [cnt_row['count'].iloc[0]]
         rows.append(row)
     print(tabulate(
-        rows, headers=labels, tablefmt="pretty"))
+        rows, headers=labels, tablefmt="latex"))
 
 
 def show_decision_and_afterstate_data_availability(raw=False):
@@ -50,14 +51,14 @@ def show_decision_and_afterstate_data_availability(raw=False):
         for line in lines.values.tolist():
             rows.append(line)
     print(tabulate(
-        rows, headers=labels, tablefmt="pretty"))
+        rows, headers=labels, tablefmt="latex"))
 
 
-def print_column_info(raw_behaviors=True):
+def print_column_info(raw_behaviors=True, pi=3):
     if raw_behaviors:
         df = DataProvider.parse_raw_behavior_files_to_df(filter_suspected_external_events=False,
                                                          filter_constant_columns=False,
-                                                         filter_outliers=False, keep_status_columns=True)
+                                                         filter_outliers=False, keep_status_columns=True, pi=pi)
     else:
         df = DataProvider.parse_agent_data_files_to_df(filter_suspected_external_events=False,
                                                        filter_constant_columns=False,
@@ -84,17 +85,17 @@ def print_column_info(raw_behaviors=True):
         row += ["x" if col in time_status_columns else ""]
         row += ["x" if (col not in time_status_columns and col not in all_zero_columns) else ""]
         rows.append(row)
-    print(tabulate(rows[:45], headers=labels, tablefmt='pretty'))
-    print(tabulate(rows[45:], headers=labels, tablefmt='pretty'))
+    print(tabulate(rows[:45], headers=labels, tablefmt='latex'))
+    print(tabulate(rows[45:], headers=labels, tablefmt='latex'))
 
 
 if __name__ == "__main__":
     os.chdir("..")
     print("------------------Raw Data Availability------------------")
-    # show_raw_behaviors_data_availability(raw=True)
-    show_decision_and_afterstate_data_availability(raw=True)
+    show_raw_behaviors_data_availability(raw=True, pi=3)
+    # show_decision_and_afterstate_data_availability(raw=True)
     print("----------------Filtered Data Availability---------------")
-    # show_raw_behaviors_data_availability(raw=False)
-    show_decision_and_afterstate_data_availability(raw=False)
+    show_raw_behaviors_data_availability(raw=False, pi=3)
+    # show_decision_and_afterstate_data_availability(raw=False)
 
-    # print_column_info(raw_behaviors=False)
+    print_column_info(raw_behaviors=True, pi=3)

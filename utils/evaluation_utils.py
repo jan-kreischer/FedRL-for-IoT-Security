@@ -4,6 +4,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import random
+from agent import Agent
+from custom_types import Behavior
+from offline_prototype_1_raw_behaviors.environment import supervisor_map
 
 
 def plot_learning(x, returns, epsilons, filename):
@@ -22,7 +25,7 @@ def plot_learning(x, returns, epsilons, filename):
     for t in range(N):
         running_avg[t] = np.mean(returns[max(0, t - 20):(t + 1)])
 
-    ax2.scatter(x, running_avg, color="C1")
+    ax2.scatter(x, running_avg, color="C1", s=2**2)
     # ax2.xaxis.tick_top()
     ax2.axes.get_xaxis().set_visible(False)
     ax2.yaxis.tick_right()
@@ -47,3 +50,22 @@ def calculate_metrics(y_test: np.ndarray, y_pred: np.ndarray) -> Tuple[float, fl
     f1 = f1_score(y_test, y_pred, zero_division=1)
     cm_fed = confusion_matrix(y_test, y_pred)  # could also extract via tn, fp, fn, tp = confusion_matrix().ravel()
     return correct / len(y_pred), f1, cm_fed
+
+
+def evaluate_agent(agent: Agent, test_data):
+    # check predictions with learnt dqn
+    agent.online_net.eval()
+    results = {}
+    with torch.no_grad():
+        for b, d in test_data.items():
+            if b != Behavior.NORMAL:
+                cnt_corr = 0
+                cnt = 0
+                for state in d:
+                    action = agent.take_greedy_action(state[:-1])
+                    if b in supervisor_map[action]:
+                        cnt_corr += 1
+                    cnt += 1
+                results[b] = (cnt_corr, cnt)
+
+    print(results)

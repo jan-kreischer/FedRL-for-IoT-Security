@@ -156,6 +156,7 @@ if __name__ == '__main__':
     pretrained_agent.target_net.load_state_dict(pretrained_state['target_net_state_dict'])
     pretrained_agent.replay_buffer = pretrained_state['replay_buffer']
 
+    # TODO: factor out
     pretrained_agent.online_net.eval()
     results = {}
     with torch.no_grad():
