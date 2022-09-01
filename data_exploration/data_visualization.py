@@ -93,17 +93,17 @@ if __name__ == "__main__":
         #                                                                 (Behavior.RANSOMWARE_POC, "red")],
         #                                                 plot_name="ds_comparison_pi_3_1gb_kde")
 
-        DataPlotter.plot_decision_or_afterstates_as_kde(
-            decision_states=[(Behavior.NORMAL, "darkgreen")],
-            afterstates=[(Behavior.NORMAL, MTDTechnique.RANSOMWARE_DIRTRAP, "blue"),
-                         (Behavior.NORMAL, MTDTechnique.RANSOMWARE_FILE_EXT_HIDE, "lightblue"),
-                         (Behavior.NORMAL, MTDTechnique.CNC_IP_SHUFFLE, "orange"),
-                         (Behavior.NORMAL, MTDTechnique.ROOTKIT_SANITIZER, "red")],
-            #raw_behaviors=[(Behavior.NORMAL, "lightgreen")],
-            plot_name="dac_normal_decision_and_afterstates_kde")
+        # DataPlotter.plot_decision_or_afterstates_as_kde(
+        #     decision_states=[(Behavior.NORMAL, "darkgreen")],
+        #     afterstates=[(Behavior.NORMAL, MTDTechnique.RANSOMWARE_DIRTRAP, "blue"),
+        #                  (Behavior.NORMAL, MTDTechnique.RANSOMWARE_FILE_EXT_HIDE, "lightblue"),
+        #                  (Behavior.NORMAL, MTDTechnique.CNC_IP_SHUFFLE, "orange"),
+        #                  (Behavior.NORMAL, MTDTechnique.ROOTKIT_SANITIZER, "red")],
+        #     #raw_behaviors=[(Behavior.NORMAL, "lightgreen")],
+        #     plot_name="dac_normal_decision_and_afterstates_kde")
 
         # DataPlotter.plot_raw_behaviors_kde(RaspberryPi.PI4_2GB_WC)
-        # DataPlotter.plot_raw_behaviors_kde(RaspberryPi.PI3_1GB)
+        DataPlotter.plot_raw_behaviors_kde(RaspberryPi.PI3_1GB)
 
         # UserWarning: Logscale warning can be ignored (some samples have negative values for feature iface0TX)
     if plot_timeline: pass

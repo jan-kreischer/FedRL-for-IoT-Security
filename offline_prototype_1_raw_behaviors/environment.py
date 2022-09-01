@@ -38,7 +38,7 @@ class SensorEnvironment:
     def sample_random_attack_state(self):
         """i.e. for starting state of an episode,
         (with replacement; it is possible that the same sample is chosen multiple times)"""
-        rb = random.choice([b for b in Behavior if b != Behavior.NORMAL and b != Behavior.ROOTKIT_BEURK and b != Behavior.CNC_THETICK])
+        rb = random.choice([b for b in Behavior if b != Behavior.NORMAL and b != Behavior.ROOTKIT_BEURK])
         attack_data = self.train_data[rb]
         return attack_data[np.random.randint(attack_data.shape[0], size=1), :]
 

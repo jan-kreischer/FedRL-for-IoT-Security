@@ -45,7 +45,7 @@ class SensorEnvironment:
         """i.e. for starting state of an episode,
         (with replacement; it is possible that the same sample is chosen multiple times)"""
         rb = random.choice(
-            [b for b in Behavior if b != Behavior.NORMAL and b != Behavior.ROOTKIT_BEURK and b != Behavior.CNC_THETICK])
+            [b for b in Behavior if b != Behavior.NORMAL and b != Behavior.ROOTKIT_BEURK])
         attack_data = self.train_data[rb]
         return attack_data[np.random.randint(attack_data.shape[0], size=1), :]
 
@@ -64,7 +64,6 @@ class SensorEnvironment:
             # note that this should not happen, as ae should learn to recognize normal behavior with near perfect accuracy
             if self.interpreter:
                 if self.state_samples_ae > 1:
-                    print("sample ", self.state_samples_ae)
                     for i in range(self.state_samples_ae - 1):  # real world simulation with multiple samples monitored
                         new_state = np.vstack((new_state, self.sample_behavior(Behavior.NORMAL)))
                 if torch.sum(self.interpreter.predict(new_state[:, :-1].astype(np.float32))) / len(new_state) > 0.5:

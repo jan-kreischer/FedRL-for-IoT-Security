@@ -1,5 +1,6 @@
 from typing import Tuple, Any
 from sklearn.metrics import f1_score, confusion_matrix, classification_report
+from tabulate import tabulate
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
@@ -7,6 +8,7 @@ import random
 from agent import Agent
 from custom_types import Behavior
 from offline_prototype_1_raw_behaviors.environment import supervisor_map
+
 
 
 def plot_learning(x, returns, epsilons, filename):
@@ -66,7 +68,7 @@ def get_pretrained_agent(path, input_dims, n_actions, buffer_size):
 def evaluate_agent(agent: Agent, test_data):
     # check predictions with learnt dqn
     agent.online_net.eval()
-    results = {}
+    res_dict = {}
     with torch.no_grad():
         for b, d in test_data.items():
             if b != Behavior.NORMAL:
@@ -77,6 +79,32 @@ def evaluate_agent(agent: Agent, test_data):
                     if b in supervisor_map[action]:
                         cnt_corr += 1
                     cnt += 1
-                results[b] = (cnt_corr, cnt)
+                res_dict[b] = (cnt_corr, cnt)
 
-    print(results)
+    print(res_dict)
+    labels = ["Behavior"] + ["Accuracy"]
+    results = []
+    for b, t in res_dict.items():
+        results.append([b.value, f'{(100 * t[0]/t[1]):.2f}%'])
+    print(tabulate(results, headers=labels, tablefmt="pretty"))
+
+def evaluate_agent_on_afterstates(agent: Agent, test_data):
+    agent.online_net.eval()
+    res_dict = {}
+    with torch.no_grad():
+        for t, d in test_data.items():
+            if t[0] != Behavior.NORMAL:
+                cnt_corr = 0
+                cnt = 0
+                for state in d:
+                    action = agent.take_greedy_action(state[:-2])
+                    if t[0] in supervisor_map[action]:
+                        cnt_corr += 1
+                    cnt += 1
+                res_dict[t] = (cnt_corr, cnt)
+
+    labels = ["Behavior", "MTD", "Accuracy"]
+    results = []
+    for t, cs in res_dict.items():
+        results.append([t[0].value, t[1].value, f'{(100 * cs[0] / cs[1]):.2f}%'])
+    print(tabulate(results, headers=labels, tablefmt="pretty"))

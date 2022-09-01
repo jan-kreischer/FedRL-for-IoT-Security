@@ -17,11 +17,16 @@ actions = (MTDTechnique.CNC_IP_SHUFFLE, MTDTechnique.ROOTKIT_SANITIZER,
 
 supervisor_map: Dict[int, Tuple[Behavior]] = defaultdict(lambda: -1, {
     # MTDTechnique.NO_MTD: (Behavior.NORMAL,),
-    0: (Behavior.CNC_BACKDOOR_JAKORITAR, Behavior.CNC_THETICK),
-    1: (Behavior.ROOTKIT_BDVL, Behavior.ROOTKIT_BEURK),
-    2: (Behavior.RANSOMWARE_POC,),
-    3: (Behavior.RANSOMWARE_POC,)
+    0: (Behavior.CNC_BACKDOOR_JAKORITAR, Behavior.CNC_THETICK, Behavior.NORMAL),
+    1: (Behavior.ROOTKIT_BDVL, Behavior.ROOTKIT_BEURK, Behavior.NORMAL),
+    2: (Behavior.RANSOMWARE_POC, Behavior.NORMAL),
+    3: (Behavior.RANSOMWARE_POC, Behavior.NORMAL)
 })
+
+normal_afterstates = [(Behavior.CNC_BACKDOOR_JAKORITAR, MTDTechnique.CNC_IP_SHUFFLE),
+                      (Behavior.RANSOMWARE_POC, MTDTechnique.RANSOMWARE_DIRTRAP),
+                      (Behavior.RANSOMWARE_POC, MTDTechnique.RANSOMWARE_FILE_EXT_HIDE),
+                      (Behavior.ROOTKIT_BDVL, MTDTechnique.ROOTKIT_SANITIZER)]
 
 
 # handles the supervised, online-simulation of episodes using decision and afterstate data
@@ -31,12 +36,12 @@ class SensorEnvironment:
                  decision_test_data: Dict[Behavior, np.ndarray] = None,
                  after_train_data: Dict[Tuple[Behavior, MTDTechnique], np.ndarray] = None,
                  after_test_data: Dict[Tuple[Behavior, MTDTechnique], np.ndarray] = None,
-                 interpreter: AutoEncoderInterpreter = None):
+                 interpreter: AutoEncoderInterpreter = None, state_samples = 1):
         self.dtrain_data = decision_train_data
         self.dtest_data = decision_test_data
         self.atrain_data = after_train_data
         self.atest_data = after_test_data
-
+        self.state_samples_ae = state_samples
         self.current_state: np.array = None
         self.observation_space_size: int = len(self.dtrain_data[Behavior.RANSOMWARE_POC][0][:-1])
         self.actions: List[int] = [i for i in range(len(actions))]
@@ -63,28 +68,29 @@ class SensorEnvironment:
     def step(self, action: int):
         current_behavior = self.current_state.squeeze()[-1] if self.current_state.squeeze()[-1] in Behavior else \
         self.current_state.squeeze()[-2]
-        print(f"current behavior = {current_behavior}")
+        #print(f"current behavior = {current_behavior}")
         chosen_mtd = actions[action]
 
-        if current_behavior in supervisor_map[action]:
-            print("correct mtd chosen according to supervisor")
+
+        if current_behavior in supervisor_map[action] or (current_behavior, chosen_mtd) in normal_afterstates:
+            #print("correct mtd chosen according to supervisor")
             new_state = self.sample_afterstate(current_behavior, chosen_mtd)
 
-            # TODO: check if false positives cannot be exchanged for another sample?
-            #  does it matter in simulation to do it with an average of AE sample predictions?
             # ae predicts too many false positives: episode should not end, but behavior is normal (because MTD was correct)
             # note that this should not happen, as ae should learn to recognize normal behavior with near perfect accuracy
             if self.interpreter:
-                for i in range(100):  # real world simulation with 15 samples
-                    new_state = np.vstack((new_state, self.sample_afterstate(current_behavior, chosen_mtd)))
+                if self.state_samples_ae > 1:
+                    for i in range(self.state_samples_ae - 1):  # real world simulation with multiple samples monitored
+                        new_state = np.vstack((new_state, self.sample_afterstate(current_behavior, chosen_mtd)))
                 if torch.sum(self.interpreter.predict(new_state[:, :-2].astype(np.float32))) / len(new_state) > 0.5:
-                    raise UserWarning("Should not happen! AE fails to predict majority of normal samples! Too many False Positives!")
-                    # reward = self.calculate_reward(False)
-                    # isTerminalState = False
+                    # raise UserWarning("Should not happen! AE fails to predict majority of normal samples! Too many False Positives!")
+                    reward = self.calculate_reward(False)
+                    isTerminalState = False
                 else:
-                    new_state = np.expand_dims(new_state[0, :], axis=0)  # throw away all but one transition
                     reward = self.calculate_reward(True)
                     isTerminalState = True
+                if self.state_samples_ae > 1:
+                    new_state = np.expand_dims(new_state[0, :], axis=0)  # throw away all but one transition for better decorrelation
         else:
             # print("incorrect mtd chosen according to supervisor")
             new_state = self.sample_afterstate(current_behavior, chosen_mtd)

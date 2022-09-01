@@ -24,7 +24,8 @@ LEARNING_RATE = 1e-5
 N_EPISODES = 5000
 LOG_FREQ = 100
 DIMS = 30  # TODO check
-SAMPLES = 20
+PI = 3
+SAMPLES = 1
 
 if __name__ == '__main__':
     os.chdir("..")
@@ -33,7 +34,7 @@ if __name__ == '__main__':
 
     # read in all preprocessed data for a simulated, supervised environment to sample from
     # train_data, test_data, scaler = DataProvider.get_scaled_train_test_split()
-    train_data, test_data = DataProvider.get_reduced_dimensions_with_pca(DIMS, pi=4)
+    train_data, test_data = DataProvider.get_reduced_dimensions_with_pca(DIMS, pi=PI)
     # get splits for RL & AD of normal data
     n = 100
     s = 0.8
@@ -41,9 +42,9 @@ if __name__ == '__main__':
     normal_data = train_data[b]
     train_data[b] = normal_data[:n]  # use fixed number of samples for Reinforcement Agent training
     # COMMENT/UNCOMMENT BELOW for pretraining of autoencoder
-    ae_path = "offline_prototype_2_raw_behaviors/trained_models/ae_model.pth"
+    ae_path = "offline_prototype_2_raw_behaviors/trained_models/ae_model_pi3.pth"
     ae_data = normal_data[n:]  # use remaining samples for autoencoder
-    #train_ae_x, valid_ae_x = pretrain_ae_model(ae_data=ae_data, path=ae_path)
+    train_ae_x, valid_ae_x = pretrain_ae_model(ae_data=ae_data, path=ae_path)
 
 
     # AE evaluation of pretrained model
