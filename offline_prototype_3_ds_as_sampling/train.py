@@ -72,8 +72,8 @@ if __name__ == '__main__':
     # evaluate_ae_on_afterstates(ae_interpreter, test_data=atrain)
 
     # Reinforcement Learning
-    env = SensorEnvironment(decision_train_data=dtrain_rl, decision_test_data=dtest,
-                            after_train_data=atrain, after_test_data=atest, interpreter=ae_interpreter,
+    env = SensorEnvironment(decision_train_data=dtrain_rl,
+                            after_train_data=atrain, interpreter=ae_interpreter,
                             state_samples=SAMPLES)
 
     agent = Agent(input_dims=env.observation_space_size, n_actions=len(env.actions), buffer_size=BUFFER_SIZE,

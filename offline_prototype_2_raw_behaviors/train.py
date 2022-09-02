@@ -44,7 +44,7 @@ if __name__ == '__main__':
     # COMMENT/UNCOMMENT BELOW for pretraining of autoencoder
     ae_path = "offline_prototype_2_raw_behaviors/trained_models/ae_model_pi3.pth"
     ae_data = normal_data[n:]  # use remaining samples for autoencoder
-    train_ae_x, valid_ae_x = pretrain_ae_model(ae_data=ae_data, path=ae_path)
+    #train_ae_x, valid_ae_x = pretrain_ae_model(ae_data=ae_data, path=ae_path)
 
 
     # AE evaluation of pretrained model
@@ -53,7 +53,7 @@ if __name__ == '__main__':
     evaluate_ae_on_no_mtd_behavior(ae_interpreter=ae_interpreter, test_data=train_data)
 
     # Reinforcement Learning
-    env = SensorEnvironment(train_data, test_data, interpreter=ae_interpreter, state_samples=SAMPLES)
+    env = SensorEnvironment(train_data, interpreter=ae_interpreter, state_samples=SAMPLES)
 
     agent = Agent(input_dims=env.observation_space_size, n_actions=len(env.actions), buffer_size=BUFFER_SIZE,
                   batch_size=BATCH_SIZE, lr=LEARNING_RATE, gamma=GAMMA, epsilon=EPSILON_START, eps_end=EPSILON_END)
