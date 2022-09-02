@@ -59,31 +59,39 @@ class SensorEnvironment:
             new_state = self.sample_behavior(Behavior.NORMAL)
             # ae predicts too many false positives: episode should not end, but behavior is normal (because MTD was correct)
             # note that this should not happen, as ae should learn to recognize normal behavior with near perfect accuracy
-            if self.interpreter:
-                if self.state_samples_ae > 1:
-                    for i in range(self.state_samples_ae - 1):  # real world simulation with multiple samples monitored
-                        new_state = np.vstack((new_state, self.sample_behavior(Behavior.NORMAL)))
-                if torch.sum(self.interpreter.predict(new_state[:, :-1].astype(np.float32))) / len(new_state) > 0.5:
-                    # raise UserWarning("Should not happen! AE fails to predict majority of normal samples")
-                    reward = self.calculate_reward(False)
-                    isTerminalState = False
-                else:
-                    reward = self.calculate_reward(True)
-                    isTerminalState = True
-                if self.state_samples_ae > 1:
-                    new_state = np.expand_dims(new_state[0, :], axis=0)  # throw away all but one transition for better decorrelation
+            if self.state_samples_ae > 1:
+                for i in range(self.state_samples_ae - 1):  # real world simulation with multiple samples monitored
+                    new_state = np.vstack((new_state, self.sample_behavior(Behavior.NORMAL)))
+            # False Positive
+            if torch.sum(self.interpreter.predict(new_state[:, :-1].astype(np.float32))) / len(new_state) > 0.5:
+                # raise UserWarning("Should not happen! AE fails to predict majority of normal samples")
+                reward = self.calculate_reward(False)
+                isTerminalState = False
+            # True Negative
+            else:
+                reward = self.calculate_reward(True)
+                isTerminalState = True
+            if self.state_samples_ae > 1:
+                new_state = np.expand_dims(new_state[0, :], axis=0)  # throw away all but one transition for better decorrelation
         else:
             # print("incorrect mtd chosen according to supervisor")
             new_state = self.sample_behavior(current_behavior)
+            if self.state_samples_ae > 1:
+                for i in range(self.state_samples_ae - 1):  # real world simulation with multiple samples monitored
+                    new_state = np.vstack((new_state, self.sample_behavior(Behavior.NORMAL)))
+            # False Negative
             # ae predicts a false negative: episode should end,  but behavior is not normal (because MTD was incorrect)
             # in this case, the next episode should start again with current_behavior
-            if self.interpreter and self.interpreter.predict(new_state[:, :-1].astype(np.float32)) == 0:
+            if torch.sum(self.interpreter.predict(new_state[:, :-1].astype(np.float32))) / len(new_state) < 0.5:
                 self.reset_to_behavior = current_behavior
                 reward = self.calculate_reward(True)
                 isTerminalState = True
+            # True Positive
             else:
                 reward = self.calculate_reward(False)
                 isTerminalState = False
+            if self.state_samples_ae > 1:
+                new_state = np.expand_dims(new_state[0, :], axis=0)  # throw away all but one transition for better decorrelation
 
         self.current_state = new_state
 
