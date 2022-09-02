@@ -4,7 +4,8 @@ from data_provider import DataProvider
 from offline_prototype_1_raw_behaviors.environment import SensorEnvironment, supervisor_map
 from agent import Agent
 from custom_types import Behavior
-from utils.evaluation_utils import plot_learning, seed_random, evaluate_agent
+from utils.agent_learning_utils import init_replay_memory
+from utils.evaluation_utils import plot_learning, seed_random, evaluate_agent, get_pretrained_agent
 from time import time
 import torch
 import numpy as np
@@ -39,17 +40,7 @@ if __name__ == '__main__':
     episode_returns, eps_history = [], []
 
     # initialize memory replay buffer (randomly)
-    obs = env.reset()
-    for _ in range(MIN_REPLAY_SIZE):
-        action = random.choice(env.actions)
-
-        new_obs, reward, done = env.step(action)
-        transition = (obs[:, :-1], action, reward, new_obs[:, :-1], done)
-        agent.replay_buffer.append(transition)
-
-        obs = new_obs
-        if done:
-            obs = env.reset()
+    init_replay_memory(agent=agent, env=env, min_size=MIN_REPLAY_SIZE)
 
     # main training
     step = 0
@@ -86,19 +77,25 @@ if __name__ == '__main__':
         print('episode ', i, '| episode_return %.2f' % episode_returns[-1],
               '| average episode_return %.2f' % avg_episode_return,
               '| epsilon %.2f' % agent.epsilon)
+        if i >= N_EPISODES - 6:
+            print(episode_returns[-10:])
 
     end = time()
     print("Total training time: ", end - start)
 
+    num = 0
     agent.save_agent_state(0, "offline_prototype_1_raw_behaviors")
 
     x = [i + 1 for i in range(N_EPISODES)]
     filename = 'offline_prototype_1_raw_behaviors/mtd_agent_p1.pdf'
     plot_learning(x, episode_returns, eps_history, filename)
 
-
+    # check predictions with dqn from trained and stored agent
+    pretrained_agent = get_pretrained_agent(path=f"offline_prototype_1_raw_behaviors/trained_models/agent_{num}.pth",
+                                            input_dims=env.observation_space_size, n_actions=len(env.actions),
+                                            buffer_size=BUFFER_SIZE)
     # check predictions with learnt dqn
-    evaluate_agent(agent, test_data=test_data)
+    evaluate_agent(pretrained_agent, test_data=test_data)
 
 
 

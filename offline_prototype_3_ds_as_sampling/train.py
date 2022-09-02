@@ -3,8 +3,9 @@ from offline_prototype_3_ds_as_sampling.environment import SensorEnvironment, su
 from agent import Agent
 from custom_types import Behavior, MTDTechnique
 from autoencoder import AutoEncoder, AutoEncoderInterpreter
+from utils.agent_learning_utils import init_replay_memory
 from utils.evaluation_utils import plot_learning, seed_random, calculate_metrics, evaluate_agent, \
-    evaluate_agent_on_afterstates
+    evaluate_agent_on_afterstates, get_pretrained_agent
 from utils.autoencoder_utils import pretrain_ae_model, get_pretrained_ae, evaluate_ae_on_no_mtd_behavior, \
     evaluate_ae_on_afterstates, pretrain_all_afterstate_ae_models, split_as_data_for_ae_and_rl, \
     split_ds_data_for_ae_and_rl, evaluate_all_as_ae_models, pretrain_all_ds_as_ae_models
@@ -81,19 +82,8 @@ if __name__ == '__main__':
     episode_returns, eps_history = [], []
 
     # initialize memory replay buffer (randomly)
-    obs = env.reset()
-    for _ in range(MIN_REPLAY_SIZE):
-        action = random.choice(env.actions)
+    init_replay_memory(agent=agent, env=env, min_size=MIN_REPLAY_SIZE)
 
-        new_obs, reward, done = env.step(action)
-        idx1 = -1 if obs[0, -1] in Behavior else -2
-        idx2 = -1 if new_obs[0, -1] in Behavior else -2
-        transition = (obs[:, :idx1], action, reward, new_obs[:, :idx2], done)
-        agent.replay_buffer.append(transition)
-
-        obs = new_obs
-        if done:
-            obs = env.reset()
 
     # main training
     step = 0
@@ -102,7 +92,6 @@ if __name__ == '__main__':
         episode_steps = 0
         done = False
         obs = env.reset()
-
         while not done:
             idx1 = -1 if obs[0, -1] in Behavior else -2
             action = agent.choose_action(obs[:, :idx1])
@@ -138,6 +127,7 @@ if __name__ == '__main__':
 
     end = time()
     print("Total training time: ", end - start)
+
     num = 0
     agent.save_agent_state(num, "offline_prototype_3_ds_as_sampling")
 
@@ -145,15 +135,11 @@ if __name__ == '__main__':
     filename = f'offline_prototype_3_ds_as_sampling/mtd_agent_p3_{SAMPLES}_samples.pdf'
     plot_learning(x, episode_returns, eps_history, filename)
 
-    # check predictions with dqn from trained and stored agent
-    pretrained_state = torch.load(f"offline_prototype_3_ds_as_sampling/trained_models/agent_{num}.pth")
-    pretrained_agent = Agent(input_dims=DIMS, n_actions=4, buffer_size=BUFFER_SIZE,
-                             batch_size=pretrained_state['batch_size'], lr=pretrained_state['lr'],
-                             gamma=pretrained_state['gamma'], epsilon=pretrained_state['eps'],
-                             eps_end=pretrained_state['eps_min'], eps_dec=pretrained_state['eps_dec'])
-    pretrained_agent.online_net.load_state_dict(pretrained_state['online_net_state_dict'])
-    pretrained_agent.target_net.load_state_dict(pretrained_state['target_net_state_dict'])
-    pretrained_agent.replay_buffer = pretrained_state['replay_buffer']
 
+
+    # check predictions with dqn from trained and stored agent
+    path = f"offline_prototype_3_ds_as_sampling/trained_models/agent_{num}.pth"
+    pretrained_agent = get_pretrained_agent(path=path, input_dims=env.observation_space_size,
+                                            n_actions=len(env.actions), buffer_size=BUFFER_SIZE)
     evaluate_agent(agent=pretrained_agent, test_data=dtest)
     evaluate_agent_on_afterstates(agent=pretrained_agent, test_data=atest)
