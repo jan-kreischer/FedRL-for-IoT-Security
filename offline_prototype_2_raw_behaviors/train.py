@@ -5,7 +5,7 @@ from custom_types import Behavior
 from simulation_engine import SimulationEngine
 from utils.evaluation_utils import plot_learning, seed_random, get_pretrained_agent, evaluate_agent, \
     evaluate_agent_on_afterstates
-from utils.autoencoder_utils import evaluate_ae_on_no_mtd_behavior, get_pretrained_ae
+from utils.autoencoder_utils import evaluate_ae_on_no_mtd_behavior, get_pretrained_ae, pretrain_ae_model
 from time import time
 import numpy as np
 import os
@@ -21,9 +21,9 @@ TARGET_UPDATE_FREQ = 100
 LEARNING_RATE = 1e-5
 N_EPISODES = 5000
 LOG_FREQ = 100
-DIMS = 30  # TODO check
+DIMS = 15  # TODO check
 PI = 3
-SAMPLES = 100
+SAMPLES = 10
 
 if __name__ == '__main__':
     os.chdir("..")
@@ -42,12 +42,13 @@ if __name__ == '__main__':
     # COMMENT/UNCOMMENT BELOW for pretraining of autoencoder
     ae_path = "offline_prototype_2_raw_behaviors/trained_models/ae_model_pi3.pth"
     ae_data = normal_data[n:]  # use remaining samples for autoencoder
-    # train_ae_x, valid_ae_x = pretrain_ae_model(ae_data=ae_data, path=ae_path)
+    train_ae_x, valid_ae_x = pretrain_ae_model(ae_data=ae_data, path=ae_path, split=0.8, lr=1e-4, momentum=0.8,
+                                               num_epochs=50)
 
     # AE evaluation of pretrained model
     ae_interpreter = get_pretrained_ae(path=ae_path, dims=DIMS)
     # AE can directly be tested on the data that will be used for RL: pass train_data to testing
-    evaluate_ae_on_no_mtd_behavior(ae_interpreter=ae_interpreter, test_data=train_data)
+    # evaluate_ae_on_no_mtd_behavior(ae_interpreter=ae_interpreter, test_data=train_data)
 
     # Reinforcement Learning
     env = SensorEnvironment(train_data, interpreter=ae_interpreter, state_samples=SAMPLES)
