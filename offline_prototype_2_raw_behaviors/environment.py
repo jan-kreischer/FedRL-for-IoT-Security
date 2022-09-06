@@ -29,7 +29,7 @@ supervisor_map: Dict[int, Tuple[Behavior]] = defaultdict(lambda: -1, {
 class SensorEnvironment:
 
     def __init__(self, train_data: Dict[Behavior, np.ndarray] = None,
-                 interpreter: AutoEncoderInterpreter = None, state_samples=1, normal_prob=0.5):
+                 interpreter: AutoEncoderInterpreter = None, state_samples=1, normal_prob=0.3):
         self.num_state_samples = state_samples
         self.train_data = train_data
         self.normal_prob = normal_prob
@@ -115,11 +115,8 @@ class SensorEnvironment:
 
             b = self.current_state[0, -1]
 
-            if (b == Behavior.NORMAL and torch.sum(
-                    self.interpreter.predict(self.current_state[:, :-1].astype(np.float32))) / len(
-                self.current_state) > 0.5) or (b != Behavior.NORMAL and torch.sum(
-                self.interpreter.predict(self.current_state[:, :-1].astype(np.float32))) / len(
-                self.current_state) > 0.5):
+            if (torch.sum(self.interpreter.predict(self.current_state[:, :-1].astype(np.float32))) / len(
+                    self.current_state) > 0.5):
                 # FP/TP - start training
                 break
 

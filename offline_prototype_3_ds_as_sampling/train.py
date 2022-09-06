@@ -6,7 +6,7 @@ from simulation_engine import SimulationEngine
 from utils.evaluation_utils import plot_learning, seed_random, evaluate_agent, \
     evaluate_agent_on_afterstates, get_pretrained_agent
 from utils.autoencoder_utils import get_pretrained_ae, split_as_data_for_ae_and_rl, \
-    split_ds_data_for_ae_and_rl
+    split_ds_data_for_ae_and_rl, evaluate_ae_on_afterstates, evaluate_ae_on_no_mtd_behavior
 from time import time
 import numpy as np
 import os
@@ -63,9 +63,9 @@ if __name__ == '__main__':
     path = dir + "ae_model_all_ds_as.pth"
     ae_interpreter = get_pretrained_ae(path=path, dims=DIMS)
     # print("---Evaluation on decision behaviors train---")
-    # evaluate_ae_on_no_mtd_behavior(ae_interpreter, test_data=dtrain)
+    evaluate_ae_on_no_mtd_behavior(ae_interpreter, test_data=dtrain)
     # print("---Evaluation on afterstate behaviors train---")
-    # evaluate_ae_on_afterstates(ae_interpreter, test_data=atrain)
+    evaluate_ae_on_afterstates(ae_interpreter, test_data=atrain)
 
     # Reinforcement Learning
     env = SensorEnvironment(decision_train_data=dtrain_rl,
