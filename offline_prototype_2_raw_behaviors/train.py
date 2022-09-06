@@ -21,7 +21,7 @@ TARGET_UPDATE_FREQ = 100
 LEARNING_RATE = 1e-5
 N_EPISODES = 5000
 LOG_FREQ = 100
-DIMS = 15  # TODO check
+DIMS = 20  # TODO check
 PI = 3
 SAMPLES = 10
 
@@ -42,8 +42,8 @@ if __name__ == '__main__':
     # COMMENT/UNCOMMENT BELOW for pretraining of autoencoder
     ae_path = "offline_prototype_2_raw_behaviors/trained_models/ae_model_pi3.pth"
     ae_data = normal_data[n:]  # use remaining samples for autoencoder
-    #train_ae_x, valid_ae_x = pretrain_ae_model(ae_data=ae_data, path=ae_path, split=0.8, lr=1e-4, momentum=0.8,
-    #                                           num_epochs=50)
+    train_ae_x, valid_ae_x = pretrain_ae_model(ae_data=ae_data, path=ae_path, split=0.8, lr=1e-4, momentum=0.8,
+                                              num_epochs=50)
 
     # AE evaluation of pretrained model
     ae_interpreter = get_pretrained_ae(path=ae_path, dims=DIMS)
