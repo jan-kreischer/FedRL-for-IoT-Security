@@ -9,6 +9,7 @@ plot_timeline = False
 if __name__ == "__main__":
     os.chdir("..")
     if plot_kde:
+        print("kde")
         # DataPlotter.plot_delay_and_normal_as_kde()
         # DataPlotter.plot_behaviors_as_kde(RaspberryPi.PI4_2GB_WC)
 
@@ -46,10 +47,23 @@ if __name__ == "__main__":
         #     afterstates=[
         #         (Behavior.NORMAL, MTDTechnique.ROOTKIT_SANITIZER, "green"),
         #         (Behavior.RANSOMWARE_POC, MTDTechnique.ROOTKIT_SANITIZER, "blue"),
-        #         (Behavior.ROOTKIT_BDVL, MTDTechnique.ROOTKIT_SANITIZER, "lightblue"),
+        #         (Behavior.ROOTKIT_BDVL, MTDTechnique.ROOTKIT_SANITIZER, "darkviolet"),
         #         (Behavior.CNC_BACKDOOR_JAKORITAR, MTDTechnique.ROOTKIT_SANITIZER, "red"),
         #     ],
         #     plot_name="compare_removerk_afterstates_kde")
+
+        # DataPlotter.plot_decision_or_afterstates_as_kde(
+        #     decision_states=[(Behavior.ROOTKIT_BDVL, "blue"),
+        #                      (Behavior.NORMAL, "green")],
+        #     afterstates=[
+        #         (Behavior.NORMAL, MTDTechnique.ROOTKIT_SANITIZER, "olive"),
+        #         (Behavior.ROOTKIT_BDVL, MTDTechnique.ROOTKIT_SANITIZER, "lightgreen"),
+        #         (Behavior.ROOTKIT_BDVL, MTDTechnique.RANSOMWARE_DIRTRAP, "lightblue"),
+        #         (Behavior.ROOTKIT_BDVL, MTDTechnique.RANSOMWARE_FILE_EXT_HIDE, "darkviolet"),
+        #         (Behavior.ROOTKIT_BDVL, MTDTechnique.CNC_IP_SHUFFLE, "red"),
+        #     ],
+        #     plot_name="compare_bdvl_ds_as_kde")
+
         #
         # DataPlotter.plot_decision_or_afterstates_as_kde(
         #     [(Behavior.NORMAL, "green")],
@@ -89,6 +103,7 @@ if __name__ == "__main__":
         #
         # DataPlotter.plot_decision_or_afterstates_as_kde(decision_states=[(Behavior.NORMAL, "green"),
         #                                                                 (Behavior.ROOTKIT_BDVL, "black"),
+        #                                                                 (Behavior.ROOTKIT_BEURK, "darkviolet"),
         #                                                                 (Behavior.CNC_BACKDOOR_JAKORITAR, "blue"),
         #                                                                 (Behavior.RANSOMWARE_POC, "red")],
         #                                                 plot_name="ds_comparison_pi_3_1gb_kde")
@@ -106,7 +121,8 @@ if __name__ == "__main__":
         # DataPlotter.plot_raw_behaviors_kde(RaspberryPi.PI3_1GB)
 
         # UserWarning: Logscale warning can be ignored (some samples have negative values for feature iface0TX)
-    if plot_timeline: pass
+    if plot_timeline:
+        print("timeline")
     # DataPlotter.plot_decision_or_afterstate_behaviors_timeline(
     #     afterstates=[
     #         (Behavior.NORMAL, MTDTechnique.RANSOMWARE_DIRTRAP, "green"),
@@ -183,6 +199,7 @@ if __name__ == "__main__":
     # DataPlotter.plot_decision_or_afterstate_behaviors_timeline(decision_states=
     #                                                            [(Behavior.NORMAL, "green"),
     #                                                             (Behavior.ROOTKIT_BDVL, "black"),
+    #                                                             (Behavior.ROOTKIT_BEURK, "darkviolet"),
     #                                                             (Behavior.CNC_BACKDOOR_JAKORITAR, "blue"),
     #                                                             (Behavior.RANSOMWARE_POC, "red")],
     #                                                            plot_name="ds_comparison_pi_3_1gb_timeline")

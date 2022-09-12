@@ -69,10 +69,10 @@ class Agent:
 
         self.online_net = DeepQNetwork(lr, n_actions=n_actions,
                                        input_dims=input_dims,
-                                       fc1_dims=256, fc2_dims=256)
+                                       fc1_dims=60, fc2_dims=30)
         self.target_net = DeepQNetwork(lr, n_actions=n_actions,
                                        input_dims=input_dims,
-                                       fc1_dims=256, fc2_dims=256)
+                                       fc1_dims=60, fc2_dims=30)
         self.target_net.load_state_dict(self.online_net.state_dict())
 
     def choose_action(self, observation):
