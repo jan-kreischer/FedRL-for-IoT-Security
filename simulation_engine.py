@@ -1,12 +1,13 @@
 import random
 import numpy as np
 from custom_types import Behavior
+from agent import Agent
 
 
 class SimulationEngine:
     #TODO: memory buffer is influenced by env.step -> resetting to previous action, which results in unbalanced training
     @staticmethod
-    def init_replay_memory(agent, env, min_size):
+    def init_replay_memory(agent: Agent, env, min_size):
         obs = env.reset()
         for _ in range(min_size):
             action = random.choice(env.actions)
@@ -19,10 +20,11 @@ class SimulationEngine:
 
             obs = new_obs
             if done:
+                # no need to reset agent episode_action_memory here as actions are chosen randomly
                 obs = env.reset()
 
     @staticmethod
-    def learn_agent_offline(agent, env, num_episodes, t_update_freq):
+    def learn_agent_offline(agent: Agent, env, num_episodes, t_update_freq):
         episode_returns, eps_history = [], []
         step = 0
         for i in range(num_episodes):
@@ -40,6 +42,8 @@ class SimulationEngine:
                 agent.replay_buffer.append((obs[:, :idx1], action, reward,
                                             new_obs[:, :idx2], done))
                 agent.reward_buffer.append(reward)
+                if done:
+                    agent.episode_action_memory = set()
 
                 agent.learn()
                 obs = new_obs

@@ -62,6 +62,7 @@ class Agent:
         self.lr = lr
         self.action_space = [i for i in range(n_actions)]
 
+        self.episode_action_memory = set()
         self.replay_buffer = deque(maxlen=buffer_size)
         self.reward_buffer = deque([0.0], maxlen=100)  # for printing progress
 
@@ -77,11 +78,12 @@ class Agent:
 
     def choose_action(self, observation):
         if np.random.random() > self.epsilon:
-            state = torch.from_numpy(observation.astype(np.float32)).to(self.online_net.device)
-            actions = self.online_net.forward(state)
-            action = torch.argmax(actions).item()
+            action = self.take_greedy_action(observation)
+            if action in self.episode_action_memory:
+                action = np.random.choice(list(set(self.action_space).difference(self.episode_action_memory)))
         else:
-            action = np.random.choice(self.action_space)
+            action = np.random.choice(list(set(self.action_space).difference(self.episode_action_memory)))
+        self.episode_action_memory.add(action)
         return action
 
     def take_greedy_action(self, observation):
