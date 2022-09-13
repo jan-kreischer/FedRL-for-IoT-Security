@@ -61,7 +61,7 @@ if __name__ == '__main__':
 
     print("evaluate p1 agent on 'real' decision and afterstate data:")
     dtrain, dtest, atrain, atest = DataProvider.get_reduced_dimensions_with_pca_ds_as(DIMS,
-                                                                                      dir="offline_prototype_3_ds_as_sampling/")
+                                                                                      dir="offline_prototype_1_raw_behaviors/")
     evaluate_agent(agent=pretrained_agent, test_data=dtest)
     evaluate_agent_on_afterstates(agent=pretrained_agent, test_data=atest)
 
