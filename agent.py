@@ -77,13 +77,16 @@ class Agent:
         self.target_net.load_state_dict(self.online_net.state_dict())
 
     def choose_action(self, observation):
-        if np.random.random() > self.epsilon:
-            action = self.take_greedy_action(observation)
-            if action in self.episode_action_memory:
+        try:
+            if np.random.random() > self.epsilon:
+                action = self.take_greedy_action(observation)
+                if action in self.episode_action_memory:
+                    action = np.random.choice(list(set(self.action_space).difference(self.episode_action_memory)))
+            else:
                 action = np.random.choice(list(set(self.action_space).difference(self.episode_action_memory)))
-        else:
-            action = np.random.choice(list(set(self.action_space).difference(self.episode_action_memory)))
-        self.episode_action_memory.add(action)
+            self.episode_action_memory.add(action)
+        except ValueError:
+            return -1
         return action
 
     def take_greedy_action(self, observation):

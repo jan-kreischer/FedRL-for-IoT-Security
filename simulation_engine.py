@@ -5,7 +5,7 @@ from agent import Agent
 
 
 class SimulationEngine:
-    #TODO: memory buffer is influenced by env.step -> resetting to previous action, which results in unbalanced training
+    # TODO: memory buffer is influenced by env.step -> resetting to previous action, which results in unbalanced training
     @staticmethod
     def init_replay_memory(agent: Agent, env, min_size):
         obs = env.reset()
@@ -35,6 +35,11 @@ class SimulationEngine:
             while not done:
                 idx1 = -1 if obs[0, -1] in Behavior else -2
                 action = agent.choose_action(obs[:, :idx1])
+                if action == -1:
+                    print("Agent exhausted all MTD techniques upon behavior: ", obs[0, -1])
+                    obs = env.reset()
+                    agent.episode_action_memory = set()
+                    continue
 
                 new_obs, reward, done = env.step(action)
                 idx2 = -1 if new_obs[0, -1] in Behavior else -2
