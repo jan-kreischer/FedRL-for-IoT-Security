@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from tabulate import tabulate
 import numpy as np
 import pandas as pd
+pd.options.mode.chained_assignment = None  # default='warn'
 import joblib
 import os
 import pickle
@@ -44,7 +45,8 @@ decision_states_file_paths: Dict[Behavior, str] = {
     # Behavior.CNC_BACKDOOR_JAKORITAR: f"data/{decision_states_dir}/cnc_jakoritar_online_samples_1_2022-08-13-06-50_5s"
     # Behavior.CNC_BACKDOOR_JAKORITAR: f"data/{decision_states_dir}/cnc_backdoor_jakoritar_good_noexpfs_online_samples_1_2022-08-22-09-09_5s",
     Behavior.CNC_BACKDOOR_JAKORITAR: f"data/{decision_states_dir}/cnc_backdoor_jakoritar_new_online_samples_1_2022-09-06-15-29_5s",
-    Behavior.ROOTKIT_BEURK: f"data/{decision_states_dir}/rootkit_beurk_online_samples_1_2022-09-08-08-55_5s"
+    Behavior.ROOTKIT_BEURK: f"data/{decision_states_dir}/rootkit_beurk_online_samples_1_2022-09-08-08-55_5s",
+    Behavior.CNC_THETICK: f"data/{decision_states_dir}/cnc_thetick_online_samples_1_2022-09-12-10-27_5s"
 }
 afterstate = "after"
 afterstates_dir = "afterstates_online_agent"
@@ -53,7 +55,8 @@ afterstates_file_paths: Dict[Behavior, Dict[MTDTechnique, str]] = {
         MTDTechnique.RANSOMWARE_DIRTRAP: f"data/{afterstates_dir}/normal_as_dirtrap_expfs_online_samples_2_2022-08-17-14-23_5s",
         MTDTechnique.RANSOMWARE_FILE_EXT_HIDE: f"data/{afterstates_dir}/normal_as_filetypes_noexpfs_online_samples_2_2022-08-18-08-29_5s",
         MTDTechnique.ROOTKIT_SANITIZER: f"data/{afterstates_dir}/normal_as_removerk_noexpfs_online_samples_2_2022-08-17-08-17_5s",
-        MTDTechnique.CNC_IP_SHUFFLE: f"data/{afterstates_dir}/normal_as_changeip_noexpfs_online_samples_2_2022-08-17-14-22_5s"
+        # MTDTechnique.CNC_IP_SHUFFLE: f"data/{afterstates_dir}/normal_as_changeip_noexpfs_online_samples_2_2022-08-17-14-22_5s",
+        MTDTechnique.CNC_IP_SHUFFLE: f"data/{afterstates_dir}/normal_as_changeip_new_online_samples_2_2022-09-12-08-01_5s"
     },
     Behavior.RANSOMWARE_POC: {
         MTDTechnique.RANSOMWARE_DIRTRAP: f"data/{afterstates_dir}/ransom_as_dirtrap_expfs_online_samples_2_2022-08-16-09-33_5s",
@@ -82,6 +85,10 @@ afterstates_file_paths: Dict[Behavior, Dict[MTDTechnique, str]] = {
         MTDTechnique.CNC_IP_SHUFFLE: f"data/{afterstates_dir}/rootkit_beurk_as_changeip_online_samples_2_2022-09-09-14-27_5s",
         MTDTechnique.RANSOMWARE_DIRTRAP: f"data/{afterstates_dir}/rootkit_beurk_as_dirtrap_online_samples_2_2022-09-10-18-10_5s",
         MTDTechnique.RANSOMWARE_FILE_EXT_HIDE: f"data/{afterstates_dir}/rootkit_beurk_as_filetypes_online_samples_2_2022-09-11-18-07_5s"
+    },
+    Behavior.CNC_THETICK: {
+        MTDTechnique.ROOTKIT_SANITIZER: f"data/{afterstates_dir}/cnc_thetick_as_removerk_online_samples_2_2022-09-12-14-07_5s",
+
     }
 }
 
@@ -120,9 +127,9 @@ class DataProvider:
             file_name += "_keepstatus"
         file_name += ".csv"
 
-        # if os.path.isfile(file_name):
-        #   full_df = pd.read_csv(file_name)
-        # full_df = pd.DataFrame()
+        if os.path.isfile(file_name):
+            full_df = pd.read_csv(file_name)
+        full_df = pd.DataFrame()
         bdata = {}
 
         for attack in b_file_paths:
@@ -134,10 +141,11 @@ class DataProvider:
                                                 keep_status_columns=keep_status_columns)
             df['attack'] = attack
             bdata[attack] = df.to_numpy()
-            # if not os.path.isfile(file_name): full_df = pd.concat([full_df, df])
+            if not os.path.isfile(file_name):
+                full_df = pd.concat([full_df, df])
 
         # full_df.to_csv(file_name, index_label=False)
-        return bdata
+        return bdata, full_df
 
     @staticmethod
     def parse_mtd_behavior_data(filter_suspected_external_events=True,
@@ -279,7 +287,6 @@ class DataProvider:
 
         df = pd.read_csv(path)
 
-
         if filter_suspected_external_events:
             # filter first hour of samples: 3600s / 50s = 72
             # and drop last measurement due to the influence of logging in, respectively out of the server
@@ -322,7 +329,7 @@ class DataProvider:
     @staticmethod
     def get_scaled_scaled_train_test_split_with_afterstates(split=0.8, scaling_minmax=True):
         #  1 get both dicts for decision and afterstates
-        ddata = DataProvider.parse_no_mtd_behavior_data(decision=True)
+        ddata, ddf = DataProvider.parse_no_mtd_behavior_data(decision=True)
         adata = DataProvider.parse_mtd_behavior_data()
 
         # take split of all behaviors, concat, calc scaling, scale both train and test split
@@ -387,31 +394,52 @@ class DataProvider:
         with mtd need to be considered
         """
 
-        bdata = DataProvider.parse_no_mtd_behavior_data(decision=decision, pi=pi)
+        bdata, rdf = DataProvider.parse_no_mtd_behavior_data(decision=decision, pi=pi, filter_outliers=False)
 
         # take split of all behaviors, concat, calc scaling, scale both train and test split
-        first_b = bdata[Behavior.NORMAL]
-        np.random.shuffle(first_b)
-        train = first_b[:int(split * first_b.shape[0]), :]
+        # first_b = bdata[Behavior.NORMAL]
+        # np.random.shuffle(first_b)
+        # train = first_b[:int(split * first_b.shape[0]), :]
         # test = first_b[int(split * first_b.shape[0]):, :]
 
-        # get behavior dicts for train and test
+        normal_df = rdf[rdf["attack"] == Behavior.NORMAL].drop(["attack"], axis=1)
+        normal_df_train = normal_df.sample(frac=split).reset_index(drop=True)
+        #normal_df_test = normal_df.sample(frac=1 - split).reset_index(drop=True)
+        train_filtered = normal_df_train[(np.nan_to_num(np.abs(stats.zscore(normal_df_train))) < 3).all(axis=1)]
+        train_filtered.loc[:, "attack"] = Behavior.NORMAL
+        train_filtered = train_filtered.to_numpy()
+
         train_bdata = {}
         test_bdata = {}
-        for b, d in bdata.items():
-            np.random.shuffle(d)
-            d_train = d[:int(split * d.shape[0]), :]
-            d_test = d[int(split * d.shape[0]):, :]
-
-            train_bdata[b] = d_train
-            test_bdata[b] = d_test
+        for b in rdf["attack"].unique():
+            df = rdf[rdf["attack"] == b].drop(["attack"], axis=1)
+            df_train = df.sample(frac=split).reset_index(drop=True)
+            df_test = df.sample(frac=1 - split).reset_index(drop=True)
+            dtrain_filtered = df_train[(np.nan_to_num(np.abs(stats.zscore(df_train))) < 3).all(axis=1)]
+            df_test.loc[:, "attack"] = b
+            dtrain_filtered.loc[:, "attack"] = b
+            train_bdata[b] = dtrain_filtered.to_numpy()
+            test_bdata[b] = df_test.to_numpy()
             if b != Behavior.NORMAL:
-                train = np.vstack((train, d_train))
-                # test = np.vstack((test, d_test))
+                train_filtered = np.vstack((train_filtered, train_bdata[b]))
 
-        # fit scaler on all training data combined
+        # # get behavior dicts for train and test
+        # train_bdata = {}
+        # test_bdata = {}
+        # for b, d in bdata.items():
+        #     np.random.shuffle(d)
+        #     d_train = d[:int(split * d.shape[0]), :]
+        #     d_test = d[int(split * d.shape[0]):, :]
+        #
+        #     train_bdata[b] = d_train
+        #     test_bdata[b] = d_test
+        #     if b != Behavior.NORMAL:
+        #         train = np.vstack((train, d_train))
+        #         # test = np.vstack((test, d_test))
+
+        # fit scaler on all training data combined -> MinMaxScaler ideally, StandardScaler only for testing
         scaler = StandardScaler() if not scaling_minmax else MinMaxScaler()
-        scaler.fit(train[:, :-1])
+        scaler.fit(train_filtered[:, :-1])
 
         # get behavior dicts for scaled train and test data
         scaled_train = {}

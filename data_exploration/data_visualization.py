@@ -34,14 +34,14 @@ if __name__ == "__main__":
         #     ],
         #     plot_name="compare_fileextension_afterstates_kde")
         #
-        DataPlotter.plot_decision_or_afterstates_as_kde(
-            afterstates=[
-                (Behavior.NORMAL, MTDTechnique.CNC_IP_SHUFFLE, "green"),
-                (Behavior.RANSOMWARE_POC, MTDTechnique.CNC_IP_SHUFFLE, "blue"),
-                (Behavior.ROOTKIT_BDVL, MTDTechnique.CNC_IP_SHUFFLE, "lightblue"),
-                (Behavior.CNC_BACKDOOR_JAKORITAR, MTDTechnique.CNC_IP_SHUFFLE, "red"),
-            ],
-            plot_name="compare_changeip_afterstates_kde")
+        # DataPlotter.plot_decision_or_afterstates_as_kde(
+        #     afterstates=[
+        #         (Behavior.NORMAL, MTDTechnique.CNC_IP_SHUFFLE, "green"),
+        #         (Behavior.RANSOMWARE_POC, MTDTechnique.CNC_IP_SHUFFLE, "blue"),
+        #         (Behavior.ROOTKIT_BDVL, MTDTechnique.CNC_IP_SHUFFLE, "lightblue"),
+        #         (Behavior.CNC_BACKDOOR_JAKORITAR, MTDTechnique.CNC_IP_SHUFFLE, "red"),
+        #     ],
+        #     plot_name="compare_changeip_afterstates_kde")
         #
         # DataPlotter.plot_decision_or_afterstates_as_kde(
         #     afterstates=[
@@ -101,12 +101,13 @@ if __name__ == "__main__":
         #      (Behavior.ROOTKIT_BDVL, MTDTechnique.CNC_IP_SHUFFLE, "orange")],
         #     plot_name="dac_rootkit_behavior_to_incorrect_MTDs_afterstate_kde")
         #
-        # DataPlotter.plot_decision_or_afterstates_as_kde(decision_states=[(Behavior.NORMAL, "green"),
-        #                                                                 (Behavior.ROOTKIT_BDVL, "black"),
-        #                                                                 (Behavior.ROOTKIT_BEURK, "darkviolet"),
-        #                                                                 (Behavior.CNC_BACKDOOR_JAKORITAR, "blue"),
-        #                                                                 (Behavior.RANSOMWARE_POC, "red")],
-        #                                                 plot_name="ds_comparison_pi_3_1gb_kde")
+        DataPlotter.plot_decision_or_afterstates_as_kde(decision_states=[(Behavior.NORMAL, "green"),
+                                                                        (Behavior.ROOTKIT_BDVL, "black"),
+                                                                        (Behavior.ROOTKIT_BEURK, "darkviolet"),
+                                                                        (Behavior.CNC_BACKDOOR_JAKORITAR, "blue"),
+                                                                        (Behavior.RANSOMWARE_POC, "red"),
+                                                                         (Behavior.CNC_THETICK, "grey")],
+                                                        plot_name="ds_comparison_pi_3_1gb_kde")
 
         # DataPlotter.plot_decision_or_afterstates_as_kde(
         #     decision_states=[(Behavior.NORMAL, "darkgreen")],
