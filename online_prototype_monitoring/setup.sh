@@ -16,6 +16,7 @@ python3 -m pip install -U scikit-learn # installs all other dependencies automat
 python3 -m pip install setproctitle
 python3 -m pip install jsonschema
 python3 -m pip install pandas
+python3 -m pip install pycryptodome # for ransomware poc
 
 # ensure monitoring permissions
 chmod +x rl_sampler_online.sh

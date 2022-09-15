@@ -21,7 +21,7 @@ def split_as_data_for_ae_and_rl(train_data, n=200):
     return ae_dict, train_data
 
 
-def pretrain_ae_model(ae_data, split=0.8, lr=1e-4, momentum=0.8, num_epochs=300,
+def pretrain_ae_model(ae_data, split=0.8, lr=1e-4, momentum=0.8, num_epochs=300, num_std=1,
                       path="offline_prototype_3_ds_as_sampling/trained_models/ae_model.pth"):
     idx = int(len(ae_data) * split)
     train_ae_x = ae_data[:idx, :-1].astype(np.float32)
@@ -31,40 +31,40 @@ def pretrain_ae_model(ae_data, split=0.8, lr=1e-4, momentum=0.8, num_epochs=300,
     print("---Training AE---")
     ae = AutoEncoder(train_x=train_ae_x, valid_x=valid_ae_x)
     ae.train(optimizer=torch.optim.SGD(ae.get_model().parameters(), lr=lr, momentum=momentum), num_epochs=num_epochs)
-    ae.determine_threshold()
+    ae.determine_threshold(num_std=num_std)
     print(f"AE threshold: {ae.threshold}")
     ae.save_model(path=path)
     return train_ae_x, valid_ae_x
 
 
-def pretrain_all_afterstate_ae_models(ae_train_dict, dir="offline_prototype_3_ds_as_sampling/trained_models/"):
+def pretrain_all_afterstate_ae_models(ae_train_dict, dir="offline_prototype_3_ds_as_sampling/trained_models/", num_std=1):
     for i, mtd in enumerate(ae_train_dict):
         path = dir + "ae_model_" + str(mtd.value) + ".pth"
         if i == 0:
-            all_train, all_valid = pretrain_ae_model(ae_train_dict[mtd][:, :-1], path=path)
+            all_train, all_valid = pretrain_ae_model(ae_train_dict[mtd][:, :-1], path=path, num_std=num_std)
         else:
-            train_data, valid_data = pretrain_ae_model(ae_train_dict[mtd][:, :-1], path=path)
+            train_data, valid_data = pretrain_ae_model(ae_train_dict[mtd][:, :-1], path=path, num_std=num_std)
             all_train = np.vstack((all_train, train_data))
             all_valid = np.vstack((all_valid, valid_data))
     all_data = np.vstack((all_train, all_valid))
     all_data = np.hstack((all_data, np.ones((len(all_data), 1))))
-    pretrain_ae_model(all_data, path=dir + "ae_model_all_as.pth")
+    pretrain_ae_model(all_data, path=dir + "ae_model_all_as.pth", num_std=num_std)
 
 
-def pretrain_all_ds_as_ae_models(dtrain, ae_train_dict, dir="offline_prototype_3_ds_as_sampling/trained_models/"):
+def pretrain_all_ds_as_ae_models(dtrain, ae_train_dict, dir="offline_prototype_3_ds_as_sampling/trained_models/", num_std=1):
     """pretrains autoencoder models on 1. decision state normal,
     2. on each normal-mtd combination,
     3. on both decision and normal-mtd combination data"""
     all_train, all_valid = pretrain_ae_model(dtrain, path=dir + "ae_model_ds.pth")
     for i, mtd in enumerate(ae_train_dict):
         path = dir + "ae_model_" + str(mtd.value) + ".pth"
-        train_data, valid_data = pretrain_ae_model(ae_train_dict[mtd][:, :-1], path=path)
+        train_data, valid_data = pretrain_ae_model(ae_train_dict[mtd][:, :-1], path=path, num_std=num_std)
         all_train = np.vstack((all_train, train_data))
         all_valid = np.vstack((all_valid, valid_data))
 
         all_data = np.vstack((all_train, all_valid))
         all_data = np.hstack((all_data, np.ones((len(all_data), 1))))
-    pretrain_ae_model(all_data, path=dir + "ae_model_all_ds_as.pth")
+    pretrain_ae_model(all_data, path=dir + "ae_model_all_ds_as.pth", num_std=num_std)
 
 
 def get_pretrained_ae(path, dims):

@@ -230,14 +230,16 @@ if __name__ == '__main__':
     pretrained_agent.target_net.load_state_dict(pretrained_state['target_net_state_dict'])
     pretrained_agent.replay_buffer = pretrained_state['replay_buffer']
 
+    print(len(pretrained_agent.replay_buffer))
+    exit(0)
     controller = OnlineRL(ae=ae_interpreter, agent=pretrained_agent)
 
-    controller.activate_learning(interval=60, monitor_duration=100)
+    #controller.activate_learning(interval=60, monitor_duration=100)
 
     # remove before moving online
     # controller.monitor(100)
-    # #OnlineRL.monitor_counter += 1
-    # #data = controller.read_data()
+    OnlineRL.monitor_counter += 1
+    data = controller.read_data()
     #
     # # read the monitored data from file and apply all preset scalings and transforms
     # decision_data = controller.read_data()

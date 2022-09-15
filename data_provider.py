@@ -82,14 +82,16 @@ afterstates_file_paths: Dict[Behavior, Dict[MTDTechnique, str]] = {
         MTDTechnique.ROOTKIT_SANITIZER: f"data/{afterstates_dir}/old_cnc_jakoritar_as_removerk_expfs_online_samples_2_2022-08-13-10-52_5s",
     },
     Behavior.ROOTKIT_BEURK: {
-        MTDTechnique.ROOTKIT_SANITIZER: f"data/{afterstates_dir}/rootkit_beurk_as_removerk_online_samples_2_2022-09-10-09-51_5s",
-        MTDTechnique.CNC_IP_SHUFFLE: f"data/{afterstates_dir}/rootkit_beurk_as_changeip_online_samples_2_2022-09-09-14-27_5s",
         MTDTechnique.RANSOMWARE_DIRTRAP: f"data/{afterstates_dir}/rootkit_beurk_as_dirtrap_online_samples_2_2022-09-10-18-10_5s",
-        MTDTechnique.RANSOMWARE_FILE_EXT_HIDE: f"data/{afterstates_dir}/rootkit_beurk_as_filetypes_online_samples_2_2022-09-11-18-07_5s"
+        MTDTechnique.RANSOMWARE_FILE_EXT_HIDE: f"data/{afterstates_dir}/rootkit_beurk_as_filetypes_online_samples_2_2022-09-11-18-07_5s",
+        MTDTechnique.CNC_IP_SHUFFLE: f"data/{afterstates_dir}/rootkit_beurk_as_changeip_online_samples_2_2022-09-09-14-27_5s",
+        MTDTechnique.ROOTKIT_SANITIZER: f"data/{afterstates_dir}/rootkit_beurk_as_removerk_online_samples_2_2022-09-10-09-51_5s"
     },
     Behavior.CNC_THETICK: {
-        MTDTechnique.ROOTKIT_SANITIZER: f"data/{afterstates_dir}/cnc_thetick_as_removerk_online_samples_2_2022-09-12-14-07_5s",
         MTDTechnique.RANSOMWARE_DIRTRAP: f"data/{afterstates_dir}/cnc_thetick_as_dirtrap_online_samples_2_2022-09-13-08-15_5s",
+        MTDTechnique.RANSOMWARE_FILE_EXT_HIDE: f"data/{afterstates_dir}/cnc_thetick_as_filetypes_online_samples_2_2022-09-13-14-11_5s",
+        MTDTechnique.CNC_IP_SHUFFLE: f"data/{afterstates_dir}/cnc_thetick_as_changeip_online_samples_2_2022-09-13-21-10_5s",
+        MTDTechnique.ROOTKIT_SANITIZER: f"data/{afterstates_dir}/cnc_thetick_as_removerk_online_samples_2_2022-09-12-14-07_5s",
     }
 }
 
@@ -476,12 +478,12 @@ class DataProvider:
         scaler_file, pca_file = f"{dir}scalerdsas.obj", f"{dir}pcafitdsas.obj"
 
         if not os.path.isfile(scaler_file):
-            # joblib.dump(scaler, scaler_file)
+            joblib.dump(scaler, scaler_file[:-3]+"gz")
             with open(scaler_file, "wb") as sf:
                 pickle.dump(scaler, sf)
 
         if not os.path.isfile(pca_file):
-            # joblib.dump(pca, pca_file)
+            joblib.dump(pca, pca_file[:-3]+"gz")
             with open(pca_file, "wb") as pf:
                 pickle.dump(pca, pf)
 

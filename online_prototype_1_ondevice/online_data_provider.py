@@ -9,22 +9,20 @@ import os
 import joblib
 
 time_status_columns = ["time", "timestamp", "seconds", "connectivity"]
-all_zero_columns = ['cpuNice', 'cpuHardIrq', 'alarmtimer:alarmtimer_fired',
+all_zero_columns = ['cpuNice', 'cpuHardIrq', 'tasksStopped', 'alarmtimer:alarmtimer_fired',
                     'alarmtimer:alarmtimer_start', 'cachefiles:cachefiles_create',
                     'cachefiles:cachefiles_lookup', 'cachefiles:cachefiles_mark_active',
                     'dma_fence:dma_fence_init', 'udp:udp_fail_queue_rcv_skb']
-#
-#
-# ["alarmtimer:alarmtimer_fired", "alarmtimer:alarmtimer_start", "cachefiles:cachefiles_create",
-#                 "cachefiles:cachefiles_lookup", "cachefiles:cachefiles_mark_active", "dma_fence:dma_fence_init",
-#                 "udp:udp_fail_queue_rcv_skb"]
 
+# columns must be adapted as per the perf version
 perf_5_10_nan_columns = ['filemap:mm_filemap_add_to_page_cache', 'kmem:mm_page_alloc',
-                         'kmem:mm_page_alloc_zone_locked', 'kmem:mm_page_free', 'kmem:mm_page_pcpu_drain']
+                         'kmem:mm_page_alloc_zone_locked', 'kmem:mm_page_free', 'kmem:mm_page_pcpu_drain',
+                         'random:get_random_bytes', 'random:mix_pool_bytes_nolock', 'random:urandom_read']
 perf_5_10_nan_columns += ['ramFree', 'ramUsed', 'writeback:writeback_write_inode', 'writeback:writeback_written']
 
 # choose which data to use for the scaler/pca
-all_file = "all_data_filtered_external_True_constant_True_outliers_True.csv"
+# note that this file needs to have all the columns filtered just as in the online case!!!
+all_file = "all_agent_data_filtered_external_True_constant_True_outliers_True.csv"
 pca_file = "data_transforms/pcafit.gz"
 scaler_file = "data_transforms/scaler.gz"
 
@@ -62,7 +60,8 @@ class OnlineDataProvider:
 
     @staticmethod
     def __get_scaler_and_pca(scaling_minmax=True, dim=15):
-        all_filtered_data = pd.read_csv(all_file).drop(perf_5_10_nan_columns, axis=1).to_numpy()[:, :-1].astype(np.float64)
+        all_filtered_data = pd.read_csv(all_file).drop(perf_5_10_nan_columns, axis=1).to_numpy()[:, :-2].astype(
+            np.float64)
         scaler = StandardScaler() if not scaling_minmax else MinMaxScaler()
         scaler.fit(all_filtered_data)
         all_scaled = scaler.transform(all_filtered_data)
