@@ -37,7 +37,6 @@ if __name__ == '__main__':
     # dtrain, dtest, atrain, atest, scaler = DataProvider.get_scaled_scaled_train_test_split_with_afterstates()
     dtrain, dtest, atrain, atest = DataProvider.get_reduced_dimensions_with_pca_ds_as(DIMS,
                                                                                       dir="offline_prototype_3_ds_as_sampling/")
-    exit(0)
     # get splits for RL & AD of normal data
     dir = "offline_prototype_3_ds_as_sampling/trained_models/"
     model_name = "ae_model_ds.pth"
