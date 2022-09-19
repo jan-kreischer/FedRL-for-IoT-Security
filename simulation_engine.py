@@ -9,8 +9,19 @@ class SimulationEngine:
     @staticmethod
     def init_replay_memory(agent: Agent, env, min_size):
         obs = env.reset()
-        for _ in range(min_size):
-            action = random.choice(env.actions)
+        episode_action_memory = []
+        i = 0
+        while i < min_size:
+            try:
+                action = np.random.choice(list({0,1,2,3}.difference(episode_action_memory)))
+                episode_action_memory.append(action)
+            except ValueError:
+                obs = env.reset()
+                episode_action_memory = []
+                # results in slightly less entries than min_size
+                print("exhausted all mtd techniques")
+                continue
+            i += 1
 
             new_obs, reward, done = env.step(action)
             idx1 = -1 if obs[0, -1] in Behavior else -2

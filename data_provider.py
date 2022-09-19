@@ -94,6 +94,8 @@ afterstates_file_paths: Dict[Behavior, Dict[MTDTechnique, str]] = {
         MTDTechnique.ROOTKIT_SANITIZER: f"data/{afterstates_dir}/cnc_thetick_as_removerk_online_samples_2_2022-09-12-14-07_5s",
     }
 }
+# ignore trying to divide by invalid value
+np.seterr(divide='ignore', invalid='ignore')
 
 # TODO: These columns are derived from data_availability.py -> check data
 time_status_columns = ["time", "timestamp", "seconds", "connectivity"]
@@ -101,12 +103,23 @@ all_zero_columns = ['cpuNice', 'cpuHardIrq', 'alarmtimer:alarmtimer_fired', 'tas
                     'alarmtimer:alarmtimer_start', 'cachefiles:cachefiles_create',
                     'cachefiles:cachefiles_lookup', 'cachefiles:cachefiles_mark_active',
                     'dma_fence:dma_fence_init', 'udp:udp_fail_queue_rcv_skb']
-# cols_to_exclude = ['tasks', 'tasksSleeping', 'tasksZombie',
-#                    'ramFree', 'ramUsed', 'ramCache', 'memAvail', 'numEncrypted',
-#                    'iface0RX', 'iface0TX', 'iface1RX', 'iface1TX'
-#                    ]
-cols_to_exclude = []
+# suspected cyclic/unstable
+cols_to_exclude = ['tasks', 'tasksSleeping', 'tasksZombie', 'tasksRunning',
+                   'ramFree', 'ramUsed', 'ramCache', 'memAvail', 'numEncrypted',
+                   'iface0RX', 'iface0TX', 'iface1RX', 'iface1TX'
+                   ]
 
+# suspected undesirably reactive, distorting afterstates
+cols_to_exclude += ['cpuSystem', 'block:block_dirty_buffer', 'cpuSoftIrq', 'cs', 'cpu-migrations',
+                    'irq:softirq_entry', 'kmem:kmem_cache_alloc', 'kmem:kmem_cache_free',
+                    'random:urandom_read','raw_syscalls:sys_enter','raw_syscalls:sys_exit',
+                    'sched:sched_switch','sched:sched_wakeup', 'skb:consume_skb', 'timer:hrtimer_start',
+                    'writeback:global_dirty_state']
+
+cols_to_exclude += ['cpuIdle', 'cpuIowait', 'block:block_bio_backmerge', 'block:block_touch_buffer', 'clk:clk_set_rate',
+                    'irq:irq_handler_entry', 'jbd2:jbd2_start_commit', 'kmem:mm_page_alloc', 'kmem:mm_page_free',
+                    'preemptirq:irq_enable', 'sock:inet_sock_set_state']
+#cols_to_exclude = []
 
 # 'tasksRunning', 'tasksStopped' - included in zero cols
 
