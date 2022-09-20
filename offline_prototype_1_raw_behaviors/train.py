@@ -36,21 +36,21 @@ if __name__ == '__main__':
                   batch_size=BATCH_SIZE, lr=LEARNING_RATE, gamma=GAMMA, epsilon=EPSILON_START, eps_end=EPSILON_END)
 
     # initialize memory replay buffer (randomly)
-    SimulationEngine.init_replay_memory(agent=agent, env=env, min_size=MIN_REPLAY_SIZE)
-
-    # main training
-    episode_returns, eps_history = SimulationEngine.learn_agent_offline(agent=agent, env=env, num_episodes=N_EPISODES,
-                                                                        t_update_freq=TARGET_UPDATE_FREQ)
-
-    end = time()
-    print("Total training time: ", end - start)
-
+    # SimulationEngine.init_replay_memory(agent=agent, env=env, min_size=MIN_REPLAY_SIZE)
+    #
+    # # main training
+    # episode_returns, eps_history = SimulationEngine.learn_agent_offline(agent=agent, env=env, num_episodes=N_EPISODES,
+    #                                                                     t_update_freq=TARGET_UPDATE_FREQ)
+    #
+    # end = time()
+    # print("Total training time: ", end - start)
+    #
     num = 0
-    agent.save_agent_state(0, "offline_prototype_1_raw_behaviors")
-
-    x = [i + 1 for i in range(N_EPISODES)]
-    filename = 'offline_prototype_1_raw_behaviors/mtd_agent_p1.pdf'
-    plot_learning(x, episode_returns, eps_history, filename)
+    # agent.save_agent_state(0, "offline_prototype_1_raw_behaviors")
+    #
+    # x = [i + 1 for i in range(N_EPISODES)]
+    # filename = 'offline_prototype_1_raw_behaviors/mtd_agent_p1.pdf'
+    # plot_learning(x, episode_returns, eps_history, filename)
 
     # check predictions with dqn from trained and stored agent
     pretrained_agent = get_pretrained_agent(path=f"offline_prototype_1_raw_behaviors/trained_models/agent_{num}.pth",

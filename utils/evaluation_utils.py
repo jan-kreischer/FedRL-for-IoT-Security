@@ -7,7 +7,7 @@ import torch
 import random
 from agent import Agent
 from custom_types import Behavior, MTDTechnique
-from offline_prototype_1_raw_behaviors.environment import supervisor_map
+from offline_prototype_1_raw_behaviors.environment import supervisor_map, actions
 
 
 def plot_learning(x, returns, epsilons, filename):
@@ -68,6 +68,7 @@ def evaluate_agent(agent: Agent, test_data):
     # check predictions with learnt dqn
     agent.online_net.eval()
     res_dict = {}
+    objective_dict = {}
     with torch.no_grad():
         for b, d in test_data.items():
             if b != Behavior.NORMAL:
@@ -80,16 +81,21 @@ def evaluate_agent(agent: Agent, test_data):
                     cnt += 1
                 res_dict[b] = (cnt_corr, cnt)
 
+            for i in range(len(actions)):
+                if b in supervisor_map[i]:
+                    objective_dict[b] = actions[i]
+
     print(res_dict)
-    labels = ["Behavior", "Accuracy"]
+    labels = ["Behavior", "Accuracy", "Objective"]
     results = []
     for b, t in res_dict.items():
-        results.append([b.value, f'{(100 * t[0]/t[1]):.2f}%'])
+        results.append([b.value, f'{(100 * t[0]/t[1]):.2f}%', objective_dict[b]])
     print(tabulate(results, headers=labels, tablefmt="pretty"))
 
 def evaluate_agent_on_afterstates(agent: Agent, test_data):
     agent.online_net.eval()
     res_dict = {}
+    objectives_dict = {}
     with torch.no_grad():
         for t, d in test_data.items():
             if t[0] != Behavior.NORMAL:
@@ -101,11 +107,14 @@ def evaluate_agent_on_afterstates(agent: Agent, test_data):
                         cnt_corr += 1
                     cnt += 1
                 res_dict[t] = (cnt_corr, cnt)
+            for i in range(len(actions)):
+                if t[0] in supervisor_map[i]:
+                    objectives_dict[t] = actions[i]
 
-    labels = ["Behavior", "MTD", "Accuracy"]
+    labels = ["Behavior", "MTD", "Accuracy", "Objective"]
     results = []
     for t, cs in res_dict.items():
-        results.append([t[0].value, t[1].value, f'{(100 * cs[0] / cs[1]):.2f}%'])
+        results.append([t[0].value, t[1].value, f'{(100 * cs[0] / cs[1]):.2f}%', objectives_dict[t]])
     print(tabulate(results, headers=labels, tablefmt="pretty"))
 
 
