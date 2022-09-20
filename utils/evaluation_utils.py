@@ -81,7 +81,7 @@ def evaluate_agent(agent: Agent, test_data):
                 res_dict[b] = (cnt_corr, cnt)
 
     print(res_dict)
-    labels = ["Behavior"] + ["Accuracy"]
+    labels = ["Behavior", "Accuracy"]
     results = []
     for b, t in res_dict.items():
         results.append([b.value, f'{(100 * t[0]/t[1]):.2f}%'])
@@ -117,11 +117,10 @@ def evaluate_anomaly_detector_ds(dtrain, clf):
 
         acc, f1, conf_mat = calculate_metrics(y_test.flatten(), y_predicted.flatten())
         res_dict[b] = f'{(100 * acc):.2f}%'
-
-    labels = ["Behavior"] + ["Accuracy"]
+    labels = ["Behavior", "Accuracy"]
     results = []
     for b, a in res_dict.items():
-        results.append([b.value, res_dict[b]])
+        results.append([b.value, a])
     print(tabulate(results, headers=labels, tablefmt="pretty"))
 
 def evaluate_anomaly_detector_as(atrain, clf):
@@ -132,11 +131,12 @@ def evaluate_anomaly_detector_as(atrain, clf):
         y_predicted = clf.predict(atrain[t][:, :-2].astype(np.float32))
 
         acc, f1, conf_mat = calculate_metrics(y_test.flatten(), y_predicted.flatten())
-        res_dict[t] = f'{(100 * acc):.2f}%'
-    labels = ["Behavior", "MTD", "Accuracy"]
+        res_dict[t] = f'{(100 * acc):.2f}%, {"anomaly" if isAnomaly else "normal"}'
+    labels = ["Behavior", "MTD", "Accuracy", "Objective"]
     results = []
     for t, a in res_dict.items():
-        results.append([t[0].value, t[1].value, a])
+        res = a.split(",")
+        results.append([t[0].value, t[1].value, res[0], res[1]])
     print(tabulate(results, headers=labels, tablefmt="pretty"))
 
 
