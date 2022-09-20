@@ -1,24 +1,9 @@
 import numpy as np
 from autoencoder import AutoEncoder, AutoEncoderInterpreter
 import torch
-from utils.evaluation_utils import calculate_metrics
+from utils.evaluation_utils import calculate_metrics, check_anomalous
 from custom_types import Behavior, MTDTechnique
 from tabulate import tabulate
-
-
-def split_ds_data_for_ae_and_rl(dtrain, n=200):
-    normal_data = dtrain[Behavior.NORMAL]
-    dtrain[Behavior.NORMAL] = normal_data[:n]
-    return normal_data[n:], dtrain
-
-
-def split_as_data_for_ae_and_rl(train_data, n=200):
-    ae_dict = {}
-    for mtd in MTDTechnique:
-        normal_mtd_train = train_data[(Behavior.NORMAL, mtd)]
-        train_data[(Behavior.NORMAL, mtd)] = normal_mtd_train[:n]
-        ae_dict[mtd] = normal_mtd_train[n:]
-    return ae_dict, train_data
 
 
 def pretrain_ae_model(ae_data, split=0.8, lr=1e-4, momentum=0.8, num_epochs=300, num_std=1,
@@ -126,15 +111,3 @@ def evaluate_all_as_ae_models(dtrain, atrain, dims, dir):
     evaluate_ae_on_no_mtd_behavior(ae_interpreter, test_data=dtrain)
     print("---Evaluation on afterstate behaviors train---")
     evaluate_ae_on_afterstates(ae_interpreter, test_data=atrain)
-
-
-def check_anomalous(b: Behavior, m: MTDTechnique):
-    if b == Behavior.NORMAL:
-        return 0
-    if (b == Behavior.ROOTKIT_BDVL or b == Behavior.ROOTKIT_BEURK) and m == MTDTechnique.ROOTKIT_SANITIZER:
-        return 0
-    if b == Behavior.RANSOMWARE_POC and (m == MTDTechnique.RANSOMWARE_DIRTRAP or m == MTDTechnique.RANSOMWARE_FILE_EXT_HIDE):
-        return 0
-    if (b == Behavior.CNC_BACKDOOR_JAKORITAR or b == Behavior.CNC_THETICK) and m == MTDTechnique.CNC_IP_SHUFFLE:
-        return 0
-    return 1

@@ -5,8 +5,7 @@ from custom_types import Behavior
 from simulation_engine import SimulationEngine
 from utils.evaluation_utils import plot_learning, seed_random, evaluate_agent, \
     evaluate_agent_on_afterstates, get_pretrained_agent
-from utils.autoencoder_utils import get_pretrained_ae, split_as_data_for_ae_and_rl, \
-    split_ds_data_for_ae_and_rl, evaluate_ae_on_afterstates, evaluate_ae_on_no_mtd_behavior, pretrain_ae_model, \
+from utils.autoencoder_utils import get_pretrained_ae, evaluate_ae_on_afterstates, evaluate_ae_on_no_mtd_behavior, pretrain_ae_model, \
     pretrain_all_afterstate_ae_models, evaluate_all_as_ae_models, pretrain_all_ds_as_ae_models
 from time import time
 import numpy as np
@@ -40,7 +39,7 @@ if __name__ == '__main__':
     dir = "offline_prototype_3_ds_as_sampling/trained_models/"
     model_name = "ae_model_ds.pth"
     path = dir + model_name
-    ae_ds_train, dtrain_rl = split_ds_data_for_ae_and_rl(dtrain)
+    ae_ds_train, dtrain_rl = DataProvider.split_ds_data_for_ae_and_rl(dtrain)
     pretrain_ae_model(ae_ds_train, path=path, num_std=1)
     dims = len(ae_ds_train[0,:-1])
 
@@ -52,7 +51,7 @@ if __name__ == '__main__':
     evaluate_ae_on_no_mtd_behavior(ae_interpreter, test_data=dtrain_rl)
     print("---Evaluation on afterstate behaviors train---")
     evaluate_ae_on_afterstates(ae_interpreter, test_data=atrain)
-    ae_train_dict, atrain_rl = split_as_data_for_ae_and_rl(atrain)
+    ae_train_dict, atrain_rl = DataProvider.split_as_data_for_ae_and_rl(atrain)
     # pretrain_all_afterstate_ae_models(ae_train_dict, dir=dir, num_std=1)
     # # evaluate_all_as_ae_models(dtrain_rl, atrain_rl, dims=DIMS, dir=dir)
     #

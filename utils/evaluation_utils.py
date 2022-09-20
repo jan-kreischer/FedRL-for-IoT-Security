@@ -6,9 +6,8 @@ import numpy as np
 import torch
 import random
 from agent import Agent
-from custom_types import Behavior
+from custom_types import Behavior, MTDTechnique
 from offline_prototype_1_raw_behaviors.environment import supervisor_map
-
 
 
 def plot_learning(x, returns, epsilons, filename):
@@ -108,3 +107,46 @@ def evaluate_agent_on_afterstates(agent: Agent, test_data):
     for t, cs in res_dict.items():
         results.append([t[0].value, t[1].value, f'{(100 * cs[0] / cs[1]):.2f}%'])
     print(tabulate(results, headers=labels, tablefmt="pretty"))
+
+
+def evaluate_anomaly_detector_ds(dtrain, clf):
+    res_dict = {}
+    for b, d in dtrain.items():
+        y_test = np.array([1 if b == Behavior.NORMAL else -1] * len(d))
+        y_predicted = clf.predict(d[:, :-1].astype(np.float32))
+
+        acc, f1, conf_mat = calculate_metrics(y_test.flatten(), y_predicted.flatten())
+        res_dict[b] = f'{(100 * acc):.2f}%'
+
+    labels = ["Behavior"] + ["Accuracy"]
+    results = []
+    for b, a in res_dict.items():
+        results.append([b.value, res_dict[b]])
+    print(tabulate(results, headers=labels, tablefmt="pretty"))
+
+def evaluate_anomaly_detector_as(atrain, clf):
+    res_dict = {}
+    for t in atrain:
+        isAnomaly = check_anomalous(t[0], t[1])
+        y_test = np.array([-1 if isAnomaly else 1] * len(atrain[t]))
+        y_predicted = clf.predict(atrain[t][:, :-2].astype(np.float32))
+
+        acc, f1, conf_mat = calculate_metrics(y_test.flatten(), y_predicted.flatten())
+        res_dict[t] = f'{(100 * acc):.2f}%'
+    labels = ["Behavior", "MTD", "Accuracy"]
+    results = []
+    for t, a in res_dict.items():
+        results.append([t[0].value, t[1].value, a])
+    print(tabulate(results, headers=labels, tablefmt="pretty"))
+
+
+def check_anomalous(b: Behavior, m: MTDTechnique):
+    if b == Behavior.NORMAL:
+        return 0
+    if (b == Behavior.ROOTKIT_BDVL or b == Behavior.ROOTKIT_BEURK) and m == MTDTechnique.ROOTKIT_SANITIZER:
+        return 0
+    if b == Behavior.RANSOMWARE_POC and (m == MTDTechnique.RANSOMWARE_DIRTRAP or m == MTDTechnique.RANSOMWARE_FILE_EXT_HIDE):
+        return 0
+    if (b == Behavior.CNC_BACKDOOR_JAKORITAR or b == Behavior.CNC_THETICK) and m == MTDTechnique.CNC_IP_SHUFFLE:
+        return 0
+    return 1
