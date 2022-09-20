@@ -93,17 +93,19 @@ def evaluate_ae_on_no_mtd_behavior(ae_interpreter: AutoEncoderInterpreter, test_
 
 def evaluate_ae_on_afterstates(ae_interpreter: AutoEncoderInterpreter, test_data):
     res_dict = {}
+
     for t in test_data:
-        isAnomaly = check_normal(t[0], t[1])
+        isAnomaly = check_anomalous(t[0], t[1])
         y_test = np.array([isAnomaly] * len(test_data[t]))
         y_predicted = ae_interpreter.predict(test_data[t][:, :-2].astype(np.float32))
 
         acc, f1, conf_mat = calculate_metrics(y_test.flatten(), y_predicted.flatten().numpy())
-        res_dict[t] = f'{(100 * acc):.2f}%'
-    labels = ["Behavior", "MTD", "Accuracy"]
+        res_dict[t] = f'{(100 * acc):.2f}, {"anomaly" if isAnomaly else "normal"}%'
+    labels = ["Behavior", "MTD", "Accuracy", "Objective"]
     results = []
     for t, a in res_dict.items():
-        results.append([t[0].value, t[1].value, a])
+        res = a.split(",")
+        results.append([t[0].value, t[1].value, res[0], res[1]])
     print(tabulate(results, headers=labels, tablefmt="pretty"))
 
 
@@ -126,7 +128,7 @@ def evaluate_all_as_ae_models(dtrain, atrain, dims, dir):
     evaluate_ae_on_afterstates(ae_interpreter, test_data=atrain)
 
 
-def check_normal(b: Behavior, m: MTDTechnique):
+def check_anomalous(b: Behavior, m: MTDTechnique):
     if b == Behavior.NORMAL:
         return 0
     if (b == Behavior.ROOTKIT_BDVL or b == Behavior.ROOTKIT_BEURK) and m == MTDTechnique.ROOTKIT_SANITIZER:

@@ -15,7 +15,7 @@ from sklearn import svm
 from sklearn.ensemble import IsolationForest
 from sklearn.neighbors import LocalOutlierFactor
 from utils.evaluation_utils import calculate_metrics
-from utils.autoencoder_utils import check_normal
+from utils.autoencoder_utils import check_anomalous
 from tabulate import tabulate
 
 # Hyperparams
@@ -41,8 +41,9 @@ if __name__ == '__main__':
     # train_data, test_data, scaler = DataProvider.get_scaled_train_test_split()
     # train_data, test_data = DataProvider.get_reduced_dimensions_with_pca(DIMS)
     # dtrain, dtest, atrain, atest, scaler = DataProvider.get_scaled_scaled_train_test_split_with_afterstates()
-    dtrain, dtest, atrain, atest = DataProvider.get_reduced_dimensions_with_pca_ds_as(DIMS,
-                                                                                      dir="offline_prototype_3_ds_as_sampling/")
+    # dtrain, dtest, atrain, atest = DataProvider.get_reduced_dimensions_with_pca_ds_as(DIMS,
+    #                                                                                   dir="offline_prototype_3_ds_as_sampling/")
+    dtrain, dtest, atrain, atest, scaler = DataProvider.get_scaled_scaled_train_test_split_with_afterstates(scaling_minmax=True)
 
     # get splits for RL & AD of normal data
     dir = "offline_prototype_3_ds_as_sampling/trained_models/"
@@ -54,8 +55,8 @@ if __name__ == '__main__':
     # fit diverse classifiers and test them
 
     # LocalOutlierFactor
-    # clf = LocalOutlierFactor(n_neighbors=40, novelty=True, contamination=0.3)
-    # clf.fit(ae_ds_train[:, :-1])
+    clf = LocalOutlierFactor(n_neighbors=40, novelty=True, contamination=0.1)
+    clf.fit(ae_ds_train[:, :-1])
 
     # IsolationForest
     # clf = IsolationForest(n_estimators=15, random_state=0)
@@ -64,8 +65,8 @@ if __name__ == '__main__':
     #print(y_pred[y_pred == -1].size)
 
     # One-Class SVM for novelty detection
-    clf = svm.OneClassSVM(nu=0.3, kernel="rbf", gamma="scale")
-    clf.fit(ae_ds_train[:, :-1])
+    #clf = svm.OneClassSVM(nu=0.35, kernel="rbf", gamma="scale")
+    #clf.fit(ae_ds_train[:, :-1])
     #
     # # Evaluate on all behaviors:
     # print("Evaluate OneClassSVM trained on ds normal")
@@ -87,7 +88,7 @@ if __name__ == '__main__':
 
     res_dict = {}
     for t in atrain_rl:
-        isAnomaly = check_normal(t[0], t[1])
+        isAnomaly = check_anomalous(t[0], t[1])
         y_test = np.array([-1 if isAnomaly else 1] * len(atrain_rl[t]))
         y_predicted = clf.predict(atrain_rl[t][:, :-2].astype(np.float32))
 
