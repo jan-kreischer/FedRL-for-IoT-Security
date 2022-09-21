@@ -113,14 +113,16 @@ cols_to_exclude = ['tasks', 'tasksSleeping', 'tasksZombie', 'tasksRunning',
 # suspected undesirably reactive, distorting afterstates
 cols_to_exclude += ['cpuSystem', 'block:block_dirty_buffer', 'cpuSoftIrq', 'cs', 'cpu-migrations',
                     'irq:softirq_entry', 'kmem:kmem_cache_alloc', 'kmem:kmem_cache_free',
-                    'random:urandom_read','raw_syscalls:sys_enter','raw_syscalls:sys_exit',
-                    'sched:sched_switch','sched:sched_wakeup', 'skb:consume_skb', 'timer:hrtimer_start',
+                    'random:urandom_read', 'raw_syscalls:sys_enter', 'raw_syscalls:sys_exit',
+                    'sched:sched_switch', 'sched:sched_wakeup', 'skb:consume_skb', 'timer:hrtimer_start',
                     'writeback:global_dirty_state']
 
 cols_to_exclude += ['cpuIdle', 'cpuIowait', 'block:block_bio_backmerge', 'block:block_touch_buffer', 'clk:clk_set_rate',
                     'irq:irq_handler_entry', 'jbd2:jbd2_start_commit', 'kmem:mm_page_alloc', 'kmem:mm_page_free',
                     'preemptirq:irq_enable', 'sock:inet_sock_set_state']
-#cols_to_exclude = []
+
+
+# cols_to_exclude = []
 
 # 'tasksRunning', 'tasksStopped' - included in zero cols
 
@@ -296,19 +298,37 @@ class DataProvider:
         assert df.isnull().values.any() == False, "behavior data should not contain NaN values"
         return df
 
-    # @staticmethod
-    # def get_scaled_all_data(scaling_minmax=True):
-    #     all_data = DataProvider.parse_raw_behavior_files_to_df().to_numpy()[:, :-1]
-    #     scaler = StandardScaler() if not scaling_minmax else MinMaxScaler()
-    #     scaler.fit(all_data)
-    #
-    #     bdata = DataProvider.parse_no_mtd_behavior_data()
-    #     scaled_bdata = {}
-    #     # return directory as
-    #     for b in bdata:
-    #         scaled_bdata[b] = np.hstack((scaler.transform(bdata[b][:, :-1]), np.expand_dims(bdata[b][:, -1], axis=1)))
-    #
-    #     return scaled_bdata
+    @staticmethod
+    def get_scaled_train_test_split_anomaly_detection_afterstates(normal_split=0.7, scaling_minmax=True):
+        ddf = DataProvider.parse_no_mtd_behavior_data(decision=True, filter_outliers=False)
+        adf = DataProvider.parse_mtd_behavior_data(filter_outliers=False)
+
+        # get decision state normal split
+        normal_train, normal_test = DataProvider.__filter_train_split_for_outliers(ddf, Behavior.NORMAL, normal_split)
+        # fit on normal train
+        scaler = StandardScaler() if not scaling_minmax else MinMaxScaler()
+        scaler.fit(normal_train[:, :-1])
+
+        normal_val = normal_test[:int(2 * len(normal_test) / 3), :]
+        normal_test = normal_test[int(2 * len(normal_test) / 3):, :]
+        normal_train = np.vstack((normal_train, normal_val))
+        scaled_ntrain = np.hstack((scaler.transform(normal_train[:, :-1]), np.expand_dims(normal_train[:, -1], axis=1)))
+
+        test_ddata = {}
+        for b in ddf["attack"].unique():
+            if b == Behavior.NORMAL:
+                test_ddata[b] = np.hstack((scaler.transform(normal_test[:, :-1]),
+                                           np.expand_dims(normal_test[:, -1], axis=1)))
+                continue
+            data = ddf[ddf["attack"] == b].to_numpy()
+            test_ddata[b] = np.hstack((scaler.transform(data[:, :-1]), np.expand_dims(data[:, -1], axis=1)))
+        test_adata = {}
+        for b in adf["attack"].unique():
+            for mtd in adf[adf["attack"] == b]["state"].unique():
+                data = adf[(adf["attack"] == b) & (adf["state"] == mtd)].to_numpy()
+                test_adata[(b, mtd)] = np.hstack((scaler.transform(data[:, :-2]), data[:, -2:]))
+
+        return scaled_ntrain, test_ddata, test_adata, scaler
 
     @staticmethod
     def get_scaled_scaled_train_test_split_with_afterstates(split=0.8, scaling_minmax=True):
@@ -425,7 +445,8 @@ class DataProvider:
     @staticmethod
     def get_reduced_dimensions_with_pca_ds_as(dim=15, dir=""):
         ""
-        dtrain, dtest, atrain, atest, scaler = DataProvider.get_scaled_scaled_train_test_split_with_afterstates(scaling_minmax=False)
+        dtrain, dtest, atrain, atest, scaler = DataProvider.get_scaled_scaled_train_test_split_with_afterstates(
+            scaling_minmax=False)
         all_strain = dtrain[Behavior.NORMAL]
         for b in dtrain:
             if b != Behavior.NORMAL:
@@ -457,12 +478,12 @@ class DataProvider:
         scaler_file, pca_file = f"{dir}scalerdsas.obj", f"{dir}pcafitdsas.obj"
 
         if not os.path.isfile(scaler_file):
-            joblib.dump(scaler, scaler_file[:-3]+"gz")
+            joblib.dump(scaler, scaler_file[:-3] + "gz")
             with open(scaler_file, "wb") as sf:
                 pickle.dump(scaler, sf)
 
         if not os.path.isfile(pca_file):
-            joblib.dump(pca, pca_file[:-3]+"gz")
+            joblib.dump(pca, pca_file[:-3] + "gz")
             with open(pca_file, "wb") as pf:
                 pickle.dump(pca, pf)
 
@@ -514,7 +535,6 @@ class DataProvider:
         pca = PCA(n_components=n)
         pca.fit(all_strain[:, :-1])
         return pca
-
 
     @staticmethod
     def get_pca_loading_scores_dataframe(n=15):
