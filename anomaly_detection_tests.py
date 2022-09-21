@@ -29,6 +29,10 @@ if __name__ == '__main__':
     ae_ds_train, dtrain_rl = DataProvider.split_ds_data_for_ae_and_rl(dtrain)
     ae_train_dict, atrain_rl = DataProvider.split_as_data_for_ae_and_rl(atrain)
 
+    # read in all data
+    # create train/test split & scale
+    # pretrain
+
     # fit diverse classifiers and test them
 
     # LocalOutlierFactor

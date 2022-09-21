@@ -75,8 +75,9 @@ class DataPlotter:
                                             raw_behaviors: List[Tuple[Behavior, str]] = [],
                                             plot_name: Union[str, None] = None):
         if len(raw_behaviors) > 0:
-            raw_data = DataProvider.parse_raw_behavior_files_to_df(filter_outliers=False,
-                                                                   filter_suspected_external_events=False, pi=3)
+            raw_data = DataProvider.parse_no_mtd_behavior_data(filter_outliers=False,
+                                                               filter_suspected_external_events=False, pi=3,
+                                                               decision=False)
 
         all_data = DataProvider.parse_agent_data_files_to_df(filter_outliers=True,
                                                              filter_suspected_external_events=False)
@@ -96,12 +97,12 @@ class DataPlotter:
             axs[i].set_ylabel("density")
             if len(raw_behaviors) > 0:
                 for b, color in raw_behaviors:
-                    series = raw_data[raw_data.attack == b.value][cols_to_plot[i]]
+                    series = raw_data[raw_data.attack == b][cols_to_plot[i]]
                     if series.unique().size == 1:
                         axs[i].axvline(series.iloc[0], ymin=1e-4, ymax=2, color=color)  # palette[f'{dv} {b.value}'])
                         continue
                     series = series[(np.isnan(series) == False) & (np.isinf(series) == False)]
-                    sns.kdeplot(data=raw_data[raw_data.attack == b.value], x=cols_to_plot[i],
+                    sns.kdeplot(data=raw_data[raw_data.attack == b], x=cols_to_plot[i],
                                 color=color, common_norm=True, common_grid=True, ax=axs[i], cut=2,
                                 label=f"raw {b.value}", log_scale=(False, True))
 
@@ -172,8 +173,9 @@ class DataPlotter:
     def plot_raw_behaviors_timeline(behaviors: List[Tuple[RaspberryPi, Behavior, str]], raw_behaviors: bool = True,
                                     plot_name: Union[str, None] = None, pi=3):
 
-        all_data_parsed = DataProvider.parse_raw_behavior_files_to_df(filter_outliers=False,
-                                                                      filter_suspected_external_events=False, pi=pi)
+        all_data_parsed = DataProvider.parse_no_mtd_behavior_data(filter_outliers=False,
+                                                                      filter_suspected_external_events=False, pi=pi, decision=False)
+        all_data_parsed['attack'] = all_data_parsed['attack'].apply(lambda x: x.value)
         # first find max number of samples
         max_number_of_samples = 0
         for behavior in behaviors:
@@ -214,7 +216,8 @@ class DataPlotter:
     def plot_raw_behaviors_kde(device: RaspberryPi):
         pi = 4 if device == RaspberryPi.PI4_2GB_WC else 3
         plot_name = f"all_behaviors_{device.value}_kde"
-        all_data_parsed = DataProvider.parse_raw_behavior_files_to_df(filter_outliers=True, pi=pi)
+        all_data_parsed = DataProvider.parse_no_mtd_behavior_data(filter_outliers=True, pi=pi, decision=False)
+        all_data_parsed['attack'] = all_data_parsed['attack'].apply(lambda x: x.value)
         cols_to_plot = [col for col in all_data_parsed if col not in ['attack']]
         dv = "RP3" if device == RaspberryPi.PI3_1GB else "RP4"
         all_data_parsed['Device & Behavior'] = all_data_parsed.apply(lambda row: f'{dv} {row.attack}', axis=1)

@@ -35,6 +35,7 @@ if __name__ == '__main__':
     #                                                                                   dir="offline_prototype_3_ds_as_sampling/")
     dtrain, dtest, atrain, atest, scaler = DataProvider.get_scaled_scaled_train_test_split_with_afterstates(
         scaling_minmax=True)
+
     # get splits for RL & AD of normal data
     dir = "offline_prototype_3_ds_as_sampling/trained_models/"
     model_name = "ae_model_ds.pth"
