@@ -93,7 +93,14 @@ afterstates_file_paths: Dict[Behavior, Dict[MTDTechnique, str]] = {
         MTDTechnique.RANSOMWARE_FILE_EXT_HIDE: f"data/{afterstates_dir}/cnc_thetick_as_filetypes_online_samples_2_2022-09-13-14-11_5s",
         MTDTechnique.CNC_IP_SHUFFLE: f"data/{afterstates_dir}/cnc_thetick_as_changeip_online_samples_2_2022-09-13-21-10_5s",
         MTDTechnique.ROOTKIT_SANITIZER: f"data/{afterstates_dir}/cnc_thetick_as_removerk_online_samples_2_2022-09-12-14-07_5s",
+    },
+    Behavior.CNC_OPT1: {
+        MTDTechnique.RANSOMWARE_DIRTRAP: f"data/{afterstates_dir}/cnc_opt_1_file_extr_as_dirtrap_online_samples_2_2022-09-21-14-33_5s",
+        MTDTechnique.RANSOMWARE_FILE_EXT_HIDE: f"data/{afterstates_dir}/cnc_opt_1_file_extr_as_filetypes_online_samples_2_2022-09-21-18-44_5s",
+        MTDTechnique.CNC_IP_SHUFFLE: f"data/{afterstates_dir}/cnc_opt_1_file_extr_as_changeip_online_samples_2_2022-09-20-21-40_5s",
+        MTDTechnique.ROOTKIT_SANITIZER: f"data/{afterstates_dir}/cnc_opt_1_file_extr_as_removerk_online_samples_2_2022-09-21-08-19_5s",
     }
+
 }
 # ignore trying to divide by invalid value
 np.seterr(divide='ignore', invalid='ignore')

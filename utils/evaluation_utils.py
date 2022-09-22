@@ -26,7 +26,7 @@ def plot_learning(x, returns, epsilons, filename):
     for t in range(N):
         running_avg[t] = np.mean(returns[max(0, t - 20):(t + 1)])
 
-    ax2.scatter(x, running_avg, color="C1", s=2**2)
+    ax2.scatter(x, running_avg, color="C1", s=2 ** 2)
     # ax2.xaxis.tick_top()
     ax2.axes.get_xaxis().set_visible(False)
     ax2.yaxis.tick_right()
@@ -64,6 +64,7 @@ def get_pretrained_agent(path, input_dims, n_actions, buffer_size):
     pretrained_agent.replay_buffer = pretrained_state['replay_buffer']
     return pretrained_agent
 
+
 def evaluate_agent(agent: Agent, test_data):
     # check predictions with learnt dqn
     agent.online_net.eval()
@@ -89,8 +90,9 @@ def evaluate_agent(agent: Agent, test_data):
     labels = ["Behavior", "Accuracy", "Objective"]
     results = []
     for b, t in res_dict.items():
-        results.append([b.value, f'{(100 * t[0]/t[1]):.2f}%', objective_dict[b]])
+        results.append([b.value, f'{(100 * t[0] / t[1]):.2f}%', objective_dict[b]])
     print(tabulate(results, headers=labels, tablefmt="pretty"))
+
 
 def evaluate_agent_on_afterstates(agent: Agent, test_data):
     agent.online_net.eval()
@@ -132,6 +134,7 @@ def evaluate_anomaly_detector_ds(dtrain, clf):
         results.append([b.value, a])
     print(tabulate(results, headers=labels, tablefmt="pretty"))
 
+
 def evaluate_anomaly_detector_as(atrain, clf):
     res_dict = {}
     for t in atrain:
@@ -154,8 +157,10 @@ def check_anomalous(b: Behavior, m: MTDTechnique):
         return 0
     if (b == Behavior.ROOTKIT_BDVL or b == Behavior.ROOTKIT_BEURK) and m == MTDTechnique.ROOTKIT_SANITIZER:
         return 0
-    if b == Behavior.RANSOMWARE_POC and (m == MTDTechnique.RANSOMWARE_DIRTRAP or m == MTDTechnique.RANSOMWARE_FILE_EXT_HIDE):
+    if b == Behavior.RANSOMWARE_POC and (
+            m == MTDTechnique.RANSOMWARE_DIRTRAP or m == MTDTechnique.RANSOMWARE_FILE_EXT_HIDE):
         return 0
-    if (b == Behavior.CNC_BACKDOOR_JAKORITAR or b == Behavior.CNC_THETICK) and m == MTDTechnique.CNC_IP_SHUFFLE:
+    if (b == Behavior.CNC_BACKDOOR_JAKORITAR or b == Behavior.CNC_THETICK or
+        b == Behavior.CNC_OPT1 or b == Behavior.CNC_OPT2) and m == MTDTechnique.CNC_IP_SHUFFLE:
         return 0
     return 1
