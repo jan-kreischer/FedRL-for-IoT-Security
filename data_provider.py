@@ -49,6 +49,7 @@ decision_states_file_paths: Dict[Behavior, str] = {
     Behavior.ROOTKIT_BEURK: f"data/{decision_states_dir}/rootkit_beurk_online_samples_1_2022-09-08-08-55_5s",
     Behavior.CNC_THETICK: f"data/{decision_states_dir}/cnc_thetick_online_samples_1_2022-09-12-10-27_5s",
     Behavior.CNC_OPT1: f"data/{decision_states_dir}/cnc_opt_1_file_extr_online_samples_1_2022-09-20-17-30_5s",
+    Behavior.CNC_OPT2: f"data/{decision_states_dir}/cnc_opt_2_sysinfo_online_samples_1_2022-09-24-09-46_5s"
 }
 afterstate = "after"
 afterstates_dir = "afterstates_online_agent"
@@ -99,10 +100,16 @@ afterstates_file_paths: Dict[Behavior, Dict[MTDTechnique, str]] = {
         MTDTechnique.RANSOMWARE_FILE_EXT_HIDE: f"data/{afterstates_dir}/cnc_opt_1_file_extr_as_filetypes_online_samples_2_2022-09-21-18-44_5s",
         MTDTechnique.CNC_IP_SHUFFLE: f"data/{afterstates_dir}/cnc_opt_1_file_extr_as_changeip_online_samples_2_2022-09-20-21-40_5s",
         MTDTechnique.ROOTKIT_SANITIZER: f"data/{afterstates_dir}/cnc_opt_1_file_extr_as_removerk_online_samples_2_2022-09-21-08-19_5s",
+    },
+    Behavior.CNC_OPT2: {
+        MTDTechnique.RANSOMWARE_DIRTRAP: f"data/{afterstates_dir}/cnc_opt_2_sysinfo_as_dirtrap_online_samples_2_2022-09-22-20-22_5s",
+        MTDTechnique.RANSOMWARE_FILE_EXT_HIDE: f"data/{afterstates_dir}/cnc_opt_2_sysinfo_as_filetypes_online_samples_2_2022-09-22-16-11_5s",
+        MTDTechnique.CNC_IP_SHUFFLE: f"data/{afterstates_dir}/cnc_opt_2_sysinfo_as_changeip_online_samples_2_2022-09-23-19-30_5s",
+        MTDTechnique.ROOTKIT_SANITIZER: f"data/{afterstates_dir}/cnc_opt_2_sysinfo_as_removerk_online_samples_2_2022-09-23-08-14_5s"
     }
 
 }
-# ignore trying to divide by invalid value
+# ignore trying to divide by invalid value in scaling
 np.seterr(divide='ignore', invalid='ignore')
 
 # TODO: These columns are derived from data_availability.py -> check data
@@ -413,7 +420,7 @@ class DataProvider:
         return train_filtered, df_test
 
     @staticmethod
-    def get_scaled_train_test_split(split=0.8, scaling_minmax=True, decision=False, pi=3):
+    def get_scaled_train_test_split(split=0.8, scaling_minmax=True, scale_normal_only=True, decision=False, pi=3):
         """
         Method returns dictionaries mapping behaviors to scaled train and test data, as well as the scaler used
         Either decision states or raw behaviors can be utilized (decision flag) as no combinations
@@ -431,11 +438,11 @@ class DataProvider:
             dtrain_filtered, df_test = DataProvider.__filter_train_split_for_outliers(rdf, b, split)
             train_bdata[b] = dtrain_filtered
             test_bdata[b] = df_test
-            if b != Behavior.NORMAL:
+            if b != Behavior.NORMAL and not scale_normal_only:
                 train_filtered = np.vstack((train_filtered, train_bdata[b]))
 
-        # fit scaler on all training data combined -> MinMaxScaler ideally, StandardScaler only for testing
         scaler = StandardScaler() if not scaling_minmax else MinMaxScaler()
+        # fit scaler on either just normal data (if scale_normal_only), or all training data combined
         scaler.fit(train_filtered[:, :-1])
 
         # get behavior dicts for scaled train and test data
@@ -497,13 +504,14 @@ class DataProvider:
         return pca_dtrain, pca_dtest, pca_atrain, pca_atest
 
     @staticmethod
-    def get_reduced_dimensions_with_pca(dim=15, pi=3):
-        strain, stest, scaler = DataProvider.get_scaled_train_test_split(pi=pi, scaling_minmax=False)
+    def get_reduced_dimensions_with_pca(dim=15, pi=3, normal_only=True):
+        strain, stest, scaler = DataProvider.get_scaled_train_test_split(pi=pi, scaling_minmax=False, scale_normal_only=normal_only)
         all_strain = strain[Behavior.NORMAL]
         for b in strain:
             if b != Behavior.NORMAL:
                 all_strain = np.vstack((all_strain, strain[b]))
 
+        # fit pca on all
         pca = PCA(n_components=dim)
         pca.fit(all_strain[:, :-1])
 

@@ -32,7 +32,7 @@ if __name__ == '__main__':
 
     # read in all preprocessed data for a simulated, supervised environment to sample from
     # train_data, test_data = DataProvider.get_reduced_dimensions_with_pca(DIMS, pi=PI)
-    train_data, test_data, scaler = DataProvider.get_scaled_train_test_split(pi=PI, scaling_minmax=True)
+    train_data, test_data, scaler = DataProvider.get_scaled_train_test_split(pi=PI, scaling_minmax=True, scale_normal_only=True)
     # get splits for RL & AD of normal data
     n = 100
     s = 0.8

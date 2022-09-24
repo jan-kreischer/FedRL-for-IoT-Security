@@ -1,7 +1,7 @@
 from data_provider import DataProvider
 from custom_types import Behavior
 from utils.evaluation_utils import seed_random, calculate_metrics, evaluate_anomaly_detector_ds, \
-    evaluate_anomaly_detector_as, check_anomalous
+    evaluate_anomaly_detector_as, check_anomalous, plot_state_samples_upper_binom_cdf
 from time import time
 import numpy as np
 from sklearn import svm
@@ -12,7 +12,9 @@ from sklearn.neighbors import LocalOutlierFactor
 if __name__ == '__main__':
     # os.chdir("")
     seed_random()
-    start = time()
+
+    plot_state_samples_upper_binom_cdf()
+    exit(0)
 
     # read in all preprocessed data for a simulated, supervised environment to sample from
     # train_data, test_data, scaler = DataProvider.get_scaled_train_test_split()

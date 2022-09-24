@@ -1,6 +1,6 @@
 from typing import Dict, Tuple, List
 from collections import defaultdict
-from custom_types import Behavior, MTDTechnique
+from custom_types import Behavior, MTDTechnique, actions, supervisor_map, normal_afterstates
 from autoencoder import AutoEncoderInterpreter
 from scipy import stats
 from tabulate import tabulate
@@ -9,28 +9,6 @@ import numpy as np
 import pandas as pd
 import os
 import random
-
-# define MTD - (target Attack) Mapping
-# indices corresponding to sequence
-actions = (MTDTechnique.CNC_IP_SHUFFLE, MTDTechnique.ROOTKIT_SANITIZER,
-           MTDTechnique.RANSOMWARE_DIRTRAP, MTDTechnique.RANSOMWARE_FILE_EXT_HIDE)
-
-supervisor_map: Dict[int, Tuple[Behavior]] = {
-    # MTDTechnique.NO_MTD: (Behavior.NORMAL,),
-    0: (Behavior.CNC_BACKDOOR_JAKORITAR, Behavior.CNC_THETICK, Behavior.CNC_OPT1, Behavior.CNC_OPT2, Behavior.NORMAL),
-    1: (Behavior.ROOTKIT_BDVL, Behavior.ROOTKIT_BEURK, Behavior.NORMAL),
-    2: (Behavior.RANSOMWARE_POC, Behavior.NORMAL),
-    3: (Behavior.RANSOMWARE_POC, Behavior.NORMAL)
-}
-
-normal_afterstates = (
-    (Behavior.ROOTKIT_BDVL, MTDTechnique.ROOTKIT_SANITIZER),
-    (Behavior.ROOTKIT_BEURK, MTDTechnique.ROOTKIT_SANITIZER),
-    (Behavior.RANSOMWARE_POC, MTDTechnique.RANSOMWARE_DIRTRAP),
-    (Behavior.RANSOMWARE_POC, MTDTechnique.RANSOMWARE_FILE_EXT_HIDE),
-    (Behavior.CNC_BACKDOOR_JAKORITAR, MTDTechnique.CNC_IP_SHUFFLE),
-    (Behavior.CNC_THETICK, MTDTechnique.CNC_IP_SHUFFLE)
-)
 
 
 # handles the supervised, online-simulation of episodes using decision and afterstate data
@@ -55,7 +33,7 @@ class SensorEnvironment:
             attack_data = self.dtrain_data[Behavior.NORMAL]
         # TODO: check excluded behaviors
         else:
-            rb = random.choice([b for b in Behavior if b != Behavior.NORMAL])
+            rb = random.choice([b for b in Behavior if b != Behavior.NORMAL and b!= Behavior.CNC_OPT2])
             attack_data = self.dtrain_data[rb]
         return attack_data[np.random.randint(attack_data.shape[0], size=self.num_state_samples), :]
 
