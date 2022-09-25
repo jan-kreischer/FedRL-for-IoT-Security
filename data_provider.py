@@ -22,7 +22,9 @@ raw_behaviors_file_paths_rp3: Dict[Behavior, str] = {
     Behavior.ROOTKIT_BEURK: f"data/{raw_behaviors_dir_rp3}/rootkit_beurk_online_samples_1_2022-09-01-18-12_5s",
     Behavior.CNC_THETICK: f"data/{raw_behaviors_dir_rp3}/cnc_thetick_online_samples_1_2022-08-30-16-11_5s",
     # Behavior.CNC_BACKDOOR_JAKORITAR: f"data/{raw_behaviors_dir_rp3}/cnc_backdoor_jakoritar_expfs_samples_1_2022-08-21-13-33_5s"
-    Behavior.CNC_BACKDOOR_JAKORITAR: f"data/{raw_behaviors_dir_rp3}/cnc_backdoor_jakoritar_new_online_samples_1_2022-09-02-09-19_5s"
+    Behavior.CNC_BACKDOOR_JAKORITAR: f"data/{raw_behaviors_dir_rp3}/cnc_backdoor_jakoritar_new_online_samples_1_2022-09-02-09-19_5s",
+    Behavior.CNC_OPT1: f"data/{raw_behaviors_dir_rp3}/cnc_opt_1_file_extr_online_samples_1_2022-09-24-22-08_5s",
+    Behavior.CNC_OPT2: f"data/{raw_behaviors_dir_rp3}/cnc_opt_2_sysinfo_online_samples_1_2022-09-24-14-04_5s",
 }
 
 raw_behaviors_dir_rp4 = "raw_behaviors_no_agent_rp4"
@@ -97,7 +99,7 @@ afterstates_file_paths: Dict[Behavior, Dict[MTDTechnique, str]] = {
     },
     Behavior.CNC_OPT1: {
         MTDTechnique.RANSOMWARE_DIRTRAP: f"data/{afterstates_dir}/cnc_opt_1_file_extr_as_dirtrap_online_samples_2_2022-09-21-14-33_5s",
-        MTDTechnique.RANSOMWARE_FILE_EXT_HIDE: f"data/{afterstates_dir}/cnc_opt_1_file_extr_as_filetypes_online_samples_2_2022-09-21-18-44_5s",
+        MTDTechnique.RANSOMWARE_FILE_EXT_HIDE: f"data/{afterstates_dir}/cnc_opt_1_file_extr_as_filetypes_online_samples_2_2022-09-25-09-20_5s",
         MTDTechnique.CNC_IP_SHUFFLE: f"data/{afterstates_dir}/cnc_opt_1_file_extr_as_changeip_online_samples_2_2022-09-20-21-40_5s",
         MTDTechnique.ROOTKIT_SANITIZER: f"data/{afterstates_dir}/cnc_opt_1_file_extr_as_removerk_online_samples_2_2022-09-21-08-19_5s",
     },
@@ -345,7 +347,7 @@ class DataProvider:
         return scaled_ntrain, test_ddata, test_adata, scaler
 
     @staticmethod
-    def get_scaled_scaled_train_test_split_with_afterstates(split=0.8, scaling_minmax=True):
+    def get_scaled_scaled_train_test_split_with_afterstates(split=0.8, scaling_minmax=True, scale_normal_only=True):
 
         #  1 get both dicts for decision and afterstates
         ddf = DataProvider.parse_no_mtd_behavior_data(decision=True, filter_outliers=False)
@@ -359,7 +361,7 @@ class DataProvider:
             dtrain_filtered, df_test = DataProvider.__filter_train_split_for_outliers(ddf, b, split)
             train_ddata[b] = dtrain_filtered
             test_ddata[b] = df_test
-            if b != Behavior.NORMAL:
+            if b != Behavior.NORMAL and not scale_normal_only:
                 train_filtered = np.vstack((train_filtered, train_ddata[b]))
 
         # repeat for afterstate data
@@ -370,10 +372,10 @@ class DataProvider:
                 atrain_filtered, a_test = DataProvider.__filter_as_train_split_for_outliers(adf, b, mtd, split)
                 train_adata[(b, mtd)] = atrain_filtered
                 test_adata[(b, mtd)] = a_test
-                if b != Behavior.NORMAL:
+                if not scale_normal_only:
                     train_filtered = np.vstack((train_filtered, atrain_filtered[:, :-1]))
 
-        # fit scaler on all training data combined
+        # fit scaler on either just normal ds or all training data combined
         scaler = StandardScaler() if not scaling_minmax else MinMaxScaler()
         scaler.fit(train_filtered[:, :-1])
 
@@ -441,8 +443,8 @@ class DataProvider:
             if b != Behavior.NORMAL and not scale_normal_only:
                 train_filtered = np.vstack((train_filtered, train_bdata[b]))
 
-        scaler = StandardScaler() if not scaling_minmax else MinMaxScaler()
         # fit scaler on either just normal data (if scale_normal_only), or all training data combined
+        scaler = StandardScaler() if not scaling_minmax else MinMaxScaler()
         scaler.fit(train_filtered[:, :-1])
 
         # get behavior dicts for scaled train and test data
