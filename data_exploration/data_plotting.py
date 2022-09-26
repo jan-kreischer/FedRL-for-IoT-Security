@@ -77,10 +77,10 @@ class DataPlotter:
         if len(raw_behaviors) > 0:
             raw_data = DataProvider.parse_no_mtd_behavior_data(filter_outliers=False,
                                                                filter_suspected_external_events=False, pi=3,
-                                                               decision=False)
+                                                               decision=False,exclude_cols=False)
 
         all_data = DataProvider.parse_agent_data_files_to_df(filter_outliers=True,
-                                                             filter_suspected_external_events=False)
+                                                             filter_suspected_external_events=False, exclude_cols=False)
 
         cols_to_plot = [col for col in all_data if col not in ['attack', 'state']]
         all_data = all_data.reset_index()
@@ -174,7 +174,8 @@ class DataPlotter:
                                     plot_name: Union[str, None] = None, pi=3):
 
         all_data_parsed = DataProvider.parse_no_mtd_behavior_data(filter_outliers=False,
-                                                                      filter_suspected_external_events=False, pi=pi, decision=False)
+                                                                      filter_suspected_external_events=False, pi=pi, decision=False,
+                                                                  exclude_cols=False)
         all_data_parsed['attack'] = all_data_parsed['attack'].apply(lambda x: x.value)
         # first find max number of samples
         max_number_of_samples = 0
