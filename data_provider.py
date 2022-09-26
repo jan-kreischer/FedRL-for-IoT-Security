@@ -138,18 +138,15 @@ cols_to_exclude += ['cpuIdle', 'cpuIowait', 'block:block_bio_backmerge', 'block:
                     'preemptirq:irq_enable', 'sock:inet_sock_set_state']
 
 
-# cols_to_exclude = []
-
-# 'tasksRunning', 'tasksStopped' - included in zero cols
-
-
 class DataProvider:
 
     @staticmethod
     def parse_no_mtd_behavior_data(filter_suspected_external_events=True,
                                    filter_constant_columns=True,
                                    filter_outliers=True,
-                                   keep_status_columns=False, decision=False, pi=3) -> Dict[Behavior, np.ndarray]:
+                                   keep_status_columns=False,
+                                   exclude_cols=True,
+                                   decision=False, pi=3) -> Dict[Behavior, np.ndarray]:
         # print(os.getcwd())
         b_directory, b_file_paths = (decision_states_dir, decision_states_file_paths) if decision else \
             (raw_behaviors_dir_rp3, raw_behaviors_file_paths_rp3) if pi == 3 else \
@@ -173,7 +170,8 @@ class DataProvider:
                                                 startidx=50,
                                                 filter_constant_columns=filter_constant_columns,
                                                 filter_outliers=filter_outliers,
-                                                keep_status_columns=keep_status_columns)
+                                                keep_status_columns=keep_status_columns,
+                                                exclude_cols=exclude_cols)
             df['attack'] = attack
             # bdata[attack] = df.to_numpy()
             if not os.path.isfile(file_name):
@@ -186,7 +184,8 @@ class DataProvider:
     def parse_mtd_behavior_data(filter_suspected_external_events=True,
                                 filter_constant_columns=True,
                                 filter_outliers=True,
-                                keep_status_columns=False) -> Dict[Behavior, np.ndarray]:
+                                keep_status_columns=False,
+                                exclude_cols=True) -> Dict[Behavior, np.ndarray]:
         # function should return a dictionary of all the
         file_name = f'../data/{afterstates_dir}/all_afterstate_data_filtered_external' \
                     f'_{str(filter_suspected_external_events)}' \
@@ -208,7 +207,8 @@ class DataProvider:
                                                     filter_suspected_external_events=filter_suspected_external_events,
                                                     filter_constant_columns=filter_constant_columns,
                                                     filter_outliers=filter_outliers,
-                                                    keep_status_columns=keep_status_columns)
+                                                    keep_status_columns=keep_status_columns,
+                                                    exclude_cols=exclude_cols)
                 df['attack'] = asb
                 df['state'] = mtd
                 if not os.path.isfile(file_name):
@@ -222,7 +222,8 @@ class DataProvider:
     def parse_agent_data_files_to_df(filter_suspected_external_events=True,
                                      filter_constant_columns=True,
                                      filter_outliers=True,
-                                     keep_status_columns=False) -> pd.DataFrame:
+                                     keep_status_columns=False,
+                                     exclude_cols=True) -> pd.DataFrame:
 
         print(os.getcwd())
         file_name = f'data/all_agent_data_filtered_external_{str(filter_suspected_external_events)}' \
@@ -239,7 +240,8 @@ class DataProvider:
                                                 filter_suspected_external_events=filter_suspected_external_events,
                                                 filter_constant_columns=filter_constant_columns,
                                                 filter_outliers=filter_outliers,
-                                                keep_status_columns=keep_status_columns)
+                                                keep_status_columns=keep_status_columns,
+                                                exclude_cols=exclude_cols)
             df['attack'] = dsb.value
             df['state'] = decision_state
             full_df = pd.concat([full_df, df])
@@ -250,7 +252,8 @@ class DataProvider:
                                                     filter_suspected_external_events=filter_suspected_external_events,
                                                     filter_constant_columns=filter_constant_columns,
                                                     filter_outliers=filter_outliers,
-                                                    keep_status_columns=keep_status_columns)
+                                                    keep_status_columns=keep_status_columns,
+                                                    exclude_cols=exclude_cols)
                 df['attack'] = asb.value
                 df['state'] = f"{afterstate} {mtd.value}"
                 full_df = pd.concat([full_df, df])
@@ -262,7 +265,8 @@ class DataProvider:
     def parse_normals(filter_suspected_external_events=True,
                       filter_constant_columns=True,
                       filter_outliers=True,
-                      keep_status_columns=False) -> pd.DataFrame:
+                      keep_status_columns=False,
+                      exclude_cols=True) -> pd.DataFrame:
         normal_paths = [
             f"data/{decision_states_dir}/normal_noexpfs_online_samples_1_2022-08-15-14-07_5s",
             f"data/{decision_states_dir}/normal_expfs_online_samples_1_2022-08-18-08-31_5s",
@@ -275,7 +279,8 @@ class DataProvider:
                                                 filter_suspected_external_events=filter_suspected_external_events,
                                                 filter_constant_columns=filter_constant_columns,
                                                 filter_outliers=filter_outliers,
-                                                keep_status_columns=keep_status_columns)
+                                                keep_status_columns=keep_status_columns,
+                                                exclude_cols=exclude_cols)
             df['attack'] = Behavior.NORMAL.value
             df['state'] = decision_state + str(i)
             full_df = pd.concat([full_df, df])
@@ -283,9 +288,9 @@ class DataProvider:
 
     @staticmethod
     def __get_filtered_df(path, filter_suspected_external_events=True, startidx=10, endidx=-1,
-                          filter_constant_columns=True, const_cols=all_zero_columns,
+                          filter_constant_columns=True,
                           filter_outliers=True,
-                          keep_status_columns=False, stat_cols=time_status_columns, cols_to_exclude=cols_to_exclude):
+                          keep_status_columns=False, exclude_cols=True):
 
         df = pd.read_csv(path)
 
@@ -299,16 +304,16 @@ class DataProvider:
 
         # remove model-irrelevant columns
         if not keep_status_columns:
-            df = df.drop(stat_cols, axis=1)
+            df = df.drop(time_status_columns, axis=1)
 
         if filter_outliers:
             # drop outliers per measurement, indicated by (absolute z score) > 3
             df = df[(np.nan_to_num(np.abs(stats.zscore(df))) < 3).all(axis=1)]
 
         if filter_constant_columns:
-            df = df.drop(const_cols, axis=1)
+            df = df.drop(all_zero_columns, axis=1)
 
-        if len(cols_to_exclude) > 0:
+        if exclude_cols:
             df = df.drop(cols_to_exclude, axis=1)
 
         assert df.isnull().values.any() == False, "behavior data should not contain NaN values"
