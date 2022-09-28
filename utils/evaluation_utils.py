@@ -8,8 +8,7 @@ import numpy as np
 import torch
 import random
 from agent import Agent
-from custom_types import Behavior, MTDTechnique
-from offline_prototype_1_raw_behaviors.environment import supervisor_map, actions
+from custom_types import Behavior, MTDTechnique, actions, supervisor_map, normal_afterstates
 
 
 def plot_learning(x, returns, epsilons, filename):
@@ -92,8 +91,8 @@ def evaluate_agent(agent: Agent, test_data):
     labels = ["Behavior", "Accuracy", "Objective"]
     results = []
     for b, t in res_dict.items():
-        results.append([b.value, f'{(100 * t[0] / t[1]):.2f}%', objective_dict[b]])
-    print(tabulate(results, headers=labels, tablefmt="pretty"))
+        results.append([b.value, f'{(100 * t[0] / t[1]):.2f}%', objective_dict[b].value])
+    print(tabulate(results, headers=labels, tablefmt="latex"))
 
 
 def evaluate_agent_on_afterstates(agent: Agent, test_data):
@@ -102,7 +101,10 @@ def evaluate_agent_on_afterstates(agent: Agent, test_data):
     objectives_dict = {}
     with torch.no_grad():
         for t, d in test_data.items():
-            if t[0] != Behavior.NORMAL:
+            if t[0] != Behavior.NORMAL and t not in normal_afterstates:
+                # every MTD technique is both correct and incorrect for normal afterstates
+                # so it doesnt make sense to evaluate the agent on these states as they correspond to false positives
+                # flagged by the autoencoder.
                 cnt_corr = 0
                 cnt = 0
                 for state in d:
@@ -118,8 +120,8 @@ def evaluate_agent_on_afterstates(agent: Agent, test_data):
     labels = ["Behavior", "MTD", "Accuracy", "Objective"]
     results = []
     for t, cs in res_dict.items():
-        results.append([t[0].value, t[1].value, f'{(100 * cs[0] / cs[1]):.2f}%', objectives_dict[t]])
-    print(tabulate(results, headers=labels, tablefmt="pretty"))
+        results.append([t[0].value, t[1].value, f'{(100 * cs[0] / cs[1]):.2f}%', objectives_dict[t].value])
+    print(tabulate(results, headers=labels, tablefmt="latex"))
 
 
 def evaluate_anomaly_detector_ds(dtrain, clf):

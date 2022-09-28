@@ -15,7 +15,7 @@ import random
 class SensorEnvironment:
 
     def __init__(self, train_data: Dict[Behavior, np.ndarray] = None,
-                 interpreter: AutoEncoderInterpreter = None, state_samples=1, normal_prob=0.3):
+                 interpreter: AutoEncoderInterpreter = None, state_samples=1, normal_prob=0.8):
         self.num_state_samples = state_samples
         self.train_data = train_data
         self.normal_prob = normal_prob
@@ -28,7 +28,6 @@ class SensorEnvironment:
     def sample_initial_decision_state(self):
         """i.e. for starting state of an episode,
         (with replacement; it is possible that the same sample is chosen multiple times)"""
-        # TODO: check what behavior is included in each environment!
         if np.random.random_sample() < self.normal_prob:
             attack_data = self.train_data[Behavior.NORMAL]
         else:

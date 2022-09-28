@@ -16,7 +16,7 @@ class SensorEnvironment:
     # training data split/test data
     def __init__(self, decision_train_data: Dict[Behavior, np.ndarray] = None,
                  after_train_data: Dict[Tuple[Behavior, MTDTechnique], np.ndarray] = None,
-                 interpreter: AutoEncoderInterpreter = None, state_samples=1, normal_prob=0.3):
+                 interpreter: AutoEncoderInterpreter = None, state_samples=1, normal_prob=0.8):
         self.dtrain_data = decision_train_data
         self.atrain_data = after_train_data
         self.num_state_samples = state_samples

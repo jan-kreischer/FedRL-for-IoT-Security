@@ -377,6 +377,9 @@ class DataProvider:
                 atrain_filtered, a_test = DataProvider.__filter_as_train_split_for_outliers(adf, b, mtd, split)
                 train_adata[(b, mtd)] = atrain_filtered
                 test_adata[(b, mtd)] = a_test
+                if scale_normal_only and b == Behavior.NORMAL:
+                    train_filtered = np.vstack((train_filtered, atrain_filtered[:, :-1]))
+
                 if not scale_normal_only:
                     train_filtered = np.vstack((train_filtered, atrain_filtered[:, :-1]))
 
@@ -512,7 +515,8 @@ class DataProvider:
 
     @staticmethod
     def get_reduced_dimensions_with_pca(dim=15, pi=3, normal_only=True):
-        strain, stest, scaler = DataProvider.get_scaled_train_test_split(pi=pi, scaling_minmax=False, scale_normal_only=normal_only)
+        strain, stest, scaler = DataProvider.get_scaled_train_test_split(pi=pi, scaling_minmax=False,
+                                                                         scale_normal_only=normal_only)
         all_strain = strain[Behavior.NORMAL]
         for b in strain:
             if b != Behavior.NORMAL:
@@ -576,16 +580,16 @@ class DataProvider:
         return sorted_pc
 
     @staticmethod
-    def split_ds_data_for_ae_and_rl(dtrain, n=200):
+    def split_ds_data_for_ae_and_rl(dtrain, s=0.3):
         normal_data = dtrain[Behavior.NORMAL]
-        dtrain[Behavior.NORMAL] = normal_data[:n]
-        return normal_data[n:], dtrain
+        dtrain[Behavior.NORMAL] = normal_data[:int(s * len(normal_data))]
+        return normal_data[int(s * len(normal_data)):], dtrain
 
     @staticmethod
-    def split_as_data_for_ae_and_rl(train_data, n=200):
+    def split_as_data_for_ae_and_rl(train_data, s=0.3):
         ae_dict = {}
         for mtd in MTDTechnique:
             normal_mtd_train = train_data[(Behavior.NORMAL, mtd)]
-            train_data[(Behavior.NORMAL, mtd)] = normal_mtd_train[:n]
-            ae_dict[mtd] = normal_mtd_train[n:]
+            train_data[(Behavior.NORMAL, mtd)] = normal_mtd_train[:int(s * len(normal_mtd_train))]
+            ae_dict[mtd] = normal_mtd_train[int(s * len(normal_mtd_train)):]
         return ae_dict, train_data

@@ -32,8 +32,8 @@ def show_decision_and_afterstate_data_availability(raw=False):
                                                          filter_suspected_external_events=not raw)
 
     print(f'Total agent data points: {len(all_data)}')
-    drop_cols = [col for col in list(all_data) if col not in ['attack', 'state', 'block:block_bio_backmerge']]
-    grouped = all_data.drop(drop_cols, axis=1).rename(columns={'block:block_bio_backmerge': 'count'}).groupby(
+    drop_cols = [col for col in list(all_data) if col not in ['attack', 'state', 'kmem:kmalloc']]
+    grouped = all_data.drop(drop_cols, axis=1).rename(columns={'kmem:kmalloc': 'count'}).groupby(
         ['attack', 'state'], as_index=False).count()
 
     decision_grouped = grouped[grouped['state'] == decision_state]
@@ -46,7 +46,7 @@ def show_decision_and_afterstate_data_availability(raw=False):
         line = decision_grouped.loc[(decision_grouped['attack'] == behavior.value), :]
         rows.append(line.values.tolist()[0])
     print(tabulate(
-        rows, headers=labels, tablefmt="pretty"))
+        rows, headers=labels, tablefmt="latex"))
 
     print("afterstates data availability")
     rows = []
@@ -101,8 +101,8 @@ def print_column_info(raw_behaviors=True, pi=3):
 if __name__ == "__main__":
     os.chdir("..")
     print("------------------Raw Data Availability------------------")
-    show_raw_behaviors_data_availability(raw=True, pi=4)
-    # show_decision_and_afterstate_data_availability(raw=True)
+    # show_raw_behaviors_data_availability(raw=True, pi=4)
+    show_decision_and_afterstate_data_availability(raw=True)
     print("----------------Filtered Data Availability---------------")
     # show_raw_behaviors_data_availability(raw=False, pi=3)
     # show_decision_and_afterstate_data_availability(raw=False)

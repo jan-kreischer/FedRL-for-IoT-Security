@@ -48,8 +48,8 @@ class SimulationEngine:
                 action = agent.choose_action(obs[:, :idx1])
                 if action == -1:
                     print("Agent exhausted all MTD techniques upon behavior: ", obs[0, -1])
-                    obs = env.reset()
                     agent.episode_action_memory = set()
+                    done = True
                     continue
 
                 new_obs, reward, done = env.step(action)
