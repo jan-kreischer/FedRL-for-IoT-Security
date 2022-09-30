@@ -566,8 +566,8 @@ class DataProvider:
     def get_pca_loading_scores_dataframe(n=15):
         pca = DataProvider.fit_pca(n)
         loadings = pd.DataFrame(pca.components_,
-                                columns=pd.read_csv(raw_behaviors_file_paths_rp4[Behavior.CNC_BACKDOOR_JAKORITAR]).drop(
-                                    time_status_columns, axis=1).drop(all_zero_columns, axis=1).columns,
+                                columns=pd.read_csv(raw_behaviors_file_paths_rp3[Behavior.NORMAL]).drop(
+                                    time_status_columns + all_zero_columns + cols_to_exclude, axis=1).columns,
                                 index=["PC" + str(i) for i in range(1, n + 1)])
         return loadings
 
