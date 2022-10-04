@@ -21,7 +21,7 @@ if __name__ == '__main__':
     memactive = [l.split(",")[-5] for l in ram_lines][1:]
     memtotal = [l.split(",")[6] for l in ram_lines][1:]
     cpuuser = [l.split(",")[2] for l in cpu_lines][1:]
-    cpusystem = [l.split(",")[3] for l in cpu_lines][1:]
+    cpusystem = [l.split(",")[-4] for l in cpu_lines][1:]
 
     memactive = [float(e) for e in memactive][:400]
     memtotal = [float(e) for e in memtotal][:400]
