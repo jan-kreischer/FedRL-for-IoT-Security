@@ -31,7 +31,6 @@ class SensorEnvironment:
     def sample_initial_decision_state(self):
         if np.random.random_sample() < self.normal_prob:
             attack_data = self.dtrain_data[Behavior.NORMAL]
-        # TODO: check excluded behaviors
         else:
             rb = random.choice([b for b in Behavior if b != Behavior.NORMAL])
             attack_data = self.dtrain_data[rb]
@@ -122,6 +121,13 @@ class SensorEnvironment:
         return np.expand_dims(self.current_state[0, :], axis=0)
 
     # TODO: possibly adapt to distinguish between MTDs that are particularly wasteful in case of wrong deployment
+    #  Ensure that most resource-consuming MTDs are penalized harder than such that are not
+    #  (i.e. -1 for dirtrap, -0.8 for ipshuffle, -0.7 filext, -0.5rootkit),
+    #  because:
+    #  - dirtrap is computationally intense,
+    #  - ipshuffle results in downtime,
+    #  - rootkit lasts miliseconds
+
     def calculate_reward(self, success):
         """this method can be exchanged for the online/unsupervised RL system with the autoencoder"""
         if success:

@@ -13,9 +13,8 @@ import torch
 import numpy as np
 import pickle
 
-
+# Enhancement Options listed as possible TODOs, but not required for operation
 # TODO: add storage of agent networks after some episodes
-# TODO: make abstract (template method pattern) in case of multiple online methods
 class OnlineRL():
     monitor_counter = 0
     start_str_datafile = "online_samples_"
@@ -208,7 +207,7 @@ LEARNING_RATE = 1e-5
 N_EPISODES = 5000
 LOG_FREQ = 100
 
-# TODO: initialize agent with full memory buffer -> as per last episode of offline training
+
 if __name__ == '__main__':
     with open('config.json') as json_file:
         data = json.load(json_file)
