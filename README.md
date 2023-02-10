@@ -1,5 +1,8 @@
 # Optimizing MTD Deployment on IoT Devices using Reinforcement Learning
 
+This work pays large tribute to Timo Schenk's work on RL based MTD deployment
+=> https://github.com/Leitou/rl-based-mtd
+
 ## Content :label:
 This repository contains all the code and data required to run the RL-based, reactive MTD selection experiments, 
 respectively recreate the figures of the report. It is implemented using Python 3 and additional libraries. 
