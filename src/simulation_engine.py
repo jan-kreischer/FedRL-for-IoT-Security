@@ -1,7 +1,7 @@
 import random
 import numpy as np
-from custom_types import Behavior
-from agent import Agent
+from src.custom_types import Behavior
+from src.agent import Agent
 
 
 class SimulationEngine:

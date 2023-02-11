@@ -1,5 +1,5 @@
 from typing import Dict, Tuple, List
-from custom_types import Behavior, MTDTechnique, actions, supervisor_map
+from src.custom_types import Behavior, MTDTechnique, actions, supervisor_map
 import numpy as np
 import random
 

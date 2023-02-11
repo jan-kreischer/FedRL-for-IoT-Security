@@ -1,6 +1,6 @@
-from data_provider import DataProvider
-from custom_types import Behavior
-from utils.evaluation_utils import seed_random, calculate_metrics, evaluate_anomaly_detector_ds, \
+from src.data_provider import DataProvider
+from src.custom_types import Behavior
+from src.evaluation_utils import seed_random, calculate_metrics, evaluate_anomaly_detector_ds, \
     evaluate_anomaly_detector_as, check_anomalous, plot_state_samples_upper_binom_cdf
 from time import time
 import numpy as np

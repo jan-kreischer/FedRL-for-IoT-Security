@@ -7,8 +7,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import random
-from agent import Agent
-from custom_types import Behavior, MTDTechnique, actions, supervisor_map, normal_afterstates
+from src.agent import Agent
+from src.custom_types import Behavior, MTDTechnique, actions, supervisor_map, normal_afterstates
 
 
 def plot_learning(x, returns, epsilons, filename):
