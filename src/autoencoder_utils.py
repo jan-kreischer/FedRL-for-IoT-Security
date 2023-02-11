@@ -1,3 +1,5 @@
+import os
+import sys
 import numpy as np
 from src.autoencoder import AutoEncoder, AutoEncoderInterpreter
 import torch
@@ -7,7 +9,7 @@ from tabulate import tabulate
 
 
 def pretrain_ae_model(ae_data, split=0.8, lr=1e-4, momentum=0.9, num_epochs=100, num_std=2.5,
-                      path="offline_prototype_3_ds_as_sampling/trained_models/ae_model.pth"):
+                      path="experiments/experiment_03/trained_models/ae_model.pth"):
     idx = int(len(ae_data) * split)
     train_ae_x = ae_data[:idx, :-1].astype(np.float32)
     valid_ae_x = ae_data[idx:, :-1].astype(np.float32)
@@ -22,13 +24,13 @@ def pretrain_ae_model(ae_data, split=0.8, lr=1e-4, momentum=0.9, num_epochs=100,
     return train_ae_x, valid_ae_x
 
 
-def pretrain_all_ds_as_ae_models(dtrain, ae_train_dict, dir="offline_prototype_3_ds_as_sampling/trained_models/", num_std=1):
+def pretrain_all_ds_as_ae_models(dtrain, ae_train_dict, dir="experiments/experiment_03/trained_models", num_std=1):
     """pretrains autoencoder models on 1. decision state normal,
     2. on each normal-mtd combination,
     3. on both decision and normal-mtd combination data"""
-    all_train, all_valid = pretrain_ae_model(dtrain, path=dir + "ae_model_ds.pth")
+    all_train, all_valid = pretrain_ae_model(dtrain, path=f"{dir}/ae_model_ds.pth")
     for i, mtd in enumerate(ae_train_dict):
-        path = dir + "ae_model_" + str(mtd.value) + ".pth"
+        path = f"{dir}/ae_model_{mtd.value}.pth"
         train_data, valid_data = pretrain_ae_model(ae_train_dict[mtd][:, :-1], path=path, num_std=num_std)
         all_train = np.vstack((all_train, train_data))
         all_valid = np.vstack((all_valid, valid_data))
@@ -42,12 +44,12 @@ def pretrain_all_ds_as_ae_models(dtrain, ae_train_dict, dir="offline_prototype_3
     all_as_data = np.vstack((all_as_train, all_as_valid))
     all_as_data = np.hstack((all_as_data, np.ones((len(all_as_data), 1))))
     print("all as data: ", len(all_as_data))
-    pretrain_ae_model(all_as_data, path=dir + "ae_model_all_as.pth", num_std=num_std, num_epochs=100, lr=1e-4)
+    pretrain_ae_model(all_as_data, path=f"{dir}/ae_model_all_as.pth", num_std=num_std, num_epochs=100, lr=1e-4)
 
     all_data = np.vstack((all_train, all_valid))
     all_data = np.hstack((all_data, np.ones((len(all_data), 1))))
     print("all ds/as data: ", len(all_data))
-    pretrain_ae_model(all_data, path=dir + "ae_model_all_ds_as.pth", num_std=num_std, num_epochs=100, lr=1e-4)
+    pretrain_ae_model(all_data, path=f"{dir}/ae_model_all_ds_as.pth", num_std=num_std, num_epochs=100, lr=1e-4)
 
 
 def get_pretrained_ae(path, dims):
@@ -94,8 +96,8 @@ def evaluate_ae_on_afterstates(ae_interpreter: AutoEncoderInterpreter, test_data
 
 def evaluate_all_ds_as_ae_models(dtrain, atrain, dims, dir):
     for mtd in MTDTechnique:
-        path = dir + "ae_model_" + str(mtd.value) + ".pth"
-        print("---Evaluating AE " + str(mtd.value) + "---")
+        path = os.path.join(dir, f"/ae_model_{mtd.value}.pth")
+        print(f"---Evaluating AE {mtd.value} ---")
         ae_interpreter = get_pretrained_ae(path=path, dims=dims)
         print("---Evaluation on decision behaviors train---")
         evaluate_ae_on_no_mtd_behavior(ae_interpreter, test_data=dtrain)
@@ -103,7 +105,7 @@ def evaluate_all_ds_as_ae_models(dtrain, atrain, dims, dir):
         evaluate_ae_on_afterstates(ae_interpreter, test_data=atrain)
 
     print("Evaluating AE trained on all afterstates normal")
-    path = dir + "ae_model_all_as.pth"
+    path = f"{dir}/ae_model_all_as.pth"
     ae_interpreter = get_pretrained_ae(path=path, dims=dims)
     print("---Evaluation on decision behaviors train---")
     evaluate_ae_on_no_mtd_behavior(ae_interpreter, test_data=dtrain)
@@ -111,7 +113,7 @@ def evaluate_all_ds_as_ae_models(dtrain, atrain, dims, dir):
     evaluate_ae_on_afterstates(ae_interpreter, test_data=atrain)
 
     print("Evaluating AE trained on all decision and afterstates normal")
-    path = dir + "ae_model_all_ds_as.pth"
+    path = os.path.join(path, "/ae_model_all_ds_as.pth")
     ae_interpreter = get_pretrained_ae(path=path, dims=dims)
     print("---Evaluation on decision behaviors train---")
     evaluate_ae_on_no_mtd_behavior(ae_interpreter, test_data=dtrain)
