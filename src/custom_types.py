@@ -14,12 +14,13 @@ class Behavior(Enum):
     CNC_OPT1 = "data_leak_1"
     CNC_OPT2 = "data_leak_2"
     RANSOMWARE_POC = "ransomware_poc"
-
+    
 class MTDTechnique(Enum):
     ROOTKIT_SANITIZER = "rootkit_sanitizer"
     RANSOMWARE_DIRTRAP = "ransomware_directory_trap"
     RANSOMWARE_FILE_EXT_HIDE = "ransomware_file_extension_hide"
     CNC_IP_SHUFFLE = "cnc_ip_shuffle"
+    CONTINUE = "continue"
     #NO_MTD = "no_mtd"
 
 

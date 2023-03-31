@@ -73,7 +73,7 @@ def evaluate_ae_on_no_mtd_behavior(ae_interpreter: AutoEncoderInterpreter, test_
     results = []
     for b, a in res_dict.items():
         results.append([b.value, res_dict[b]])
-    print(tabulate(results, headers=labels, tablefmt="latex"))
+    print(tabulate(results, headers=labels, tablefmt="pipe"))
 
 
 def evaluate_ae_on_afterstates(ae_interpreter: AutoEncoderInterpreter, test_data):
