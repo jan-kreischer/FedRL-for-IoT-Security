@@ -1,3 +1,4 @@
+import os
 import torch
 from torch import nn, optim
 import copy
@@ -23,6 +24,7 @@ class Client:
         self.save_path = save_path
         self.start_time = 0
         self.end_time = 0
+        self.nr_trained_episodes=0
         
         # initialize replay memory
         self.init_replay_memory(min_replay_size)
@@ -59,6 +61,8 @@ class Client:
         self.start_time = time()
         step = 0
         for num_episode in range(num_episodes):
+            self.nr_trained_episodes+=1
+            
             episode_return = 0
             episode_steps = 0
             done = False
@@ -92,6 +96,7 @@ class Client:
 
             self.episode_returns.append(episode_return / episode_steps)
             self.eps_history.append(self.agent.epsilon)
+            self.agent.epsilon_decay(self.nr_trained_episodes)
          
         self.end_time = time() 
         #print(f"The total training time on {self.agent.get_name()} ({num_episodes}) was {self.get_training_time()}s")
