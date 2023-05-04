@@ -439,7 +439,7 @@ class DataProvider:
         Either decision states or raw behaviors can be utilized (decision flag) as no combinations
         with mtd need to be considered
         """
-        print(os.getcwd())
+        #print(os.getcwd())
         rdf = DataProvider.parse_no_mtd_behavior_data(decision=decision, pi=pi, filter_outliers=False)
 
         # take split of all behaviors, concat, calc scaling, scale both train and test split
@@ -469,7 +469,61 @@ class DataProvider:
 
         # return also scaler in case of using the agent for online scaling
         return scaled_train, scaled_test, scaler
+    
+    @staticmethod
+    def get_flat_train_test_split(split=0.8, scale_normal_only=True, decision=False, pi=3):
+        """
+        Method returns dictionaries mapping behaviors to scaled train and test data, as well as the scaler used
+        Either decision states or raw behaviors can be utilized (decision flag) as no combinations
+        with mtd need to be considered
+        """
+        #print(os.getcwd())
+        dataset = DataProvider.parse_no_mtd_behavior_data(decision=decision, pi=pi, filter_outliers=False)
+        
+        #print(f"rdf.columns: {rdf.columns}")
+        #print(f"rdf.length: {rdf.shape[0]}")
+        # take split of all behaviors, concat, calc scaling, scale both train and test split
+        filtered_training_data, filtered_test_data = DataProvider.__filter_train_split_for_outliers(dataset, Behavior.NORMAL, split)
+        
+        #print(f"train_filtered: n_samples: {len(train_filtered)}; type: {type(train_filtered)}")
+        #print(f"df_test: n_samples: {len(df_test)}; type: {type(df_test)}")
+        
+        # get behavior dicts for train and test
+        train_bdata = {}
+        test_bdata = {}
+        #print(rdf)
+        train_filtered = np.zeros((0,47))
+        for behavior in dataset["attack"].unique():
+            dtrain_filtered, df_test = DataProvider.__filter_train_split_for_outliers(dataset, behavior, split)
+            train_bdata[behavior] = dtrain_filtered
+            test_bdata[behavior] = df_test
 
+            if behavior != Behavior.NORMAL and not scale_normal_only:
+                train_filtered = np.vstack((train_filtered, train_bdata[behavior]))
+
+        # fit scaler on either just normal data (if scale_normal_only), or all training data combined
+        scaler = StandardScaler()
+        scaler.fit(train_filtered[:, :-1])
+
+        # get behavior dicts for scaled train and test data
+        scaled_train = {}
+        scaled_test = {}
+        
+        training_data = np.zeros((0,47))
+        test_data = np.zeros((0,47))
+        for b, d in train_bdata.items():
+                       
+            scaled_train_samples =np.hstack((scaler.transform(d[:, :-1]), np.expand_dims(d[:, -1], axis=1)))
+            scaled_train[b] = scaled_train_samples
+            training_data = np.vstack((training_data, scaled_train_samples))
+            
+            scaled_test_samples = np.hstack((scaler.transform(test_bdata[b][:, :-1]), np.expand_dims(test_bdata[b][:, -1], axis=1)))
+            scaled_test[b] = scaled_test_samples
+            test_data = np.vstack((test_data, scaled_test_samples))
+        
+        # return also scaler in case of using the agent for online scaling
+        return training_data, test_data, scaler
+    
     @staticmethod
     def get_reduced_dimensions_with_pca_ds_as(dim=15, dir=""):
         ""
