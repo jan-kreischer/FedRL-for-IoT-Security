@@ -8,10 +8,13 @@ class Execution(Enum):
     
 class Evaluation(Enum):
     TRAINING_TIME = auto()
+    
     LEARNING_CURVE = auto()
-    TEST_ACCURACY = auto()
+    
     PERFORMANCE_EVALUATION = auto()
-    LOCAL_AGENT_PERFORMANCE_EVALUATION = auto()
-    GLOBAL_AGENT_PERFORMANCE_EVALUATION = auto()
-    CONFUSION_MATRIX = auto()
-    BEHAVIOR_ACTION_EVALUATION = auto()
+    LOCAL_PERFORMANCE_EVALUATION = auto()
+    GLOBAL_PERFORMANCE_EVALUATION = auto()
+    
+    BEHAVIOR_EVALUATION = auto()
+    LOCAL_BEHAVIOR_EVALUATION = auto()
+    GLOBAL_BEHAVIOR_EVALUATION = auto()
