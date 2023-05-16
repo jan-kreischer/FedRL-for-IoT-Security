@@ -7,27 +7,40 @@ import random
 # handles the supervised, online-simulation of episodes
 class SensorEnvironment:
 
-    def __init__(self, train_data: Dict[Behavior, np.ndarray] = None):
+    def __init__(self, train_data: Dict[Behavior, np.ndarray] = None, sample_distribution: Dict[Behavior, int] = None):
         #print("Recognized Behaviours")
         #print(train_data.keys())
         self.train_data = train_data
+        
+        sum_of_percentages = reduce(lambda x, y: x+y, sample_distribution.values())
+        assert sum_of_percentages == 100, f"Make sure that all percentages sum to 100. Right now it is {sum_of_percentages}"
+        self.sample_distribution = sample_distribution
+        
         self.current_state: np.array = None
         self.observation_space_size: int = len(self.train_data[Behavior.NORMAL][0][:-1])
         self.actions: List[int] = [i for i in range(len(actions))]
 
     # Returns a randomly selected attack state with non normal behaviour.
     def sample_random_attack_state(self):
-        """i.e. for starting state of an episode,
-        (with replacement; it is possible that the same sample is chosen multiple times)"""
-        rb = random.choice([b for b in self.train_data.keys() if b != Behavior.NORMAL])
-        attack_data = self.train_data[rb]
-        return attack_data[np.random.randint(attack_data.shape[0], size=1), :]
-        
+        if self.sample_distribution != None:
+            behaviors = list(self.sample_distribution.keys())
+            attacks = [b for b in behaviors if b != Behavior.NORMAL]
+            attacks = behaviors
+            sampling_probabilities = self.sample_distribution.values()
+            sampled_attack = random.choices(attacks, weights=sampling_probabilities, k=1)[0]
+            attack_states = self.train_data[sampled_attack]
+            return attack_states[np.random.randint(attack_states.shape[0], size=1), :]
+        else:
+            sampled_attack = random.choice([b for b in self.train_data.keys() if b != Behavior.NORMAL])
 
+        attack_states = self.train_data[sampled_attack]
+        return attack_states[np.random.randint(attack_states.shape[0], size=1), :]
+    
     # Return random sample with specified behaviour
     def sample_behavior(self, b: Behavior):
         behavior_data = self.train_data[b]
         return behavior_data[np.random.randint(behavior_data.shape[0], size=1), :]
+
 
     def step(self, action: int):
         current_behavior = self.current_state.squeeze()[-1]
