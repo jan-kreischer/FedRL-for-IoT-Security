@@ -459,6 +459,7 @@ class DataProvider:
 
     @staticmethod
     def filter_train_split_for_outliers(df: pd.DataFrame, b: Behavior, split=0.8):
+        print(f"FILTER: {len(df)}")
         df = df[df["attack"] == b].drop(["attack"], axis=1)
         df_test = df.sample(frac=1 - split)  # .reset_index(drop=True)
         df_train = pd.concat([df, df_test]).drop_duplicates(keep=False)
@@ -467,6 +468,9 @@ class DataProvider:
         df_test["attack"] = b
         train_filtered = train_filtered.to_numpy()
         df_test = df_test.to_numpy()
+        len_train_filtered = len(train_filtered)
+        len_df_test = len(df_test)
+        print(f"FILTER: len_train_filtered + len_df_test = {len_train_filtered} + {len_df_test} = {len_train_filtered + len_df_test}")
         return train_filtered, df_test
 
     @staticmethod
