@@ -8,7 +8,7 @@ from tabulate import tabulate
 class AutoEncoder(torch.nn.Module):
     
 
-    def __init__(self, model, X_valid, X_test, y_test, evaluation_data, n_std=20, activation_function=torch.nn.ReLU(), batch_size: int = 64, verbose=False):
+    def __init__(self, model, X_valid, X_test, y_test, evaluation_data, n_std=0.5, activation_function=torch.nn.ReLU(), batch_size: int = 64, verbose=False):
 
         super().__init__()
         
@@ -26,7 +26,23 @@ class AutoEncoder(torch.nn.Module):
         
         n_features = X_test.shape[1]
         
-        self.model = model
+        print("using 64 x 16")
+        self.model = nn.Sequential(
+            nn.Linear(n_features, 64),
+            nn.BatchNorm1d(64),
+            nn.GELU(),
+            nn.Linear(64, 16),
+            nn.GELU(),
+            #nn.Linear(32, 16),
+            #nn.GELU(),
+            #nn.Linear(16, 32),
+            #nn.GELU(),
+            nn.Linear(16, 64),
+            nn.BatchNorm1d(64),
+            nn.GELU(),
+            nn.Linear(64, n_features),
+            nn.GELU()
+        )
         self.threshold = None
         self.loss_mean = None
         self.loss_standard_deviation = None

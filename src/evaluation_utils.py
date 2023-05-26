@@ -8,7 +8,7 @@ import numpy as np
 import torch
 import random
 from src.agent import Agent
-from src.custom_types import Behavior, MTDTechnique, actions, supervisor_map, normal_afterstates
+from src.custom_types import Behavior, MTDTechnique, actions, mitigated_by, normal_afterstates
 
 
 def plot_learning(x, returns, epsilons, filename):
@@ -78,13 +78,13 @@ def evaluate_agent(agent: Agent, test_data):
                 cnt = 0
                 for state in d:
                     action = agent.take_greedy_action(state[:-1])
-                    if b in supervisor_map[action]:
+                    if b in m[action]:
                         cnt_corr += 1
                     cnt += 1
                 res_dict[b] = (cnt_corr, cnt)
 
             for i in range(len(actions)):
-                if b in supervisor_map[i]:
+                if b in mitigated_by[i]:
                     objective_dict[b] = actions[i]
 
     print(res_dict)
@@ -109,12 +109,12 @@ def evaluate_agent_on_afterstates(agent: Agent, test_data):
                 cnt = 0
                 for state in d:
                     action = agent.take_greedy_action(state[:-2])
-                    if t[0] in supervisor_map[action]:
+                    if t[0] in mitigated_by[action]:
                         cnt_corr += 1
                     cnt += 1
                 res_dict[t] = (cnt_corr, cnt)
             for i in range(len(actions)):
-                if t[0] in supervisor_map[i]:
+                if t[0] in mitigated_by[i]:
                     objectives_dict[t] = actions[i]
 
     labels = ["Behavior", "MTD", "Accuracy", "Objective"]

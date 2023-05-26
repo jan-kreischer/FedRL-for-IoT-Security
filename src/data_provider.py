@@ -13,10 +13,10 @@ import joblib
 import os
 import pickle
 
-relative_data_path = "data"
+relative_data_path = "data/data_sets"
 
 # raw behaviors without any MTD framework/Agent Components running
-raw_behaviors_dir_rp3 = "raw_behaviors_no_agent_rp3"
+raw_behaviors_dir_rp3 = "raw_state_samples"
 raw_behaviors_file_paths_rp3: Dict[Behavior, str] = {
     Behavior.NORMAL: f"{relative_data_path}/{raw_behaviors_dir_rp3}/normal_expfs_online_samples_1_2022-08-20-09-16_5s.csv",
     Behavior.RANSOMWARE_POC: f"{relative_data_path}/{raw_behaviors_dir_rp3}/ransom_expfs_online_samples_1_2022-08-22-14-04_5s.csv",
@@ -29,7 +29,7 @@ raw_behaviors_file_paths_rp3: Dict[Behavior, str] = {
     Behavior.CNC_OPT2: f"{relative_data_path}/{raw_behaviors_dir_rp3}/cnc_opt_2_sysinfo_online_samples_1_2022-09-24-14-04_5s.csv",
 }
 
-raw_behaviors_dir_rp4 = "raw_behaviors_no_agent_rp4"
+raw_behaviors_dir_rp4 = "raw_state_samples_rp4"
 raw_behaviors_file_paths_rp4: Dict[Behavior, str] = {
     Behavior.NORMAL: f"{relative_data_path}/{raw_behaviors_dir_rp4}/normal_samples_2022-06-13-11-25_50s.csv",
     Behavior.RANSOMWARE_POC: f"{relative_data_path}/{raw_behaviors_dir_rp4}/ransomware_samples_2022-06-20-08-49_50s.csv",
@@ -41,7 +41,7 @@ raw_behaviors_file_paths_rp4: Dict[Behavior, str] = {
 
 # behaviors with MTD framework/Agent Components running as per directory "online_prototype_monitoring"
 decision_state = "decision"
-decision_states_dir = "decision_states_online_agent"
+decision_states_dir = "decision_state_samples"
 decision_states_file_paths: Dict[Behavior, str] = {
     Behavior.NORMAL: f"{relative_data_path}/{decision_states_dir}/normal_expfs_online_samples_1_2022-08-18-08-31_5s.csv",
     # Behavior.NORMAL: f"{relative_data_path}/{decision_states_dir}/normal_noexpfs_online_samples_1_2022-08-15-14-07_5s.csv",
@@ -56,7 +56,7 @@ decision_states_file_paths: Dict[Behavior, str] = {
     Behavior.CNC_OPT2: f"{relative_data_path}/{decision_states_dir}/cnc_opt_2_sysinfo_online_samples_1_2022-09-24-09-46_5s.csv"
 }
 afterstate = "after"
-afterstates_dir = "afterstates_online_agent"
+afterstates_dir = "after_state_samples"
 afterstates_file_paths: Dict[Behavior, Dict[MTDTechnique, str]] = {
     Behavior.NORMAL: {
         MTDTechnique.RANSOMWARE_DIRTRAP: f"{relative_data_path}/{afterstates_dir}/normal_as_dirtrap_expfs_online_samples_2_2022-08-17-14-23_5s.csv",
@@ -171,7 +171,7 @@ class DataProvider:
 
         for attack in b_file_paths:
             print(f"getting {attack}")
-            df = DataProvider.__get_filtered_df(b_file_paths[attack],
+            df = DataProvider.get_filtered_df(b_file_paths[attack],
                                                 filter_suspected_external_events=filter_suspected_external_events,
                                                 startidx=50,
                                                 filter_constant_columns=filter_constant_columns,
@@ -213,7 +213,7 @@ class DataProvider:
 
         for attack in b_file_paths:
             print(f"getting {attack}")
-            df = DataProvider.__get_filtered_df(b_file_paths[attack],
+            df = DataProvider.get_filtered_df(b_file_paths[attack],
                                                 filter_suspected_external_events=filter_suspected_external_events,
                                                 startidx=50,
                                                 filter_constant_columns=filter_constant_columns,
@@ -233,7 +233,7 @@ class DataProvider:
                                 filter_constant_columns=True,
                                 filter_outliers=True,
                                 keep_status_columns=False,
-                                exclude_cols=True) -> Dict[Behavior, np.ndarray]:
+                                exclude_cols=False) -> Dict[Behavior, np.ndarray]:
         # function should return a dictionary of all the
         file_name = f'../data/{afterstates_dir}/all_afterstate_data_filtered_external' \
                     f'_{str(filter_suspected_external_events)}' \
@@ -251,7 +251,7 @@ class DataProvider:
         # adata = {}
         for asb in afterstates_file_paths:
             for mtd in afterstates_file_paths[asb]:
-                df = DataProvider.__get_filtered_df(afterstates_file_paths[asb][mtd],
+                df = DataProvider.get_filtered_df(afterstates_file_paths[asb][mtd],
                                                     filter_suspected_external_events=filter_suspected_external_events,
                                                     filter_constant_columns=filter_constant_columns,
                                                     filter_outliers=filter_outliers,
@@ -284,7 +284,7 @@ class DataProvider:
 
         full_df = pd.DataFrame()
         for dsb in decision_states_file_paths:
-            df = DataProvider.__get_filtered_df(decision_states_file_paths[dsb],
+            df = DataProvider.get_filtered_df(decision_states_file_paths[dsb],
                                                 filter_suspected_external_events=filter_suspected_external_events,
                                                 filter_constant_columns=filter_constant_columns,
                                                 filter_outliers=filter_outliers,
@@ -296,7 +296,7 @@ class DataProvider:
 
         for asb in afterstates_file_paths:
             for mtd in afterstates_file_paths[asb]:
-                df = DataProvider.__get_filtered_df(afterstates_file_paths[asb][mtd],
+                df = DataProvider.get_filtered_df(afterstates_file_paths[asb][mtd],
                                                     filter_suspected_external_events=filter_suspected_external_events,
                                                     filter_constant_columns=filter_constant_columns,
                                                     filter_outliers=filter_outliers,
@@ -323,7 +323,7 @@ class DataProvider:
         ]
         full_df = pd.DataFrame()
         for i, norm_p in enumerate(normal_paths):
-            df = DataProvider.__get_filtered_df(norm_p,
+            df = DataProvider.get_filtered_df(norm_p,
                                                 filter_suspected_external_events=filter_suspected_external_events,
                                                 filter_constant_columns=filter_constant_columns,
                                                 filter_outliers=filter_outliers,
@@ -335,7 +335,7 @@ class DataProvider:
         return full_df
 
     @staticmethod
-    def __get_filtered_df(path, filter_suspected_external_events=True, startidx=10, endidx=-1,
+    def get_filtered_df(path, filter_suspected_external_events=True, startidx=10, endidx=-1,
                           filter_constant_columns=True,
                           filter_outliers=True,
                           keep_status_columns=False, exclude_cols=False):
@@ -370,12 +370,12 @@ class DataProvider:
         return df
 
     @staticmethod
-    def get_scaled_train_test_split_anomaly_detection_afterstates(normal_split=0.7, scaling_minmax=True):
+    def get_scaled_train_test_split_anomaly_detection_afterstates(normal_split=0.7, scaling_minmax=False):
         ddf = DataProvider.parse_no_mtd_behavior_data(decision=True, filter_outliers=False)
         adf = DataProvider.parse_mtd_behavior_data(filter_outliers=False)
 
         # get decision state normal split
-        normal_train, normal_test = DataProvider.__filter_train_split_for_outliers(ddf, Behavior.NORMAL, normal_split)
+        normal_train, normal_test = DataProvider.filter_train_split_for_outliers(ddf, Behavior.NORMAL, normal_split)
         # fit on normal train
         scaler = StandardScaler() if not scaling_minmax else MinMaxScaler()
         scaler.fit(normal_train[:, :-1])
@@ -405,15 +405,17 @@ class DataProvider:
     def get_scaled_scaled_train_test_split_with_afterstates(split=0.8, scaling_minmax=True, scale_normal_only=True):
 
         #  1 get both dicts for decision and afterstates
-        ddf = DataProvider.parse_no_mtd_behavior_data(decision=True, filter_outliers=False)
+        ddf = DataProvider.parse_no_mtd_behavior_data(decision=True, filter_outliers=False, pi=3)
+        print(ddf.shape)
         adf = DataProvider.parse_mtd_behavior_data(filter_outliers=False)
+        print(adf.shape)
         # take split of all behaviors, concat, calc scaling, scale both train and test split
         # get behavior dicts for train and test
-        train_filtered, df_test = DataProvider.__filter_train_split_for_outliers(ddf, Behavior.NORMAL, split)
+        train_filtered, df_test = DataProvider.filter_train_split_for_outliers(ddf, Behavior.NORMAL, split)
         train_ddata = {}
         test_ddata = {}
         for b in ddf["attack"].unique():
-            dtrain_filtered, df_test = DataProvider.__filter_train_split_for_outliers(ddf, b, split)
+            dtrain_filtered, df_test = DataProvider.filter_train_split_for_outliers(ddf, b, split)
             train_ddata[b] = dtrain_filtered
             test_ddata[b] = df_test
             if b != Behavior.NORMAL and not scale_normal_only:
@@ -424,7 +426,7 @@ class DataProvider:
         test_adata = {}
         for b in adf["attack"].unique():
             for mtd in adf[adf["attack"] == b]["state"].unique():
-                atrain_filtered, a_test = DataProvider.__filter_as_train_split_for_outliers(adf, b, mtd, split)
+                atrain_filtered, a_test = DataProvider.filter_as_train_split_for_outliers(adf, b, mtd, split)
                 train_adata[(b, mtd)] = atrain_filtered
                 test_adata[(b, mtd)] = a_test
                 if scale_normal_only and b == Behavior.NORMAL:
@@ -456,7 +458,7 @@ class DataProvider:
         return scaled_dtrain, scaled_dtest, scaled_atrain, scaled_atest, scaler
 
     @staticmethod
-    def __filter_train_split_for_outliers(df: pd.DataFrame, b: Behavior, split=0.8):
+    def filter_train_split_for_outliers(df: pd.DataFrame, b: Behavior, split=0.8):
         df = df[df["attack"] == b].drop(["attack"], axis=1)
         df_test = df.sample(frac=1 - split)  # .reset_index(drop=True)
         df_train = pd.concat([df, df_test]).drop_duplicates(keep=False)
@@ -468,7 +470,7 @@ class DataProvider:
         return train_filtered, df_test
 
     @staticmethod
-    def __filter_as_train_split_for_outliers(df: pd.DataFrame, b: Behavior, mtd: MTDTechnique, split):
+    def filter_as_train_split_for_outliers(df: pd.DataFrame, b: Behavior, mtd: MTDTechnique, split):
         df = df[(df["attack"] == b) & (df["state"] == mtd)].drop(["attack", "state"], axis=1)
         df_test = df.sample(frac=1 - split)  # .reset_index(drop=True)
         df_train = pd.concat([df, df_test]).drop_duplicates(keep=False)
@@ -480,18 +482,18 @@ class DataProvider:
         return train_filtered, df_test
 
     @staticmethod
-    def get_scaled_train_test_split(split=0.8, scaling_minmax=True, scale_normal_only=True, decision=False, pi=3):
+    def get_scaled_train_test_split(split=0.8, scaling_minmax=True, scale_normal_only=True, filter_outliers=True, decision=False, pi=3):
         """
         Method returns dictionaries mapping behaviors to scaled train and test data, as well as the scaler used
         Either decision states or raw behaviors can be utilized (decision flag) as no combinations
         with mtd need to be considered
         """
         #print(os.getcwd())
-        rdf = DataProvider.parse_no_mtd_behavior_data(decision=decision, pi=pi, filter_outliers=True)
+        rdf = DataProvider.parse_no_mtd_behavior_data(decision=decision, pi=pi, filter_outliers=filter_outliers)
         print(f"type(rdf): {type(rdf)}")
         print(f"rdf.columns: {rdf.columns}; {len(rdf.columns)}")
         # take split of all behaviors, concat, calc scaling, scale both train and test split
-        train_filtered, df_test = DataProvider.__filter_train_split_for_outliers(rdf, Behavior.NORMAL, split)
+        train_filtered, df_test = DataProvider.filter_train_split_for_outliers(rdf, Behavior.NORMAL, split)
         print(f"type(train_filtered): {type(train_filtered)}")
         print(f"type(df_test): {type(df_test)}")
         
@@ -499,7 +501,7 @@ class DataProvider:
         train_bdata = {}
         test_bdata = {}
         for b in rdf["attack"].unique():
-            dtrain_filtered, df_test = DataProvider.__filter_train_split_for_outliers(rdf, b, split)
+            dtrain_filtered, df_test = DataProvider.filter_train_split_for_outliers(rdf, b, split)
             train_bdata[b] = dtrain_filtered
             test_bdata[b] = df_test
             if b != Behavior.NORMAL and not scale_normal_only:
@@ -507,6 +509,7 @@ class DataProvider:
 
         # fit scaler on either just normal data (if scale_normal_only), or all training data combined
         scaler = StandardScaler() if not scaling_minmax else MinMaxScaler()
+        print(f"Using scaler {scaler}")
         scaler.fit(train_filtered[:, :-1])
 
         # get behavior dicts for scaled train and test data
@@ -533,7 +536,7 @@ class DataProvider:
         #print(f"rdf.columns: {rdf.columns}")
         #print(f"rdf.length: {rdf.shape[0]}")
         # take split of all behaviors, concat, calc scaling, scale both train and test split
-        filtered_training_data, filtered_test_data = DataProvider.__filter_train_split_for_outliers(dataset, Behavior.NORMAL, split)
+        filtered_training_data, filtered_test_data = DataProvider.filter_train_split_for_outliers(dataset, Behavior.NORMAL, split)
         
         #print(f"train_filtered: n_samples: {len(train_filtered)}; type: {type(train_filtered)}")
         #print(f"df_test: n_samples: {len(df_test)}; type: {type(df_test)}")
@@ -544,7 +547,7 @@ class DataProvider:
         #print(rdf)
         train_filtered = np.zeros((0,47))
         for behavior in dataset["attack"].unique():
-            dtrain_filtered, df_test = DataProvider.__filter_train_split_for_outliers(dataset, behavior, split)
+            dtrain_filtered, df_test = DataProvider.filter_train_split_for_outliers(dataset, behavior, split)
             train_bdata[behavior] = dtrain_filtered
             test_bdata[behavior] = df_test
 
