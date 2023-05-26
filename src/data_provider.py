@@ -148,7 +148,7 @@ class DataProvider:
     @staticmethod
     def get_no_mtd_behavior_data(filter_suspected_external_events=True,
                                    filter_constant_columns=True,
-                                   filter_outliers=True,
+                                   filter_outliers=False,
                                    keep_status_columns=False,
                                    exclude_cols=False,
                                    decision=False, pi=3) -> Dict[Behavior, np.ndarray]:
@@ -190,7 +190,7 @@ class DataProvider:
     @staticmethod
     def parse_no_mtd_behavior_data(filter_suspected_external_events=True,
                                    filter_constant_columns=True,
-                                   filter_outliers=True,
+                                   filter_outliers=False,
                                    keep_status_columns=False,
                                    exclude_cols=False,
                                    decision=False, pi=3) -> Dict[Behavior, np.ndarray]:
@@ -231,7 +231,7 @@ class DataProvider:
     @staticmethod
     def parse_mtd_behavior_data(filter_suspected_external_events=True,
                                 filter_constant_columns=True,
-                                filter_outliers=True,
+                                filter_outliers=False,
                                 keep_status_columns=False,
                                 exclude_cols=False) -> Dict[Behavior, np.ndarray]:
         # function should return a dictionary of all the
@@ -269,7 +269,7 @@ class DataProvider:
     @staticmethod
     def parse_agent_data_files_to_df(filter_suspected_external_events=True,
                                      filter_constant_columns=True,
-                                     filter_outliers=True,
+                                     filter_outliers=False,
                                      keep_status_columns=False,
                                      exclude_cols=True) -> pd.DataFrame:
 
@@ -312,7 +312,7 @@ class DataProvider:
     @staticmethod
     def parse_normals(filter_suspected_external_events=True,
                       filter_constant_columns=True,
-                      filter_outliers=True,
+                      filter_outliers=False,
                       keep_status_columns=False,
                       exclude_cols=True) -> pd.DataFrame:
         normal_paths = [
@@ -337,7 +337,7 @@ class DataProvider:
     @staticmethod
     def get_filtered_df(path, filter_suspected_external_events=True, startidx=10, endidx=-1,
                           filter_constant_columns=True,
-                          filter_outliers=True,
+                          filter_outliers=False,
                           keep_status_columns=False, exclude_cols=False):
         df = pd.read_csv(path)
 
@@ -354,9 +354,9 @@ class DataProvider:
         if not keep_status_columns:
             df = df.drop(time_status_columns, axis=1)
 
-        if filter_outliers:
+        #if filter_outliers:
             # drop outliers per measurement, indicated by (absolute z score) > 3
-            df = df[(np.nan_to_num(np.abs(stats.zscore(df))) < 3).all(axis=1)]
+            #df = df[(np.nan_to_num(np.abs(stats.zscore(df))) < 3).all(axis=1)]
 
         #print(f"all constant columns => {all_zero_columns}")
         if filter_constant_columns:
@@ -486,7 +486,7 @@ class DataProvider:
         return train_filtered, df_test
 
     @staticmethod
-    def get_scaled_train_test_split(split=0.8, scaling_minmax=True, scale_normal_only=True, filter_outliers=True, decision=False, pi=3):
+    def get_scaled_train_test_split(split=0.8, scaling_minmax=True, scale_normal_only=True, filter_outliers=False, decision=False, pi=3):
         """
         Method returns dictionaries mapping behaviors to scaled train and test data, as well as the scaler used
         Either decision states or raw behaviors can be utilized (decision flag) as no combinations
@@ -494,6 +494,7 @@ class DataProvider:
         """
         #print(os.getcwd())
         rdf = DataProvider.parse_no_mtd_behavior_data(decision=decision, pi=pi, filter_outliers=filter_outliers)
+        print(f"len(rdf): {len(rdf)}")
         print(f"type(rdf): {type(rdf)}")
         print(f"rdf.columns: {rdf.columns}; {len(rdf.columns)}")
         # take split of all behaviors, concat, calc scaling, scale both train and test split
