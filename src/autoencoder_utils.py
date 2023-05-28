@@ -119,21 +119,6 @@ def evaluate_all_ds_as_ae_models(dtrain, atrain, dims, dir):
     print("---Evaluation on afterstate behaviors train---")
     evaluate_ae_on_afterstates(ae_interpreter, test_data=atrain)
     
-
-def initial_autoencoder_architecture(n_features):
-    return nn.Sequential(
-        nn.Linear(n_features, 23),
-        nn.BatchNorm1d(23),
-        nn.GELU(),
-        nn.Linear(23, 11),
-        nn.GELU(),
-        nn.Linear(11, 23),
-        nn.BatchNorm1d(23),
-        nn.GELU(),
-        nn.Linear(23, n_features,),
-        nn.GELU()
-    )
-
 class RMSELoss(nn.Module):
     def __init__(self, eps=1e-6):
         super().__init__()
