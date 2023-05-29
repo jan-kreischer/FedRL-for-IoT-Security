@@ -39,7 +39,7 @@ class Experiment:
         self.nr_episodes_per_round = nr_episodes_per_round
         self.server.run_federation(nr_rounds=nr_rounds, nr_episodes_per_round=nr_episodes_per_round, evaluations=evaluations, evaluation_frequency=evaluation_frequency)
         
-    def plot_test_performances(self, show_episodes = True, y_threshold=99):
+    def plot_test_performances(self, show_episodes = True, y_threshold=99, show_individual_clients=True):
         agents = list(map(lambda client: client.agent, self.server.clients))
         agents.append(self.server.global_agent)
 
@@ -56,6 +56,11 @@ class Experiment:
             x = list(agent.total_accuracies.keys())
             if len(x) == 0:
                 continue
+                
+            # Should all individual clients be shown or only the global agent?
+            if agent_id != 0 and not show_individual_clients:
+                continue
+    
             if show_episodes:
                 x = np.array(x)*self.nr_episodes_per_round
                 x_label = "Number of Episodes trained per Client"
@@ -63,7 +68,7 @@ class Experiment:
                 x_label = "Number of Rounds"
                 
             y = np.array(list(agent.total_accuracies.values()))*100
-            if agent.agent_id == 0:  
+            if y_threshold!=None and agent.agent_id == 0:  
                 y_index = np.argmax(y>y_threshold)
             
             if agent_id == 0:
@@ -87,13 +92,14 @@ class Experiment:
         plt.ylabel('Test Accuracy [%]')
         plt.ylim(0, 105)
         plt.title("Micro Test Accuracy over multiple Rounds")
-        if y_index != 0 or y[0] > y_threshold:
+        if y_threshold != None and (y_index != 0 or y[0] > y_threshold):
             plt.axvline(x=(y_index+1)*self.nr_episodes_per_round, color='black', linestyle='dotted')
-        plt.axhline(y=y_threshold, color='black', linestyle='dashed', label=f"{y_threshold}% Accuracy Threshold")
+        if y_threshold != None:
+            plt.axhline(y=y_threshold, color='black', linestyle='dashed', label=f"{y_threshold}% Accuracy Threshold")
         plt.legend(loc="lower right")
         plt.show()
         
-    def plot_class_weighted_test_accuracy(self, show_episodes = True, y_threshold=99):
+    def plot_class_weighted_test_accuracy(self, show_episodes = True, y_threshold=99, show_individual_clients=True):
         agents = list(map(lambda client: client.agent, self.server.clients))
         agents.append(self.server.global_agent)
 
@@ -110,13 +116,18 @@ class Experiment:
             x = list(agent.mean_class_accuracies.keys())
             if len(x) == 0:
                 continue
+               
+            # Should all individual clients be shown or only the global agent?
+            if agent_id != 0 and not show_individual_clients:
+                continue
+                
             if show_episodes:
                 x = np.array(x)*self.nr_episodes_per_round
                 x_label = "Number of Episodes trained per Client"
             else:
                 x_label = "Number of Rounds" 
             y = np.array(list(agent.mean_class_accuracies.values()))*100
-            if agent.agent_id == 0:  
+            if y_threshold != None and agent.agent_id == 0:  
                 y_index = np.argmax(y>y_threshold)
             
             if agent_id == 0:
@@ -140,13 +151,14 @@ class Experiment:
         plt.ylabel('Test Accuracy [%]')
         plt.ylim(0, 105)
         plt.title("Macro Test Accuracy over multiple Rounds")
-        if y_index != 0 or y[0] > y_threshold:
+        if y_threshold != None and (y_index != 0 or y[0] > y_threshold):
             plt.axvline(x=(y_index+1)*self.nr_episodes_per_round, color='black', linestyle='dotted')
-        plt.axhline(y=y_threshold, color='black', linestyle='dashed', label=f"{y_threshold}% Accuracy Threshold")
+        if y_threshold != None:
+            plt.axhline(y=y_threshold, color='black', linestyle='dashed', label=f"{y_threshold}% Accuracy Threshold")
         plt.legend(loc="lower right")
         plt.show()
         
-    def plot_behavior_performances(self, show_episodes = True, y_threshold=99):
+    def plot_behavior_performances(self, show_episodes = True, y_threshold=99, show_individual_clients=True):
         agents = list(map(lambda client: client.agent, self.server.clients))
         agents.append(self.server.global_agent)
 
@@ -164,6 +176,11 @@ class Experiment:
                 x = list(agent.behavior_accuracies[behavior].keys())
                 if len(x) == 0:
                     continue
+                    
+                # Should all individual clients be shown or only the global agent?
+                if agent_id != 0 and not show_individual_clients:
+                    continue
+                    
                 if show_episodes:
                     x = np.array(x)*self.nr_episodes_per_round
                     x_label = "Number of Episodes trained per Client"
@@ -171,7 +188,7 @@ class Experiment:
                     x_label = "Number of Rounds"
                 y = np.array(list(agent.behavior_accuracies[behavior].values()))*100
                 
-                if agent.agent_id == 0:  
+                if y_threshold != None and agent.agent_id == 0:  
                     y_index = np.argmax(y>y_threshold)
 
                 if agent_id == 0:
@@ -195,8 +212,17 @@ class Experiment:
             #ax.yaxis.grid()
             plt.ylim(0, 105)
             plt.title(f"Test Accuracy for {behavior.name} over multiple Rounds")
-            if y_index != 0 or y[0] > y_threshold:
+            if y_threshold != None and (y_index != 0 or y[0] > y_threshold):
                 plt.axvline(x=(y_index+1)*self.nr_episodes_per_round, color='black', linestyle='dotted')
-            plt.axhline(y=y_threshold, color='black', linestyle='dashed', label=f"{y_threshold}% Accuracy Threshold")
+            if y_threshold != None:
+                plt.axhline(y=y_threshold, color='black', linestyle='dashed', label=f"{y_threshold}% Accuracy Threshold")
             plt.legend(loc="lower right")
             plt.show()
+            
+    def show_learning_curves(self):
+        self.server.plot_learning_curves()
+        
+    def show_experiment_graphs(self, y_threshold=0.99, show_individual_clients=True):
+        self.plot_behavior_performances(y_threshold=y_threshold, show_individual_clients=show_individual_clients)
+        self.plot_test_performances(y_threshold=y_threshold, show_individual_clients=show_individual_clients)
+        self.plot_class_weighted_test_accuracy(y_threshold=y_threshold, show_individual_clients=show_individual_clients)

@@ -1,14 +1,14 @@
 from torch import nn
 import torch
 import numpy as np
-from src.custom_types import Behavior
 from sklearn.metrics import precision_score, recall_score, f1_score, confusion_matrix, classification_report, accuracy_score
 from tabulate import tabulate
+from src.custom_types import Behavior
 
 class AutoEncoder(torch.nn.Module):
     
 
-    def __init__(self, model, X_valid, X_test, y_test, evaluation_data, n_std=20, activation_function=torch.nn.ReLU(), batch_size: int = 64, verbose=False):
+    def __init__(self, X_valid, X_test, y_test, evaluation_data, n_stds=[1], n_hidden_1=64, n_hidden_2=32, activation_function=nn.GELU(), batch_size: int = 64, verbose=False):
 
         super().__init__()
         
@@ -22,11 +22,26 @@ class AutoEncoder(torch.nn.Module):
         self.y_test = y_test
         
         self.evaluation_data = evaluation_data
-        self.n_std = n_std
+        self.n_stds = n_stds
         
-        n_features = X_test.shape[1]
+        n_features = X_valid.shape[1]
         
-        self.model = model
+        self.model = nn.Sequential(
+            nn.Linear(n_features, n_hidden_1),
+            nn.BatchNorm1d(n_hidden_1),
+            activation_function,
+            nn.Linear(n_hidden_1, n_hidden_2),
+            activation_function,
+            #nn.Linear(32, 16),
+            #activation_function,
+            #nn.Linear(16, 32),
+            #activation_function,
+            nn.Linear(n_hidden_2, n_hidden_1),
+            nn.BatchNorm1d(n_hidden_1),
+            activation_function,
+            nn.Linear(n_hidden_1, n_features),
+            activation_function
+        )
         self.threshold = None
         self.loss_mean = None
         self.loss_standard_deviation = None
@@ -38,7 +53,7 @@ class AutoEncoder(torch.nn.Module):
         return self.model(X)
     
     
-    def pretrain(self, X_train, optimizer=torch.optim.SGD, loss_function=torch.nn.MSELoss(reduction='sum'), num_epochs: int = 15, batch_size=64, verbose=False):
+    def pretrain(self, X_train, optimizer=torch.optim.SGD, loss_function=torch.nn.MSELoss(reduction='mean'), num_epochs: int = 15, batch_size=64, verbose=False):
         
         training_dataset = torch.utils.data.TensorDataset(
             torch.from_numpy(X_train).type(torch.float),
@@ -87,13 +102,7 @@ class AutoEncoder(torch.nn.Module):
         self.loss_standard_deviation = losses.std()
 
         
-    def predict(self, x, n_std=None):
-        
-        if n_std==None:
-            n_std = self.n_std
-        else:
-            n_std = self.n_std
-            
+    def predict(self, x, n_std = 1):
         test_data = torch.utils.data.TensorDataset(
             torch.from_numpy(x).type(torch.float32)
         )
@@ -137,7 +146,7 @@ class AutoEncoder(torch.nn.Module):
     def score(self):
         n_std, accuracy = self.accuracy_score(None, None)
         if self.verbose:
-            print(f"Highest validation accuracy achieved {accuracy:.2f} with n_std={n_std}")
+            print(f">> Highest validation accuracy achieved {accuracy:.2f} with n_std={n_std} <<")
             self.evaluate(n_std)
         return accuracy
     
@@ -169,15 +178,10 @@ class AutoEncoder(torch.nn.Module):
         return best_n_std, best_accuracy
     
     
-    def evaluate(self, n_std=None, tablefmt='pipe'):
+    def evaluate(self, n_std, tablefmt='pipe'):
         results = []
         labels= [0,1]
         pos_label = 1
-        
-        if n_std==None:
-            n_std = self.n_std
-        else:
-            n_std = self.n_std
         
         y_true_total = np.empty([0])
         y_pred_total = np.empty([0])
@@ -199,126 +203,5 @@ class AutoEncoder(torch.nn.Module):
         f1 = f1_score(y_true_total, y_pred_total, average='binary', labels=labels, pos_label=pos_label, zero_division=1)
         n_samples = len(y_true_total)
         results.append(["GLOBAL", f'{(100 * accuracy):.2f}\%', f'{(100 * precision):.2f}\%', f'{(100 * recall):.2f}\%', f'{(100 * f1):.2f}\%', n_samples])
-        print("-----------")
         print(tabulate(results, headers=["Behavior", "Accuracy", "Precision", "Recall", "F1-Score", "\#Samples"], tablefmt=tablefmt)) 
- 
-'''
-from torch import nn
-import torch
-import numpy as np
-from tqdm import tqdm
-
-
-def auto_encoder_model(in_features: int, hidden_size: int = 15):
-    return nn.Sequential(
-        nn.Linear(in_features, hidden_size),
-        nn.BatchNorm1d(hidden_size),
-        nn.GELU(),
-        nn.Linear(hidden_size, int(hidden_size / 2)),
-        nn.GELU(),
-        nn.Linear(int(hidden_size / 2), hidden_size),
-        nn.BatchNorm1d(hidden_size),
-        nn.GELU(),
-        nn.Linear(hidden_size, in_features),
-        nn.GELU()
-    )
-
-
-class AutoEncoder():
-
-    def __init__(self, train_x: np.ndarray,
-                 valid_x: np.ndarray,
-                 batch_size: int = 64, batch_size_valid=1):
-
-        data_train = torch.utils.data.TensorDataset(
-            torch.from_numpy(train_x).type(torch.float),
-            #torch.from_numpy(train_y).type(torch.float)
-        )
-        self.data_loader = torch.utils.data.DataLoader(data_train, batch_size=batch_size, shuffle=True, drop_last=True)
-
-        data_valid = torch.utils.data.TensorDataset(
-            torch.from_numpy(valid_x).type(torch.float),
-            #torch.from_numpy(valid_y).type(torch.float)
-        )
-        self.valid_loader = torch.utils.data.DataLoader(data_valid, batch_size=batch_size_valid, shuffle=True)
-        self.validation_losses = []
-
-        self.model = auto_encoder_model(in_features=train_x.shape[1], hidden_size=int(train_x.shape[1]/2))
-        self.threshold = np.nan
-
-    def get_model(self):
-        return self.model
-
-    def train(self, optimizer, loss_function=torch.nn.MSELoss(reduction='sum'), num_epochs: int = 15):
-        if self.model is None:
-            raise ValueError("No model set!")
-
-        epoch_losses = []
-        # for e in tqdm(range(num_epochs), unit="epoch", leave=False):
-        for e in range(num_epochs):
-            self.model.train()
-            current_losses = []
-            for batch_idx, (x,) in enumerate(self.data_loader):
-                x = x  # x.cuda()
-                optimizer.zero_grad()
-                model_out = self.model(x)
-                loss = loss_function(model_out, x)
-                loss.backward()
-                optimizer.step()
-                current_losses.append(loss.item())
-            epoch_losses.append(sum(current_losses) / len(current_losses))
-            # print(f'Training Loss in epoch {e + 1}: {epoch_losses[e]}')
-
-    def determine_threshold(self, num_std=1) -> float:
-        mses = []
-        self.model.eval()
-        with torch.no_grad():
-            loss_function = torch.nn.MSELoss(reduction='sum')
-            for batch_idx, (x,) in enumerate(self.valid_loader):
-                x = x  # x.cuda()
-                model_out = self.model(x)
-                loss = loss_function(model_out, x)
-                mses.append(loss.item())
-        mses = np.array(mses)
-        self.threshold = mses.mean() + num_std * mses.std()
-        return self.threshold
-
-    def save_model(self, path="offline_prototype_3_ds_as_sampling/trained_models/ae_model.pth"):
-        print("save model to: " + path)
-        torch.save({
-            'model_state_dict': self.model.state_dict(),
-            'threshold': self.threshold
-        }, path)
-
-
-
-
-class AutoEncoderInterpreter():
-    def __init__(self, state_dict, threshold, in_features=15, hidden_size=8):
-        self.model = auto_encoder_model(in_features=in_features, hidden_size=hidden_size)
-        self.model.load_state_dict(state_dict)
-        self.threshold = threshold
-
-    def predict(self, x):
-        test_data = torch.utils.data.TensorDataset(
-            torch.from_numpy(x).type(torch.float)
-        )
-        data_loader = torch.utils.data.DataLoader(test_data, batch_size=1, shuffle=False)
-
-        all_predictions = torch.tensor([])  # .cuda()
-
-        self.model.eval()
-        with torch.no_grad():
-            ae_loss = torch.nn.MSELoss(reduction="sum")
-            for idx, (batch_x,) in enumerate(data_loader):
-                batch_x = batch_x  # .cuda()
-                model_predictions = self.model(batch_x)
-
-                model_predictions = ae_loss(model_predictions, batch_x).unsqueeze(0)  # unsqueeze as batch_size set to 1
-                all_predictions = torch.cat((all_predictions, model_predictions))
-
-        # all_predictions = all_predictions.tolist()
-        all_predictions = (all_predictions > self.threshold).type(torch.long)
-        return all_predictions.flatten()
-'''   
-
+        print("-----------")
