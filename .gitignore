@@ -4,11 +4,9 @@
 **/test
 **/__pycache__
 **/venv
-
 **.jpg
 **.png
 prototypes/prototype_*/experiments/**
 prototypes/prototype_01/experiments/**
-
 related_works
 report

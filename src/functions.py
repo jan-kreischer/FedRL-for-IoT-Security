@@ -1,6 +1,11 @@
 import numpy as np
 from numpy.linalg import norm
 import matplotlib.pyplot as plt
+import pandas as pd
+from sklearn.svm import OneClassSVM
+from sklearn.ensemble import IsolationForest
+from sklearn.neighbors import LocalOutlierFactor
+from sklearn.metrics import precision_score, recall_score, f1_score, accuracy_score
 
 '''
     This function computes the weighted cosine similarity 
@@ -110,3 +115,74 @@ def plot_mid_sweep_test_accuracies(final_training_accuracies, final_mean_class_a
     
 def plot_wcs_sweep_test_accuracies(final_training_accuracies, final_mean_class_accuracies):
     plot_test_accuracies(final_training_accuracies, final_mean_class_accuracies, "Final Test Accuracy for different Locally Imbalanced but Globally Balanced Data-Splits", "Weighted Cosine Similarity (WCS)", "lower right")
+
+def convert_grid_search_result(grid_search_result, display_latex=True):
+    df = pd.concat([pd.DataFrame(grid_search_result.cv_results_["mean_test_score"], columns=["mean_validation_accuracy"]), pd.DataFrame(grid_search_result.cv_results_["params"])],axis=1).sort_values(by=['mean_validation_accuracy'], ascending=False)
+    df.index = np.arange(1, len(df) + 1)
+    return df
+
+def display_grid_search_result(df, n_items=10):
+    print(df.head(n_items).to_latex(escape=True, bold_rows=True))
+    
+def evaluate(model, data_dict, tablefmt='latex_raw'):
+        results = []
+        labels= [-1,1]
+        pos_label = 1
+        
+        y_true_total = np.empty([0])
+        y_pred_total = np.empty([0])
+        for behavior, data in data_dict.items():
+            y_true = data[:,-1].astype(int)
+            y_true_total = np.concatenate((y_true_total, y_true))
+
+            y_pred = model.predict(data[:, :-1].astype(np.float32))
+            y_pred_total = np.concatenate((y_pred_total, y_pred))
+
+            accuracy = accuracy_score(y_true, y_pred)
+
+            n_samples = len(y_true)
+            results.append([behavior.name.replace("_", "\_"), f'{(100 * accuracy):.2f}\%', '\\notCalculated', '\\notCalculated', '\\notCalculated', str(n_samples)])
+
+        accuracy = accuracy_score(y_true_total, y_pred_total)
+        precision = precision_score(y_true_total, y_pred_total, average='binary', labels=labels, pos_label=pos_label, zero_division=1)
+        recall = recall_score(y_true_total, y_pred_total, average='binary', labels=labels, pos_label=pos_label, zero_division=1)
+        f1 = f1_score(y_true_total, y_pred_total, average='binary', labels=labels, pos_label=pos_label, zero_division=1)
+        n_samples = len(y_true_total)
+        results.append(["GLOBAL", f'{(100 * accuracy):.2f}\%', f'{(100 * precision):.2f}\%', f'{(100 * recall):.2f}\%', f'{(100 * f1):.2f}\%', n_samples])
+        print(tabulate(results, headers=["Behavior", "Accuracy", "Precision", "Recall", "F1-Score", "\\#Samples"], tablefmt=tablefmt)) 
+        
+        
+def get_training_datasets(training_data_dict, normal_label, abnormal_label):
+    training_data_50 = np.empty([0,47])
+    training_data_80 = np.empty([0,47])
+    for behavior, behavior_data in training_data_dict.items():
+
+        if behavior == Behavior.NORMAL:
+            behavior_data[:, -1] =  normal_label # SVM uses 1 for normal
+            training_data_50 = np.concatenate([training_data_50, behavior_data[:7000,:]], axis=0)
+            training_data_80 = np.concatenate([training_data_80, behavior_data[:8000,:]], axis=0)
+        else:
+            behavior_data[:, -1] =  abnormal_label # SVM uses -1 for outlier
+            training_data_50 = np.concatenate([training_data_50, behavior_data[:1000,:]], axis=0)
+            training_data_80 = np.concatenate([training_data_80, behavior_data[:286,:]], axis=0)
+
+    return training_data_50, training_data_80
+
+import numpy as np
+
+def get_test_datasets(test_data, normal_label, abnormal_label):
+    test_data_dict = {}
+    test_data_flat = np.zeros([0, 47])
+
+    for behavior, behavior_data in test_data.items():
+        if behavior == Behavior.NORMAL:
+            behavior_data = behavior_data[:2800]
+            behavior_data[:, -1] =  1
+        else:
+            behavior_data = behavior_data[:400]
+            behavior_data[:, -1] =  -1
+
+        test_data_dict[behavior] = behavior_data
+        test_data_flat = np.vstack([test_data_flat, behavior_data])
+
+    return test_data_dict, test_data_flat
