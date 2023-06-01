@@ -4,7 +4,7 @@ This work pays large tribute to Timo Schenk's work on RL based MTD deployment th
 A full documentation of this work including the theoretical background can be found [here](https://www.overleaf.com/read/sjmchctvctxp).
 
 ## 1. Introduction/ Motivation
-Federated Reinforcement Learning for Private and Collaborative Selection of Moving Target Defense Mechanisms for IoT Devices Security
+Federated Reinforcement Learning for Private and Collaborative Selection of Moving Target Defense Mechanisms for IoT Devices Security.
 
 ## Content :label:
 Managing de security of IoT devices is non-trivial due to the complexity and heterogeneity of such devices. The differentiation from traditional security issues motivates the need to investigate new security approaches applicable to the IoT computing paradigm. Moving- Target-Defense (MTD) is a novel paradigm that addresses proactive and dynamic cyberat- tacks. The basic philosophy behind MTD is that “perfect security” most likely will never be achievable, making it congruent with the current state of IoT security. In that sense, MTD defends against cyberattacks instead of preventing them using various strategies.
