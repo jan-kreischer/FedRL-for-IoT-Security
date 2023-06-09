@@ -72,9 +72,13 @@ class DataPlotter:
     @staticmethod
     def plot_decision_or_afterstates_as_kde(decision_states: List[Tuple[Behavior, str]] = [],
                                             afterstates: List[Tuple[Behavior, MTDTechnique, str]] = [],
+                                            raw_behaviors: List[Tuple[Behavior, str]] = [],
                                             plot_name: Union[str, None] = None):
+        if len(raw_behaviors) > 0:
+            raw_data = DataProvider.parse_raw_behavior_files_to_df(filter_outliers=False,
+                                                                   filter_suspected_external_events=False, pi=3)
 
-        all_data = DataProvider.parse_agent_data_files_to_df(filter_outliers=False,
+        all_data = DataProvider.parse_agent_data_files_to_df(filter_outliers=True,
                                                              filter_suspected_external_events=False)
 
         cols_to_plot = [col for col in all_data if col not in ['attack', 'state']]
@@ -90,6 +94,17 @@ class DataPlotter:
             axs[i].set_ylim([1e-6, 3 * 1e-1])  # adapt limitations specifically for features
             axs[i].set_xlabel("feature range")
             axs[i].set_ylabel("density")
+            if len(raw_behaviors) > 0:
+                for b, color in raw_behaviors:
+                    series = raw_data[raw_data.attack == b.value][cols_to_plot[i]]
+                    if series.unique().size == 1:
+                        axs[i].axvline(series.iloc[0], ymin=1e-4, ymax=2, color=color)  # palette[f'{dv} {b.value}'])
+                        continue
+                    series = series[(np.isnan(series) == False) & (np.isinf(series) == False)]
+                    sns.kdeplot(data=raw_data[raw_data.attack == b.value], x=cols_to_plot[i],
+                                color=color, common_norm=True, common_grid=True, ax=axs[i], cut=2,
+                                label=f"raw {b.value}", log_scale=(False, True))
+
             for b, color in decision_states:
                 series = all_decision[all_decision.attack == b.value][cols_to_plot[i]]
                 if series.unique().size == 1:
@@ -121,7 +136,7 @@ class DataPlotter:
 
     @staticmethod
     def plot_normals_kde(plot_name, num_behaviors=4, colors=["green", "red", "blue", "violet"]):
-        ndata = DataProvider.parse_normals(filter_outliers=False,
+        ndata = DataProvider.parse_normals(filter_outliers=True,
                                            filter_suspected_external_events=False)
         print(len(ndata))
         cols_to_plot = [col for col in ndata if col not in ['attack', 'state']]
@@ -154,8 +169,8 @@ class DataPlotter:
             fig.savefig(f'data_exploration/data_plot_{plot_name}.png', dpi=100)
 
     @staticmethod
-    def plot_behaviors(behaviors: List[Tuple[RaspberryPi, Behavior, str]], raw_behaviors: bool = True,
-                       plot_name: Union[str, None] = None, pi=3):
+    def plot_raw_behaviors_timeline(behaviors: List[Tuple[RaspberryPi, Behavior, str]], raw_behaviors: bool = True,
+                                    plot_name: Union[str, None] = None, pi=3):
 
         all_data_parsed = DataProvider.parse_raw_behavior_files_to_df(filter_outliers=False,
                                                                       filter_suspected_external_events=False, pi=pi)
@@ -186,7 +201,7 @@ class DataPlotter:
                 label = "RP3" if device == RaspberryPi.PI3_1GB else "RP4"
                 axs[i].plot(xes_b, ys_upsampled_b, color=line_color, label=(label + " " + str(behavior.value)))
             axs[i].set_title(cols_to_plot[i], fontsize='xx-large')
-            axs[i].set_ylabel("log features")
+            axs[i].set_ylabel("event counts")
             axs[i].set_xlabel("time steps")
             axs[i].legend(title='Device & Behavior')
 
@@ -196,7 +211,7 @@ class DataPlotter:
             print(f'Saved {plot_name}')
 
     @staticmethod
-    def plot_devices_as_kde(device: RaspberryPi):
+    def plot_raw_behaviors_kde(device: RaspberryPi):
         pi = 4 if device == RaspberryPi.PI4_2GB_WC else 3
         plot_name = f"all_behaviors_{device.value}_kde"
         all_data_parsed = DataProvider.parse_raw_behavior_files_to_df(filter_outliers=True, pi=pi)
@@ -255,46 +270,3 @@ class DataPlotter:
         plt.title('Scree Plot')
         plt.legend()
         plt.savefig(f"data_exploration/screeplot_n_{n}.png")
-
-    # @staticmethod
-    # def plot_behaviors_as_kde_pub():
-    #     for behav in Behavior:
-    #         plot_name = f"all_devices_{behav.value}_kde"
-    #         all_data_parsed = DataHandler.parse_raw_behavior_files_to_df(filter_outliers=True)
-    #         all_data_parsed = all_data_parsed[all_data_parsed.attack == behav.value]
-    #         cols_to_plot = [col for col in all_data_parsed if col not in ['device', 'attack']]
-    #
-    #         all_data_parsed['Device & Behavior'] = all_data_parsed.apply(lambda
-    #                                                                          row: f'{"RP3" if row.device == RaspberryPi.PI3_1GB.value else "RP4_1" if row.device == RaspberryPi.PI4_2GB_WC.value else "RP4_2" if row.device == RaspberryPi.PI4_2GB_BC.value else "RP4_3"} {row.attack}',
-    #                                                                      axis=1)
-    #
-    #         all_data_parsed = all_data_parsed.drop(['attack'], axis=1)
-    #         all_data_parsed = all_data_parsed.reset_index()
-    #         fig, axs = plt.subplots(nrows=ceil(len(cols_to_plot) / 4), ncols=4)
-    #         axs = axs.ravel().tolist()
-    #         fig.suptitle(plot_name)
-    #         fig.set_figheight(len(cols_to_plot))
-    #         fig.set_figwidth(50)
-    #         palette = {f'RP3 {behav.value}': "red",
-    #                    f'RP4_1 {behav.value}': "blue",
-    #                    f'RP4_2 {behav.value}': "orange",
-    #                    f'RP4_3 {behav.value}': "green"}
-    #         for i in range(len(cols_to_plot)):
-    #             axs[i].set_ylim([1e-4, 2])
-    #             if all_data_parsed[cols_to_plot[i]].unique().size == 1:
-    #                 continue
-    #             for device in RaspberryPi:
-    #                 if all_data_parsed[all_data_parsed.device == device.value][cols_to_plot[i]].unique().size == 1:
-    #                     axs[i].axvline(all_data_parsed[all_data_parsed.device == device.value][cols_to_plot[i]].iloc[0],
-    #                                    ymin=1e-4, ymax=2, color=palette[
-    #                             f'{"RP3" if device == RaspberryPi.PI3_1GB else "RP4_1" if device == RaspberryPi.PI4_2GB_WC else "RP4_2" if device == RaspberryPi.PI4_2GB_BC else "RP4_3"}'
-    #                             f' {behav.value}']
-    #                                    )
-    #             sns.kdeplot(data=all_data_parsed, x=cols_to_plot[i], palette=palette, hue="Device & Behavior",
-    #                         common_norm=False, common_grid=True, ax=axs[i], cut=2,
-    #                         log_scale=(False, True))  # False, True
-    #
-    #         if plot_name is not None:
-    #             fig.savefig(f'data_plot_{plot_name}.pdf', dpi=100)
-
-

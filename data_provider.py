@@ -31,7 +31,7 @@ raw_behaviors_file_paths_rp4: Dict[Behavior, str] = {
 }
 # TODO: These columns are derived from data_availability.py -> check data
 time_status_columns = ["time", "timestamp", "seconds", "connectivity"]
-all_zero_columns = ['cpuNice', 'cpuHardIrq', 'alarmtimer:alarmtimer_fired',
+all_zero_columns = ['cpuNice', 'cpuHardIrq', 'alarmtimer:alarmtimer_fired', 'tasksStopped',
                     'alarmtimer:alarmtimer_start', 'cachefiles:cachefiles_create',
                     'cachefiles:cachefiles_lookup', 'cachefiles:cachefiles_mark_active',
                     'dma_fence:dma_fence_init', 'udp:udp_fail_queue_rcv_skb']

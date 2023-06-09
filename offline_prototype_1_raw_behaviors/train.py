@@ -4,7 +4,7 @@ from data_provider import DataProvider
 from offline_prototype_1_raw_behaviors.environment import SensorEnvironment, supervisor_map
 from agent import Agent
 from custom_types import Behavior
-from utils.evaluation_utils import plot_learning, seed_random
+from utils.evaluation_utils import plot_learning, seed_random, evaluate_agent
 from time import time
 import torch
 import numpy as np
@@ -19,7 +19,7 @@ EPSILON_START = 1.0
 EPSILON_END = 0.01
 TARGET_UPDATE_FREQ = 100
 LEARNING_RATE = 1e-5
-N_EPISODES = 5000
+N_EPISODES = 10000
 LOG_FREQ = 100
 DIMS = 15
 
@@ -97,21 +97,7 @@ if __name__ == '__main__':
 
 
     # check predictions with learnt dqn
-    agent.online_net.eval()
-    results = {}
-    with torch.no_grad():
-        for b, d in test_data.items():
-            if b != Behavior.NORMAL:
-                cnt_corr = 0
-                cnt = 0
-                for state in d:
-                    action = agent.take_greedy_action(state[:-1])
-                    if b in supervisor_map[action]:
-                        cnt_corr += 1
-                    cnt += 1
-                results[b] = (cnt_corr, cnt)
-
-    print(results)
+    evaluate_agent(agent, test_data=test_data)
 
 
 
