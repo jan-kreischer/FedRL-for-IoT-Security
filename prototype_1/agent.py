@@ -16,7 +16,6 @@ import numpy as np
 
 
 
-
 class DeepQNetwork(nn.Module):
     def __init__(self, lr, input_dims, fc1_dims, fc2_dims,
                  n_actions):
@@ -69,6 +68,11 @@ class Agent:
         self.reward_memory = np.zeros(self.mem_size, dtype=np.float32)
         self.terminal_memory = np.zeros(self.mem_size, dtype=np.bool)
 
+
+
+
+
+
     def store_transition(self, state, action, reward, state_, terminal):
         index = self.mem_cntr % self.mem_size
         self.state_memory[index] = state
@@ -79,6 +83,8 @@ class Agent:
 
         self.mem_cntr += 1
 
+
+
     def choose_action(self, observation):
         if np.random.random() > self.epsilon:
             state = torch.tensor([observation]).to(self.Q_eval.device)
@@ -86,8 +92,9 @@ class Agent:
             action = torch.argmax(actions).item()
         else:
             action = np.random.choice(self.action_space)
-
         return action
+
+
 
     def learn(self):
         if self.mem_cntr < self.batch_size:
@@ -122,3 +129,8 @@ class Agent:
         self.iter_cntr += 1
         self.epsilon = self.epsilon - self.eps_dec \
             if self.epsilon > self.eps_min else self.eps_min
+
+    def derive_reward_from_new_state(self, new_state):
+        """method only needed in unsupervised setting"""
+        # TODO: call autoencoder here and check for normality
+        pass
