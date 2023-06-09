@@ -14,12 +14,12 @@ import pickle
 # raw behaviors without any MTD framework/Agent Components running
 raw_behaviors_dir = "raw_behaviors_no_agent_rp4"
 raw_behaviors_file_paths: Dict[Behavior, str] = {
-    Behavior.NORMAL: f"../data/{raw_behaviors_dir}/normal_samples_2022-06-13-11-25_50s",
-    Behavior.RANSOMWARE_POC: f"../data/{raw_behaviors_dir}/ransomware_samples_2022-06-20-08-49_50s",
-    Behavior.ROOTKIT_BEURK: f"../data/{raw_behaviors_dir}/rootkit_beurk_samples_2022-06-17-09-08_50s",
-    Behavior.ROOTKIT_BDVL: f"../data/{raw_behaviors_dir}/rootkit_bdvl_samples_2022-06-16-19-16_50s",
-    Behavior.CNC_THETICK: f"../data/{raw_behaviors_dir}/cnc_backdoor_jakoritar_samples_2022-06-18-09-35_50s",
-    Behavior.CNC_BACKDOOR_JAKORITAR: f"../data/{raw_behaviors_dir}/cnc_thetick_samples_2022-06-19-16-54_50s"
+    Behavior.NORMAL: f"data/{raw_behaviors_dir}/normal_samples_2022-06-13-11-25_50s",
+    Behavior.RANSOMWARE_POC: f"data/{raw_behaviors_dir}/ransomware_samples_2022-06-20-08-49_50s",
+    Behavior.ROOTKIT_BEURK: f"data/{raw_behaviors_dir}/rootkit_beurk_samples_2022-06-17-09-08_50s",
+    Behavior.ROOTKIT_BDVL: f"data/{raw_behaviors_dir}/rootkit_bdvl_samples_2022-06-16-19-16_50s",
+    Behavior.CNC_THETICK: f"data/{raw_behaviors_dir}/cnc_backdoor_jakoritar_samples_2022-06-18-09-35_50s",
+    Behavior.CNC_BACKDOOR_JAKORITAR: f"data/{raw_behaviors_dir}/cnc_thetick_samples_2022-06-19-16-54_50s"
 }
 # TODO: These columns are derived from data_availability.py -> check data
 time_status_columns = ["time", "timestamp", "seconds", "connectivity"]
@@ -105,7 +105,7 @@ class DataProvider:
                                        keep_status_columns=False) -> pd.DataFrame:
 
         print(os.getcwd())
-        file_name = f'../data/{raw_behaviors_dir}/all_data_filtered_external_{str(filter_suspected_external_events)}' \
+        file_name = f'data/{raw_behaviors_dir}/all_data_filtered_external_{str(filter_suspected_external_events)}' \
                     f'_constant_{str(filter_constant_columns)}_outliers_{str(filter_outliers)}'
 
         if keep_status_columns:
@@ -136,7 +136,7 @@ class DataProvider:
                                      keep_status_columns=False) -> pd.DataFrame:
 
         print(os.getcwd())
-        file_name = f'../data/all_agent_data_filtered_external_{str(filter_suspected_external_events)}' \
+        file_name = f'data/all_agent_data_filtered_external_{str(filter_suspected_external_events)}' \
                     f'_constant_{str(filter_constant_columns)}_outliers_{str(filter_outliers)}'
         if keep_status_columns:
             file_name += "_keepstatus"
