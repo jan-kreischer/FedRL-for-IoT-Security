@@ -4,7 +4,8 @@ from agent import Agent
 from custom_types import Behavior, MTDTechnique
 from autoencoder import AutoEncoder, AutoEncoderInterpreter
 from utils.evaluation_utils import plot_learning, seed_random, calculate_metrics
-from utils.autoencoder_utils import pretrain_ae_model, get_pretrained_ae, evaluate_ae_on_no_mtd_behavior, evaluate_ae_on_afterstates
+from utils.autoencoder_utils import pretrain_ae_model, get_pretrained_ae, evaluate_ae_on_no_mtd_behavior, \
+    evaluate_ae_on_afterstates, pretrain_all_afterstate_ae_models, split_data_for_ae_and_rl
 from tabulate import tabulate
 from time import time
 import torch
@@ -37,79 +38,34 @@ if __name__ == '__main__':
     dtrain, dtest, atrain, atest = DataProvider.get_reduced_dimensions_with_pca_ds_as(DIMS,
                                                                                       dir="offline_prototype_3_ds_as_sampling/")
     # get splits for RL & AD of normal data
-    n = 300
+    n = 700
     s = 0.8
     b = Behavior.NORMAL
     normal_data = dtrain[b]
     dtrain[b] = normal_data[:n]  # use fixed number of samples for Reinforcement Agent training, rest for AE
 
-    dir = "offline_prototype_3_ds_as_sampling/"
+    dir = "offline_prototype_3_ds_as_sampling/trained_models/"
     model_name = "ae_model_ds.pth"
-    path = f"{dir}trained_models/{model_name}"
-    pretrain_ae_model(normal_data[n:], path=path)
+    path = dir + model_name
+    #pretrain_ae_model(normal_data[n:], path=path)
 
     # AE evaluation of pretrained model
     ae_interpreter = get_pretrained_ae(path=path, dims=DIMS)
-
     # AE can directly be tested on the data that will be used for RL: pass train_data to testing
     print("---AE trained on decision state normal data---")
     print("---Evaluation on decision behaviors train---")
-    evaluate_ae_on_no_mtd_behavior(ae_interpreter, test_data=dtrain)
-
+    # evaluate_ae_on_no_mtd_behavior(ae_interpreter, test_data=dtrain)
     print("---Evaluation on afterstate behaviors train---")
-    evaluate_ae_on_afterstates(ae_interpreter, test_data=atrain)
+    # evaluate_ae_on_afterstates(ae_interpreter, test_data=atrain)
 
-    exit(0)
     # TODO: train here another autoencoder on normal-mtd afterstate data to be used by env.step
     #  -> possibly multiple AEs (one per mtd if needed...)
-    # normal_mtd_train = atrain[(Behavior.NORMAL, MTDTechnique.ROOTKIT_SANITIZER)]
-    # atrain[(Behavior.NORMAL, MTDTechnique.ROOTKIT_SANITIZER)] = normal_mtd_train[:n]
-    # ae_data = normal_mtd_train[n:]
-    # idx = int(len(ae_data) * s)
-    # all_train_ae_x, all_train_ae_y = ae_data[:idx, :-2].astype(np.float32), np.arange(
-    #     idx)  # just a placeholder for the torch dataloader
-    # all_valid_ae_x, all_valid_ae_y = ae_data[idx:, :-2].astype(np.float32), np.arange(len(ae_data) - idx)
-    #
-    # # Train AD on each normal-mtd afterstate combination
-    # for i, mtd in enumerate(MTDTechnique):
-    #     print("training:" + str(i) + " " + mtd.value)
-    #     if mtd == MTDTechnique.ROOTKIT_SANITIZER:
-    #         ae = AutoEncoder(train_x=all_train_ae_x, train_y=all_train_ae_y, valid_x=all_valid_ae_x,
-    #                          valid_y=all_valid_ae_y)
-    #         ae.train(optimizer=torch.optim.SGD(ae.get_model().parameters(), lr=0.0001, momentum=0.8), num_epochs=500)
-    #         ae.determine_threshold()
-    #         print(f"ae threshold: {ae.threshold}")
-    #         ae.save_model(dir=f"offline_prototype_3_ds_as_sampling/", num=i)
-    #         continue
-    #
-    #     normal_mtd_train = atrain[(Behavior.NORMAL, mtd)]
-    #     atrain[(Behavior.NORMAL, mtd)] = normal_mtd_train[:n]
-    #     ae_data = normal_mtd_train[n:]
-    #     idx = int(len(ae_data) * s)
-    #     train_ae_x, train_ae_y = ae_data[:idx, :-2].astype(np.float32), np.arange(
-    #         idx)  # just a placeholder for the torch dataloader
-    #     valid_ae_x, valid_ae_y = ae_data[idx:, :-2].astype(np.float32), np.arange(len(ae_data) - idx)
-    #     all_train_ae_x = np.vstack((all_train_ae_x, train_ae_x))
-    #     all_valid_ae_x = np.vstack((all_valid_ae_x, valid_ae_x))
-    #
-    #     print(f"size train: {train_ae_x.shape}, size valid: {valid_ae_x.shape}")
-    #     print(f"size alltrain: {all_train_ae_x.shape}, size valid: {all_valid_ae_x.shape}")
-    #     # AD training
-    #     ae = AutoEncoder(train_x=train_ae_x, train_y=train_ae_y, valid_x=valid_ae_x,
-    #                      valid_y=valid_ae_y)
-    #     ae.train(optimizer=torch.optim.SGD(ae.get_model().parameters(), lr=0.0001, momentum=0.9), num_epochs=500)
-    #     ae.determine_threshold()
-    #     print(f"ae threshold: {ae.threshold}")
-    #     ae.save_model(dir=f"offline_prototype_3_ds_as_sampling/", num=i)
-    #
-    # # train all after data AE
-    # ae = AutoEncoder(train_x=all_train_ae_x, train_y=np.arange(len(all_train_ae_x)), valid_x=all_valid_ae_x,
-    #                  valid_y=np.arange(len(all_valid_ae_x)))
-    # ae.train(optimizer=torch.optim.SGD(ae.get_model().parameters(), lr=0.0001, momentum=0.9), num_epochs=500)
-    # ae.determine_threshold()
-    # print(f"ae threshold: {ae.threshold}")
-    # ae.save_model(dir="offline_prototype_3_ds_as_sampling/", num=i+1)
-    # exit(0)
+    ae_train_dict, atrain_rl = split_data_for_ae_and_rl(atrain)
+
+    pretrain_all_afterstate_ae_models(atrain=ae_train_dict)
+
+
+    exit(0)
 
     # LOOP over all test data
     # for t in atrain:
