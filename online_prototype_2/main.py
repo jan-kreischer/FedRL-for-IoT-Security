@@ -1,18 +1,23 @@
 import time
+import os
 import subprocess
 import psutil
 from abc import ABC, abstractmethod
+from online_data_manager import DataManager
+
 
 # TODO: make abstract (template method pattern) in case of multiple online methods
 class OnlineRL():
     monitor_counter = 0
+    start_str_datafile = "online_samples_"
 
     def __init__(self):
         pass
 
     # TODO adapt to monitor every hour
     def learn_online(self):
-        data = self.monitor(60)
+        self.monitor(60)
+        data = self.read_data()
         isAnomaly = self.interprete_data(data)
         if isAnomaly:
             while isAnomaly:
@@ -24,14 +29,13 @@ class OnlineRL():
                 isAnomaly = self.interprete_data(data)
                 self.provide_feedback_and_update(data, isAnomaly)
 
-
     def monitor(self, t: int):
 
         OnlineRL.monitor_counter += 1
 
         # call monitoring shell script from python
         print("running rl_sampler subprocess")
-        #subprocess.run(["./rl_sampler_online.sh", str(OnlineRL.monitor_counter)])
+        # subprocess.run(["./rl_sampler_online.sh", str(OnlineRL.monitor_counter)])
         p = subprocess.Popen(["./rl_sampler_online.sh", str(OnlineRL.monitor_counter), "&"])
         print(p.pid)
 
@@ -42,9 +46,25 @@ class OnlineRL():
         print(p.pid)
         kill(p.pid)
 
-
     def read_data(self):
-        pass
+        # use num to read "online_samples_{c}..."
+        # find filename
+
+        prefixed = [filename for filename in os.listdir('.') if
+                    filename.startswith(OnlineRL.start_str_datafile + OnlineRL.monitor_counter)]
+
+        assert len(prefixed) == 1, "Only one file with counter number should exist"
+
+        # read file and apply preprocessing
+        fname = "." + prefixed[0]
+        df = DataManager.parse_all_files_to_df()
+        print(df.shape)
+        # TODO: apply scaling and pca as offline
+
+        return df
+
+
+
 
 
     def interprete_data(self, data):
@@ -60,18 +80,12 @@ class OnlineRL():
         pass
 
 
-
-
-
-
 def kill(pid):
     '''Kills all process'''
     parent = psutil.Process(pid)
     for child in parent.children(recursive=True):
         child.kill()
     parent.kill()
-
-
 
 
 if __name__ == '__main__':
@@ -85,7 +99,7 @@ if __name__ == '__main__':
     #  call AD on afterstate
     #  provide feedback according to afterstate being flagged normal to agent
 
-    orchestrator = OnlineRL()
-    orchestrator.monitor(15)
-
-
+    controller = OnlineRL()
+    # testing
+    # controller.monitor(15)
+    controller.read_data()
