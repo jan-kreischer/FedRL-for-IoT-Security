@@ -107,9 +107,9 @@ class DataProvider:
 
     @staticmethod
     def parse_mtd_behavior_data(filter_suspected_external_events=True,
-                                       filter_constant_columns=True,
-                                       filter_outliers=True,
-                                       keep_status_columns=False) -> Dict[Behavior, np.ndarray]:
+                                filter_constant_columns=True,
+                                filter_outliers=True,
+                                keep_status_columns=False) -> Dict[Behavior, np.ndarray]:
         # function should return a dictionary of all the
         file_name = f'../data/{afterstates_dir}/all_afterstate_data_filtered_external' \
                     f'_{str(filter_suspected_external_events)}' \
@@ -134,7 +134,7 @@ class DataProvider:
                 df['state'] = mtd
                 # if not os.path.isfile(file_name): full_df = pd.concat([full_df, df])
 
-                adata[asb] = df.to_numpy()
+                adata[(asb, mtd)] = df.to_numpy()
         # full_df.to_csv(file_name, index_label=False)
         return adata
 
@@ -278,21 +278,63 @@ class DataProvider:
 
     @staticmethod
     def get_scaled_scaled_train_test_split_with_afterstates(split=0.8, scaling_minmax=True):
-
-        # TODO:
         #  1 get both dicts for decision and afterstates
-        #  2 get splits
-        #  3 concat all train splits
-        #  4 fit the scaler
-        #  5 transform both train and test data for all dicts
-        #  6 return dicts: scaled_dtrain, scaled_dtest, scaled_atrain, scaled_atest
-
         ddata = DataProvider.parse_no_mtd_behavior_data(decision=True)
         adata = DataProvider.parse_mtd_behavior_data()
-        print("test")
 
+        # take split of all behaviors, concat, calc scaling, scale both train and test split
+        first_b = ddata[Behavior.NORMAL]
+        np.random.shuffle(first_b)
+        train = first_b[:int(split * first_b.shape[0]), :]
+        # test = first_b[int(split * first_b.shape[0]):, :]
+        # get behavior dicts for train and test
+        train_ddata = {}
+        test_ddata = {}
+        for b, d in ddata.items():
+            np.random.shuffle(d)
+            d_train = d[:int(split * d.shape[0]), :]
+            d_test = d[int(split * d.shape[0]):, :]
 
+            train_ddata[b] = d_train
+            test_ddata[b] = d_test
+            if b != Behavior.NORMAL:
+                train = np.vstack((train, d_train))
+                # test = np.vstack((test, d_test))
+        train_adata = {}
+        test_adata = {}
+        for t, d in adata.items():
+            b, m = t[0], t[1]
+            np.random.shuffle(d)
+            a_train = d[:int(split * d.shape[0]), :]
+            a_test = d[int(split * d.shape[0]):, :]
 
+            train_adata[(b, m)] = a_train
+            test_adata[(b, m)] = a_test
+            if b != Behavior.NORMAL:
+                train = np.vstack((train, a_train[:, :-1]))
+                # test = np.vstack((test, d_test))
+
+        # fit scaler on all training data combined
+        scaler = StandardScaler() if not scaling_minmax else MinMaxScaler()
+        scaler.fit(train[:, :-1])
+
+        # get behavior dicts for scaled train and test data
+        scaled_dtrain = {}
+        scaled_dtest = {}
+        for b, d in train_ddata.items():
+            scaled_dtrain[b] = np.hstack((scaler.transform(d[:, :-1]), np.expand_dims(d[:, -1], axis=1)))
+            scaled_dtest[b] = np.hstack(
+                (scaler.transform(test_ddata[b][:, :-1]), np.expand_dims(test_ddata[b][:, -1], axis=1)))
+
+        scaled_atrain = {}
+        scaled_atest = {}
+        for t, d in train_adata.items():
+            b, m = t[0], t[1]
+            scaled_atrain[(b, m)] = np.hstack((scaler.transform(d[:, :-2]), d[:, -2:]))
+            scaled_atest[(b, m)] = np.hstack(
+                (scaler.transform(test_adata[(b, m)][:, :-2]), test_adata[(b, m)][:, -2:]))
+
+        return scaled_dtrain, scaled_dtest, scaled_atrain, scaled_atest, scaler
 
     @staticmethod
     def get_scaled_train_test_split(split=0.8, scaling_minmax=True, decision=False):
