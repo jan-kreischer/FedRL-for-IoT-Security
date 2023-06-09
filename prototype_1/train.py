@@ -1,9 +1,3 @@
-from typing import Dict
-from collections import defaultdict
-from custom_types import MTDTechnique, Behavior
-
-from collections import defaultdict
-from custom_types import MTDTechnique, Behavior
 from data_manager import DataManager
 from prototype_1.environment import SensorEnvironment
 from prototype_1.agent import Agent, DeepQNetwork

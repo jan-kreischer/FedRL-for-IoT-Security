@@ -83,16 +83,6 @@ class Agent:
         self.target_net.load_state_dict(self.online_net.state_dict())
 
 
-        #
-        # self.state_memory = np.zeros((self.mem_size, *input_dims),
-        #                              dtype=np.float32)
-        # self.new_state_memory = np.zeros((self.mem_size, *input_dims),
-        #                                  dtype=np.float32)
-        # self.action_memory = np.zeros(self.mem_size, dtype=np.int32)
-        # self.reward_memory = np.zeros(self.mem_size, dtype=np.float32)
-        # self.terminal_memory = np.zeros(self.mem_size, dtype=np.bool)
-
-
     def choose_action(self, observation):
         if np.random.random() > self.epsilon:
             state = torch.from_numpy(observation.astype(np.float32)).to(self.online_net.device)
@@ -101,7 +91,6 @@ class Agent:
         else:
             action = np.random.choice(self.action_space)
         return action
-
 
 
     def learn(self):
@@ -148,6 +137,7 @@ class Agent:
         # TODO: call autoencoder here and check for normality
         pass
 
+
     def save_dqns(self, n: int):
-        torch.save(self.online_net.state_dict(), f"trained_models/online_net{n}.pth")
-        torch.save(self.target_net.state_dict(), f"trained_models/target_net{n}.pth")
+        torch.save(self.online_net.state_dict(), f"trained_models/online_net_{n}.pth")
+        torch.save(self.target_net.state_dict(), f"trained_models/target_net_{n}.pth")
