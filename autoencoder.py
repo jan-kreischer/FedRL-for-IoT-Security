@@ -35,7 +35,7 @@ class AutoEncoderInterpreter():
         )
 
 
-    def train(self, optimizer, loss_function, num_epochs: int = 5):
+    def train(self, optimizer, loss_function, num_epochs: int = 15):
         if self.model is None:
             raise ValueError("No model set!")
         epoch_losses = []

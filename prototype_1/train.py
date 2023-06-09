@@ -2,7 +2,7 @@ from data_manager import DataManager
 from prototype_1.environment import SensorEnvironment, supervisor_map
 from prototype_1.agent import Agent, DeepQNetwork
 from custom_types import Behavior
-from autoencoder import auto_encoder_model
+from autoencoder import AutoEncoderInterpreter
 from utils.utils import plot_learning, seed_random
 from time import time
 import torch
@@ -26,7 +26,7 @@ if __name__ == '__main__':
     seed_random()
     start = time()
 
-    AE = auto_encoder_model(DIMS)
+    #AE = auto_encoder_model(DIMS)
 
     # read in all preprocessed data for a simulated, supervised environment to sample from
     #train_data, test_data, scaler = DataManager.get_scaled_train_test_split()
@@ -92,7 +92,7 @@ if __name__ == '__main__':
     agent.save_dqns(0)
 
     x = [i + 1 for i in range(N_EPISODES)]
-    filename = 'mtd_agent.png'
+    filename = 'mtd_agent.pdf'
     plot_learning(x, episode_returns, eps_history, filename)
 
 
