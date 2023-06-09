@@ -133,7 +133,7 @@ class DataManager:
         return scaled_bdata
 
     @staticmethod
-    def get_scaled_train_test_split(split=0.8, scaling_minmax=True):
+    def get_scaled_train_test_split(split=0.8, scaling_minmax=True, pca=True):
         bdata = DataManager.parse_all_behavior_data()
 
         # take split of all behaviors, concat, calc scaling, scale both train and test split
@@ -172,15 +172,35 @@ class DataManager:
         return scaled_train, scaled_test, scaler
 
     @staticmethod
-    def perform_pca():
-        print("perform pca!")
+    def get_reduced_dimensions_with_pca(dim=15):
         strain, stest, scaler = DataManager.get_scaled_train_test_split()
         all_strain = strain[Behavior.NORMAL]
         for b in strain:
             if b != Behavior.NORMAL:
                 all_strain = np.vstack((all_strain, strain[b]))
 
-        pca = PCA()
+        pca = PCA(n_components=dim)
+        pca.fit(all_strain[:, :-1])
+
+        pca_train = {}
+        for b, d in strain.items():
+            pca_train[b] = np.hstack((pca.transform(d[:, :-1]), np.expand_dims(d[:, -1], axis=1)))
+
+        pca_test = {}
+        for b, d in stest.items():
+            pca_test[b] = np.hstack((pca.transform(d[:, :-1]), np.expand_dims(d[:, -1], axis=1)))
+
+        return pca_train, pca_test
+
+    @staticmethod
+    def print_pca_scree_plot():
+        strain, stest, scaler = DataManager.get_scaled_train_test_split()
+        all_strain = strain[Behavior.NORMAL]
+        for b in strain:
+            if b != Behavior.NORMAL:
+                all_strain = np.vstack((all_strain, strain[b]))
+
+        pca = PCA(n_components=30)
         pca.fit(all_strain[:, :-1])
         pca_data = pca.transform(all_strain[:, :-1])
 
@@ -192,23 +212,6 @@ class DataManager:
         plt.xlabel('Principal Component')
         plt.title('Scree Plot')
         plt.show()
-
-        df = pd.read_csv(data_file_paths[Behavior.CNC_BACKDOOR_JAKORITAR])
-
-        # the following code makes a fancy looking plot using PC1 and PC2
-        pca_df = pd.DataFrame(pca_data, index=df.index, columns=labels)
-
-        plt.scatter(pca_df.PC1, pca_df.PC2)
-        plt.title('My PCA Graph')
-        plt.xlabel('PC1 - {0}%'.format(per_var[0]))
-        plt.ylabel('PC2 - {0}%'.format(per_var[1]))
-
-        for sample in pca_df.index:
-            plt.annotate(sample, (pca_df.PC1.loc[sample], pca_df.PC2.loc[sample]))
-
-        plt.show()
-
-
 
     @staticmethod
     def show_data_availability(raw=False):
