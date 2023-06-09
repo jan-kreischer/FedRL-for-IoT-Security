@@ -47,15 +47,15 @@ class SensorEnvironment:
 
     def step(self, action: int):
 
-        current_behaviour = self.current_state.iloc[0]["attack"]
+        current_behaviour = self.current_state.squeeze()[-1]
         if self.monitor is None:
             if current_behaviour in supervisor_map[action]:
-                print("correct mtd chosen according to supervisor")
+                #print("correct mtd chosen according to supervisor")
                 new_state = self.sample_behaviour(Behavior.NORMAL)
                 reward = self.calculate_reward(True)
                 isTerminalState = True
             else:
-                print("incorrect mtd chosen according to supervisor")
+                #print("incorrect mtd chosen according to supervisor")
                 new_state = self.sample_behaviour(current_behaviour)
                 reward = self.calculate_reward(False)
                 isTerminalState = False
@@ -87,6 +87,6 @@ class SensorEnvironment:
         this method can be exchanged for the online/unsupervised RL system with the autoencoder
         """
         if success:
-            return 100
+            return 1
         else:
-            return -100
+            return -1
