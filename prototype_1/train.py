@@ -26,7 +26,6 @@ LEARNING_RATE = 0.001
 if __name__ == '__main__':
     # read in all data for a simulated, supervised environment to sample from
     env = SensorEnvironment(DataManager.parse_all_behavior_data())
-
     #
     # env.reset()
     # print(f"state features num: {env.observation_space}")
@@ -39,13 +38,13 @@ if __name__ == '__main__':
 
     agent = Agent(input_dims=env.observation_space_size, n_actions=len(env.actions),
                   batch_size=BATCH_SIZE, lr=LEARNING_RATE, gamma=GAMMA, epsilon=EPSILON_START, eps_end=EPSILON_END)
-    scores, eps_history = [], []
+    episode_returns, eps_history = [], []
     n_episodes = 500
 
     # initialize memory replay buffer
     obs = env.reset()
     for _ in range(MIN_REPLAY_SIZE):
-        action = random.choice(list(MTDTechnique))
+        action = random.choice(env.actions)
 
         new_obs, reward, done = env.step(action)
         transition = (obs, action, reward, new_obs, done)
@@ -55,32 +54,29 @@ if __name__ == '__main__':
         if done:
             obs = env.reset()
 
-    # # training
+    # main training
     # for i in range(n_episodes):
-    #     score = 0
-
-
-
-    # for i in range(n_games):
-    #     score = 0
+    #     episode_return = 0
     #     done = False
-    #     observation = env.reset()
+    #     obs = env.reset()
     #     while not done:
-    #         action = agent.choose_action(observation)
-    #         observation_, reward, done, info = env.step(action)
-    #         score += reward
-    #         agent.store_transition(observation, action, reward,
-    #                                observation_, done)
+    #         action = agent.choose_action(obs)
+    #         new_obs, reward, done = env.step(action)
+    #         episode_return += reward
+    #         agent.replay_buffer.append((obs, action, reward,
+    #                                new_obs, done))
+    #         agent.reward_buffer.append(reward)
     #         agent.learn()
-    #         observation = observation_
-    #     scores.append(score)
+    #         obs = new_obs
+    #
+    #     episode_returns.append(episode_return)
     #     eps_history.append(agent.epsilon)
     #
-    #     avg_score = np.mean(scores[-100:])
+    #     avg_episode_return = np.mean(episode_returns[-100:])
     #
-    #     print('episode ', i, 'score %.2f' % score,
-    #           'average score %.2f' % avg_score,
+    #     print('episode ', i, 'episode_return %.2f' % episode_return,
+    #           'average episode_return %.2f' % avg_episode_return,
     #           'epsilon %.2f' % agent.epsilon)
     # x = [i + 1 for i in range(n_games)]
     # filename = 'lunar_lander.png'
-    # #plotLearning(x, scores, eps_history, filename)
+    # #plotLearning(x, episode_returns, eps_history, filename)
