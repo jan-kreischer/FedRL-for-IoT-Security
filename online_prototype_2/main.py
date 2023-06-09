@@ -88,7 +88,7 @@ class OnlineRL():
                 return np.random.choice(self.agent.action_space)
 
     def launch_mtd(self, n: int):
-        pass
+        print("Launching MTD " + ACTIONS[n])
 
     def provide_feedback_and_update(self, data, isAnomaly):
         pass
@@ -152,9 +152,10 @@ if __name__ == '__main__':
     # run data through pretrained anomaly detector
     isAnomaly = controller.interprete_data(data)
     print(isAnomaly)
-
-    action = controller.choose_action(data)
-    print(action)
+    if isAnomaly:
+        action = controller.choose_action(data)
+        print("chosen action: " + str(action))
+        controller.launch_mtd(action)
 
 
 
