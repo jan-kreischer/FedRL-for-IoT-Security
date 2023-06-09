@@ -4,8 +4,9 @@ from custom_types import Behavior
 
 
 class SimulationEngine:
+    #TODO: memory buffer is influenced by env.step -> resetting to previous action, which results in unbalanced training
     @staticmethod
-    def init_replay_memory(agent, env, min_size):
+    def init_replay_memory(agent, env, min_size, ):
         obs = env.reset()
         for _ in range(min_size):
             action = random.choice(env.actions)

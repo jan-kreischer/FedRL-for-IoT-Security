@@ -2,6 +2,7 @@ from typing import Dict, Tuple, List
 from collections import defaultdict
 from custom_types import Behavior, MTDTechnique
 from autoencoder import AutoEncoderInterpreter
+from utils.autoencoder_utils import check_normal
 from scipy import stats
 from tabulate import tabulate
 import torch
@@ -86,7 +87,6 @@ class SensorEnvironment:
                 new_state = np.expand_dims(new_state[0, :],
                                            axis=0)  # throw away all but one transition for better decorrelation
         else:
-            # TODO: extend num_samples to fn
             # print("incorrect mtd chosen according to supervisor")
             new_state = self.sample_afterstate(current_behavior, chosen_mtd)
             if self.state_samples_ae > 1:

@@ -78,7 +78,7 @@ class SensorEnvironment:
             new_state = self.sample_behavior(current_behavior)
             if self.state_samples_ae > 1:
                 for i in range(self.state_samples_ae - 1):  # real world simulation with multiple samples monitored
-                    new_state = np.vstack((new_state, self.sample_behavior(Behavior.NORMAL)))
+                    new_state = np.vstack((new_state, self.sample_behavior(current_behavior)))
             # False Negative
             # ae predicts a false negative: episode should end,  but behavior is not normal (because MTD was incorrect)
             # in this case, the next episode should start again with current_behavior
