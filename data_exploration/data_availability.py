@@ -1,6 +1,7 @@
 import os
 from tabulate import tabulate
-from data_provider import DataProvider, time_status_columns, all_zero_columns, decision_state, afterstate
+from data_provider import DataProvider, time_status_columns, all_zero_columns, cols_to_exclude, decision_state, \
+    afterstate
 from custom_types import Behavior, MTDTechnique
 
 
@@ -60,12 +61,15 @@ def show_decision_and_afterstate_data_availability(raw=False):
 def print_column_info(raw_behaviors=True, pi=3):
     if raw_behaviors:
         df = DataProvider.parse_no_mtd_behavior_data(filter_suspected_external_events=False,
-                                                         filter_constant_columns=False,
-                                                         filter_outliers=False, keep_status_columns=True, pi=pi, decision=False)
+                                                     filter_constant_columns=False,
+                                                     filter_outliers=False, keep_status_columns=True,
+                                                     exclude_cols=False,
+                                                     pi=pi, decision=False)
     else:
         df = DataProvider.parse_agent_data_files_to_df(filter_suspected_external_events=False,
                                                        filter_constant_columns=False,
-                                                       filter_outliers=False, keep_status_columns=True)
+                                                       filter_outliers=False, keep_status_columns=True,
+                                                       exclude_cols=False)
         df = df.drop(['state'], axis=1)
 
     df = df.drop(['attack'], axis=1)
@@ -73,7 +77,7 @@ def print_column_info(raw_behaviors=True, pi=3):
     print("------------------Constant Columns-----------------------")
     print(constant_columns)
     print("---------------------CSV Columns-------------------------")
-    labels = ['CSV Column', 'Event Source', 'Event', 'Constant', 'Status', "Feature"]
+    labels = ['CSV Column', 'Event Source', 'Event', 'Constant', 'Status', 'Excluded', 'Feature']
     rows = []
     print("Please compare above columns to the marks in table below: "
           "They should be used for the agent data filtering")
@@ -86,6 +90,7 @@ def print_column_info(raw_behaviors=True, pi=3):
         row += [(splitted[1] if len(splitted) > 1 else col) if col not in time_status_columns else ""]
         row += ["x" if col in all_zero_columns else ""]
         row += ["x" if col in time_status_columns else ""]
+        row += ["x" if col in cols_to_exclude else ""]
         row += ["x" if (col not in time_status_columns and col not in all_zero_columns) else ""]
         rows.append(row)
     print(tabulate(rows[:45], headers=labels, tablefmt='latex'))
@@ -95,10 +100,10 @@ def print_column_info(raw_behaviors=True, pi=3):
 if __name__ == "__main__":
     os.chdir("..")
     print("------------------Raw Data Availability------------------")
-    #show_raw_behaviors_data_availability(raw=True, pi=3)
+    # show_raw_behaviors_data_availability(raw=True, pi=3)
     # show_decision_and_afterstate_data_availability(raw=True)
     print("----------------Filtered Data Availability---------------")
     # show_raw_behaviors_data_availability(raw=False, pi=3)
-    #show_decision_and_afterstate_data_availability(raw=False)
+    # show_decision_and_afterstate_data_availability(raw=False)
 
     print_column_info(raw_behaviors=True, pi=3)
