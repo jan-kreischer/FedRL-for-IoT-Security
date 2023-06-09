@@ -131,6 +131,8 @@ if __name__ == '__main__':
         print('episode ', i, '| episode_return %.2f' % episode_returns[-1],
               '| average episode_return %.2f' % avg_episode_return,
               '| epsilon %.2f' % agent.epsilon)
+        if i >= N_EPISODES-6:
+            print(episode_returns[-10:])
 
     end = time()
     print("Total training time: ", end - start)
