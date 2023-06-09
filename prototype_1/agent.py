@@ -87,7 +87,7 @@ class Agent:
 
     def choose_action(self, observation):
         if np.random.random() > self.epsilon:
-            state = torch.tensor([observation]).to(self.online_net.device)
+            state = torch.from_numpy(observation.astype(np.float32)).to(self.online_net.device)
             actions = self.online_net.forward(state)
             action = torch.argmax(actions).item()
         else:
@@ -121,14 +121,12 @@ class Agent:
         q_values = self.online_net(t_obses)
         taken_action_q_values = torch.gather(input=q_values, dim=1, index=t_actions.unsqueeze(1))
 
-
         loss = self.online_net.loss(taken_action_q_values, targets).to(self.target_net.device)
 
         # gradient descent
         self.online_net.optimizer.zero_grad()
         loss.backward()
         self.online_net.optimizer.step()
-
 
 
 
@@ -158,10 +156,10 @@ class Agent:
         # self.Q_eval.optimizer.step()
         #
         # self.iter_cntr += 1
-        # self.epsilon = self.epsilon - self.eps_dec \
-        #     if self.epsilon > self.eps_min else self.eps_min
+        self.epsilon = self.epsilon - self.eps_dec if self.epsilon > self.eps_min else self.eps_min
 
-
+    def update_target_network(self):
+        self.target_net.load_state_dict(self.online_net.state_dict())
 
     def derive_reward_from_new_state(self, new_state):
         """method only needed in unsupervised setting"""
