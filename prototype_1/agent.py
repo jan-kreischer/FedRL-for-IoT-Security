@@ -6,15 +6,16 @@ import numpy as np
 from collections import deque
 import random
 
-# TODO: main script for prototype one
-#  define MTDs & attacks mapping
-#  define DQ-Network to take input of samples
-#  define the environment and its reward function
-#  start training
-#  start a for loop for number of episodes
-#  generate an episode by sampling from data and using MTD-Attack mapping to decide when an episode terminates
-#  (use a pretrained autoencoder for the environment/reward calc to predict normal/malicious after deployment)
-#  choose a DRL method/neural network that gets updated in every step/at the end of episodes, while last step before end is valued most?.
+# TODO:
+#  - check code with debugger, run through, understanding of each loc
+#  - analyze reward buffer for first 100/200 contents
+#  - min max scaling on input?
+#  - how do buffer size and batch size belong together
+#  - try removing the first few non-perf features
+#  - how can last step before end be valued most?
+#  - try adjusting the reward -> 0 for fail, 1 for success
+#  - reduce/increase exploration/epsilon
+#  - adapt hidden layers/size
 
 
 
