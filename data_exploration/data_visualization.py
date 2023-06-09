@@ -3,8 +3,8 @@ import os
 from custom_types import Behavior, RaspberryPi, MTDTechnique
 from data_plotting import DataPlotter
 
-plot_kde = True
-plot_timeline = False
+plot_kde = False
+plot_timeline = True
 
 if __name__ == "__main__":
     os.chdir("..")
@@ -235,13 +235,15 @@ if __name__ == "__main__":
     #                                                             (Behavior.RANSOMWARE_POC, "red")],
     #                                                            plot_name="ds_comparison_pi_3_1gb_timeline")
 
-    # DataPlotter.plot_raw_behaviors_timeline(
-    #     [(RaspberryPi.PI3_1GB, Behavior.NORMAL, "green"),
-    #      (RaspberryPi.PI3_1GB, Behavior.ROOTKIT_BDVL, "blue"),
-    #      (RaspberryPi.PI3_1GB, Behavior.RANSOMWARE_POC, "red"),
-    #      (RaspberryPi.PI3_1GB, Behavior.CNC_BACKDOOR_JAKORITAR, "darkviolet")],
-    #     plot_name="normal_vs_attacks_pi_3_1gb_timeline"
-    # )
+        DataPlotter.plot_raw_behaviors_timeline(
+            [(RaspberryPi.PI3_1GB, Behavior.NORMAL, "green"),
+             (RaspberryPi.PI3_1GB, Behavior.ROOTKIT_BDVL, "blue"),
+             (RaspberryPi.PI3_1GB, Behavior.RANSOMWARE_POC, "red"),
+             (RaspberryPi.PI3_1GB, Behavior.CNC_BACKDOOR_JAKORITAR, "darkviolet"),
+             (RaspberryPi.PI3_1GB, Behavior.CNC_OPT1, "orange"),
+             (RaspberryPi.PI3_1GB, Behavior.CNC_BACKDOOR_JAKORITAR, "pink")],
+            plot_name="all_raw_pi_3_1gb_timeline"
+        )
 
     # DataPlotter.plot_raw_behaviors_timeline(
     #     [(RaspberryPi.PI4_2GB_WC, Behavior.NORMAL, "green"),

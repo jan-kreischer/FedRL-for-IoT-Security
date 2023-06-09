@@ -21,9 +21,9 @@ TARGET_UPDATE_FREQ = 100
 LEARNING_RATE = 1e-5
 N_EPISODES = 5000
 LOG_FREQ = 100
-DIMS = 20  # TODO check
+DIMS = 20  # TODO check all equal
 PI = 3
-SAMPLES = 30
+SAMPLES = 10
 
 if __name__ == '__main__':
     os.chdir("..")
@@ -32,7 +32,7 @@ if __name__ == '__main__':
 
     # read in all preprocessed data for a simulated, supervised environment to sample from
     # train_data, test_data = DataProvider.get_reduced_dimensions_with_pca(DIMS, pi=PI)
-    train_data, test_data, scaler = DataProvider.get_scaled_train_test_split(pi=PI, scaling_minmax=True, scale_normal_only=True)
+    train_data, test_data, scaler = DataProvider.get_scaled_train_test_split(pi=PI, scaling_minmax=True, scale_normal_only=False)
     # get splits for RL & AD of normal data
     n = 100
     s = 0.8
@@ -43,10 +43,10 @@ if __name__ == '__main__':
     ae_path = "offline_prototype_2_raw_behaviors/trained_models/ae_model_pi3.pth"
     ae_data = normal_data[n:]  # use remaining samples for autoencoder
     train_ae_x, valid_ae_x = pretrain_ae_model(ae_data=ae_data, path=ae_path, split=0.8, lr=1e-4, momentum=0.8,
-                                              num_epochs=300, num_std=2.5)
-
+                                              num_epochs=300, num_std=2)
+    dims = len(train_ae_x[0,:])
     # AE evaluation of pretrained model
-    ae_interpreter = get_pretrained_ae(path=ae_path, dims=len(train_ae_x[0,:]))
+    ae_interpreter = get_pretrained_ae(path=ae_path, dims=dims)
     # AE can directly be tested on the data that will be used for RL: pass train_data to testing
     evaluate_ae_on_no_mtd_behavior(ae_interpreter=ae_interpreter, test_data=train_data)
 
@@ -81,7 +81,7 @@ if __name__ == '__main__':
     evaluate_agent(pretrained_agent, test_data=test_data)
 
     print("evaluate p2 agent on 'real' decision and afterstate data:")
-    dtrain, dtest, atrain, atest = DataProvider.get_reduced_dimensions_with_pca_ds_as(DIMS,
+    dtrain, dtest, atrain, atest = DataProvider.get_reduced_dimensions_with_pca_ds_as(dims,
                                                                                       dir="offline_prototype_2_raw_behaviors/")
     evaluate_agent(agent=pretrained_agent, test_data=dtest)
     evaluate_agent_on_afterstates(agent=pretrained_agent, test_data=atest)

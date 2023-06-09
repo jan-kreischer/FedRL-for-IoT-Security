@@ -33,7 +33,7 @@ class SensorEnvironment:
             attack_data = self.dtrain_data[Behavior.NORMAL]
         # TODO: check excluded behaviors
         else:
-            rb = random.choice([b for b in Behavior if b != Behavior.NORMAL and b!= Behavior.CNC_OPT2])
+            rb = random.choice([b for b in Behavior if b != Behavior.NORMAL])
             attack_data = self.dtrain_data[rb]
         return attack_data[np.random.randint(attack_data.shape[0], size=self.num_state_samples), :]
 
