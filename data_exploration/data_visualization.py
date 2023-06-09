@@ -12,7 +12,7 @@ if __name__ == "__main__":
         # DataPlotter.plot_delay_and_normal_as_kde()
         # DataPlotter.plot_behaviors_as_kde(RaspberryPi.PI4_2GB_WC)
 
-        DataPlotter.plot_normals_kde("compare_normals_kde")
+        #DataPlotter.plot_normals_kde("compare_normals_kde")
         #
         #
         # DataPlotter.plot_decision_or_afterstates_as_kde(
@@ -87,11 +87,11 @@ if __name__ == "__main__":
         #      (Behavior.ROOTKIT_BDVL, MTDTechnique.CNC_IP_SHUFFLE, "orange")],
         #     plot_name="dac_rootkit_behavior_to_incorrect_MTDs_afterstate_kde")
         #
-        # DataPlotter.plot_decision_or_afterstates_as_kde(decision_states=[(Behavior.NORMAL, "green"),
-        #                                                                 (Behavior.ROOTKIT_BDVL, "black"),
-        #                                                                 (Behavior.CNC_BACKDOOR_JAKORITAR, "blue"),
-        #                                                                 (Behavior.RANSOMWARE_POC, "red")],
-        #                                                 plot_name="ds_comparison_pi_3_1gb_kde")
+        DataPlotter.plot_decision_or_afterstates_as_kde(decision_states=[(Behavior.NORMAL, "green"),
+                                                                        (Behavior.ROOTKIT_BDVL, "black"),
+                                                                        (Behavior.CNC_BACKDOOR_JAKORITAR, "blue"),
+                                                                        (Behavior.RANSOMWARE_POC, "red")],
+                                                        plot_name="ds_comparison_pi_3_1gb_kde")
         # DataPlotter.plot_devices_as_kde(RaspberryPi.PI4_2GB_WC)
 
         # UserWarning: Logscale warning can be ignored (some samples have negative values for feature iface0TX)

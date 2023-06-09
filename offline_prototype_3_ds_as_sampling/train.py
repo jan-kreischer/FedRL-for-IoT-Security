@@ -43,20 +43,20 @@ if __name__ == '__main__':
     normal_data = dtrain[b]
     dtrain[b] = normal_data[:n]  # use fixed number of samples for Reinforcement Agent training
     # COMMENT/UNCOMMENT BELOW for retraining of autoencoder
-    # ae_data = normal_data[n:]  # use remaining samples for autoencoder
-    # idx = int(len(ae_data) * s)
-    # # TODO: clean up placeholder
-    # train_ae_x, train_ae_y = ae_data[:idx, :-1].astype(np.float32), np.arange(
-    #     idx)  # just a placeholder for the torch dataloader
-    # valid_ae_x, valid_ae_y = ae_data[idx:, :-1].astype(np.float32), np.arange(len(ae_data) - idx)
-    # print(f"size train: {train_ae_x.shape}, size valid: {valid_ae_x.shape}")
-    # # AD training
-    # ae = AutoEncoder(train_x=train_ae_x, train_y=train_ae_y, valid_x=valid_ae_x,
-    #                  valid_y=valid_ae_y)
-    # ae.train(optimizer=torch.optim.SGD(ae.get_model().parameters(), lr=0.0001, momentum=0.8), num_epochs=1000)
-    # ae.determine_threshold()
-    # print(f"ae threshold: {ae.threshold}")
-    # ae.save_model(dir="offline_prototype_3_ds_as_sampling/")
+    ae_data = normal_data[n:]  # use remaining samples for autoencoder
+    idx = int(len(ae_data) * s)
+    # TODO: clean up placeholder
+    train_ae_x, train_ae_y = ae_data[:idx, :-1].astype(np.float32), np.arange(
+        idx)  # just a placeholder for the torch dataloader
+    valid_ae_x, valid_ae_y = ae_data[idx:, :-1].astype(np.float32), np.arange(len(ae_data) - idx)
+    print(f"size train: {train_ae_x.shape}, size valid: {valid_ae_x.shape}")
+    # AD training
+    ae = AutoEncoder(train_x=train_ae_x, train_y=train_ae_y, valid_x=valid_ae_x,
+                     valid_y=valid_ae_y)
+    ae.train(optimizer=torch.optim.SGD(ae.get_model().parameters(), lr=0.0001, momentum=0.8), num_epochs=1000)
+    ae.determine_threshold()
+    print(f"ae threshold: {ae.threshold}")
+    ae.save_model(dir="offline_prototype_3_ds_as_sampling/")
 
     # AE evaluation of pretrained model
     pretrained_model = torch.load("offline_prototype_3_ds_as_sampling/trained_models/autoencoder_model.pth")
@@ -78,6 +78,10 @@ if __name__ == '__main__':
     for b, a in res_dict.items():
         results.append([b.value, res_dict[b]])
     print(tabulate(results, headers=labels, tablefmt="pretty"))
+
+    # TODO: train here another autoencoder on normal-mtd afterstate data to be used by env.step
+    #  -> possibly multiple AEs (one per mtd if needed...)
+
 
     # Reinforcement Learning
     env = SensorEnvironment(decision_train_data=dtrain, decision_test_data=dtest,
