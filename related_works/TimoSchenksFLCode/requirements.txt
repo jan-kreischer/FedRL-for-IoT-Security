@@ -1,0 +1,10 @@
+--find-links https://download.pytorch.org/whl/torch_stable.html
+
+torch
+scikit-learn
+matplotlib
+pandas
+numpy
+tqdm
+tabulate
+seaborn

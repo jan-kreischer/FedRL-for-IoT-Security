@@ -1,0 +1,12 @@
+*.idea
+*__pycache__
+*.iml
+*.model
+venv/
+results
+data/*.csv
+data_plot_*.png
+result_plot_*.png
+*.pdf
+*.pt
+*.pth

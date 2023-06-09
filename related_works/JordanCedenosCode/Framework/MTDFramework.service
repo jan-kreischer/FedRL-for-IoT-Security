@@ -1,0 +1,10 @@
+[Unit]
+Description=MTDFramework responsible for listening to attack reports and deploying MTDSolutions
+
+[Service]
+ExecStart=/opt/MTDFramework/venv3/bin/python3 /opt/MTDFramework/MTDDeployerServer.py
+WorkingDirectory=/opt/MTDFramework/
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
