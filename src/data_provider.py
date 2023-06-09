@@ -401,6 +401,7 @@ class DataProvider:
 
         return scaled_ntrain, test_ddata, test_adata, scaler
 
+    
     @staticmethod
     def get_scaled_scaled_train_test_split_with_afterstates(split=0.8, scaling_minmax=True, scale_normal_only=True):
 
