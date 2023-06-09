@@ -6,13 +6,13 @@ from custom_types import Behavior, MTDTechnique
 from tabulate import tabulate
 
 
-def split_ds_data_for_ae_and_rl(dtrain, n=500):
+def split_ds_data_for_ae_and_rl(dtrain, n=200):
     normal_data = dtrain[Behavior.NORMAL]
     dtrain[Behavior.NORMAL] = normal_data[:n]
     return normal_data[n:], dtrain
 
 
-def split_as_data_for_ae_and_rl(train_data, n=500):
+def split_as_data_for_ae_and_rl(train_data, n=200):
     ae_dict = {}
     for mtd in MTDTechnique:
         normal_mtd_train = train_data[(Behavior.NORMAL, mtd)]
@@ -49,6 +49,22 @@ def pretrain_all_afterstate_ae_models(ae_train_dict, dir="offline_prototype_3_ds
     all_data = np.vstack((all_train, all_valid))
     all_data = np.hstack((all_data, np.ones((len(all_data), 1))))
     pretrain_ae_model(all_data, path=dir + "ae_model_all_as.pth")
+
+
+def pretrain_all_ds_as_ae_models(dtrain, ae_train_dict, dir="offline_prototype_3_ds_as_sampling/trained_models/"):
+    """pretrains autoencoder models on 1. decision state normal,
+    2. on each normal-mtd combination,
+    3. on both decision and normal-mtd combination data"""
+    all_train, all_valid = pretrain_ae_model(dtrain, path=dir + "ae_model_ds.pth")
+    for i, mtd in enumerate(ae_train_dict):
+        path = dir + "ae_model_" + str(mtd.value) + ".pth"
+        train_data, valid_data = pretrain_ae_model(ae_train_dict[mtd][:, :-1], path=path)
+        all_train = np.vstack((all_train, train_data))
+        all_valid = np.vstack((all_valid, valid_data))
+
+        all_data = np.vstack((all_train, all_valid))
+        all_data = np.hstack((all_data, np.ones((len(all_data), 1))))
+    pretrain_ae_model(all_data, path=dir + "ae_model_all_ds_as.pth")
 
 
 def get_pretrained_ae(path, dims):

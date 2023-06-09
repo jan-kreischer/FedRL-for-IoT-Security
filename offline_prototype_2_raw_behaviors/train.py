@@ -141,7 +141,7 @@ if __name__ == '__main__':
     agent.save_agent_state(0, "offline_prototype_2_raw_behaviors")
 
     x = [i + 1 for i in range(N_EPISODES)]
-    filename = 'mtd_agent.pdf'
+    filename = 'offline_prototype_3_ds_as_sampling/mtd_agent.pdf'
     plot_learning(x, episode_returns, eps_history, filename)
 
     # check predictions with dqn from trained and stored agent
