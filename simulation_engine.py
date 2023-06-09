@@ -5,7 +5,7 @@ from agent import Agent
 
 
 class SimulationEngine:
-    # TODO: memory buffer is influenced by env.step -> resetting to previous action, which results in unbalanced training
+    # memory buffer is influenced by env.step -> resetting to previous action, which may result in unbalanced training
     @staticmethod
     def init_replay_memory(agent: Agent, env, min_size):
         obs = env.reset()

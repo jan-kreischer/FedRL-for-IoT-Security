@@ -4,7 +4,6 @@ import numpy as np
 from tqdm import tqdm
 
 
-# TODO: adapt hidden size!
 def auto_encoder_model(in_features: int, hidden_size: int = 15):
     return nn.Sequential(
         nn.Linear(in_features, hidden_size),

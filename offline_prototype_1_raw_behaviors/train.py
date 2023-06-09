@@ -61,7 +61,7 @@ if __name__ == '__main__':
     # check predictions with learnt dqn
     evaluate_agent(pretrained_agent, test_data=test_data)
 
-    # # TODO check scaling/how it can be evaluated better
+    # check scaling if uncommented
     # print("evaluate p1 agent on 'real' decision and afterstate data:")
     # dtrain, dtest, atrain, atest = DataProvider.get_reduced_dimensions_with_pca_ds_as(DIMS,
     #                                                                                   dir="offline_prototype_1_raw_behaviors/")
