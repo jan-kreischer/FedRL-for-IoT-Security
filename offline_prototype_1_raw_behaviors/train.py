@@ -9,15 +9,16 @@ from time import time
 import numpy as np
 
 # Hyperparams
-GAMMA = 0.99
+GAMMA = 0.1 #0.99
 BATCH_SIZE = 100
 BUFFER_SIZE = 500
 MIN_REPLAY_SIZE = 100
 EPSILON_START = 1.0
+EPSILON_DEC = 1e-4
 EPSILON_END = 0.01
 TARGET_UPDATE_FREQ = 100
-LEARNING_RATE = 1e-5
-N_EPISODES = 6500
+LEARNING_RATE = 1e-4
+N_EPISODES = 10000
 LOG_FREQ = 100
 DIMS = 20
 PI = 3
@@ -28,10 +29,11 @@ if __name__ == '__main__':
     start = time()
 
     # read in all preprocessed data for a simulated, supervised environment to sample from
-    train_data, test_data, scaler = DataProvider.get_scaled_train_test_split(scaling_minmax=True, scale_normal_only=False)
+    train_data, test_data, scaler = DataProvider.get_scaled_train_test_split(scaling_minmax=True, scale_normal_only=True)
     #train_data, test_data = DataProvider.get_reduced_dimensions_with_pca(DIMS, pi=PI, normal_only=True)
     env = SensorEnvironment(train_data)
 
+    print("state size: ", env.observation_space_size)
     agent = Agent(input_dims=env.observation_space_size, n_actions=len(env.actions), buffer_size=BUFFER_SIZE,
                   batch_size=BATCH_SIZE, lr=LEARNING_RATE, gamma=GAMMA, epsilon=EPSILON_START, eps_end=EPSILON_END)
 
@@ -59,12 +61,12 @@ if __name__ == '__main__':
     # check predictions with learnt dqn
     evaluate_agent(pretrained_agent, test_data=test_data)
 
-    # TODO check scaling/how it can be evaluated better
-    print("evaluate p1 agent on 'real' decision and afterstate data:")
-    dtrain, dtest, atrain, atest = DataProvider.get_reduced_dimensions_with_pca_ds_as(DIMS,
-                                                                                      dir="offline_prototype_1_raw_behaviors/")
-    evaluate_agent(agent=pretrained_agent, test_data=dtest)
-    evaluate_agent_on_afterstates(agent=pretrained_agent, test_data=atest)
+    # # TODO check scaling/how it can be evaluated better
+    # print("evaluate p1 agent on 'real' decision and afterstate data:")
+    # dtrain, dtest, atrain, atest = DataProvider.get_reduced_dimensions_with_pca_ds_as(DIMS,
+    #                                                                                   dir="offline_prototype_1_raw_behaviors/")
+    # evaluate_agent(agent=pretrained_agent, test_data=dtest)
+    # evaluate_agent_on_afterstates(agent=pretrained_agent, test_data=atest)
 
 
 

@@ -11,17 +11,18 @@ import numpy as np
 import os
 
 # Hyperparams
-GAMMA = 0.99
+GAMMA = 0.1
 BATCH_SIZE = 100
 BUFFER_SIZE = 500
 MIN_REPLAY_SIZE = 100
 EPSILON_START = 1.0
+EPSILON_DEC = 1e-4
 EPSILON_END = 0.01
 TARGET_UPDATE_FREQ = 100
-LEARNING_RATE = 1e-5
-N_EPISODES = 5000
+LEARNING_RATE = 1e-4
+N_EPISODES = 10000
 LOG_FREQ = 100
-DIMS = 20  # TODO check all equal
+DIMS = 20
 PI = 3
 SAMPLES = 10
 
@@ -32,19 +33,21 @@ if __name__ == '__main__':
 
     # read in all preprocessed data for a simulated, supervised environment to sample from
     # train_data, test_data = DataProvider.get_reduced_dimensions_with_pca(DIMS, pi=PI)
-    train_data, test_data, scaler = DataProvider.get_scaled_train_test_split(pi=PI, scaling_minmax=True, scale_normal_only=False)
+    train_data, test_data, scaler = DataProvider.get_scaled_train_test_split(pi=PI, scaling_minmax=True,
+                                                                             scale_normal_only=True)
     # get splits for RL & AD of normal data
     n = 100
-    s = 0.8
+    s = 0.3
     b = Behavior.NORMAL
     normal_data = train_data[b]
-    train_data[b] = normal_data[:n]  # use fixed number of samples for Reinforcement Agent training
+    l = len(normal_data)
+    train_data[b] = normal_data[:int(l * s)]  # use fixed number of samples for Reinforcement Agent training
     # COMMENT/UNCOMMENT BELOW for pretraining of autoencoder
     ae_path = "offline_prototype_2_raw_behaviors/trained_models/ae_model_pi3.pth"
-    ae_data = normal_data[n:]  # use remaining samples for autoencoder
-    train_ae_x, valid_ae_x = pretrain_ae_model(ae_data=ae_data, path=ae_path, split=0.8, lr=1e-4, momentum=0.8,
-                                              num_epochs=300, num_std=2)
-    dims = len(train_ae_x[0,:])
+    ae_data = normal_data[int(l * s):]  # use remaining samples for autoencoder
+    train_ae_x, valid_ae_x = pretrain_ae_model(ae_data=ae_data, path=ae_path, split=0.8, lr=1e-4, momentum=0.9,
+                                               num_epochs=100, num_std=2.5)
+    dims = len(train_ae_x[0, :])
     # AE evaluation of pretrained model
     ae_interpreter = get_pretrained_ae(path=ae_path, dims=dims)
     # AE can directly be tested on the data that will be used for RL: pass train_data to testing
@@ -80,8 +83,8 @@ if __name__ == '__main__':
 
     evaluate_agent(pretrained_agent, test_data=test_data)
 
-    print("evaluate p2 agent on 'real' decision and afterstate data:")
-    dtrain, dtest, atrain, atest = DataProvider.get_reduced_dimensions_with_pca_ds_as(dims,
-                                                                                      dir="offline_prototype_2_raw_behaviors/")
-    evaluate_agent(agent=pretrained_agent, test_data=dtest)
-    evaluate_agent_on_afterstates(agent=pretrained_agent, test_data=atest)
+    # print("evaluate p2 agent on 'real' decision and afterstate data:")
+    # dtrain, dtest, atrain, atest = DataProvider.get_reduced_dimensions_with_pca_ds_as(dims,
+    #                                                                                   dir="offline_prototype_2_raw_behaviors/")
+    # evaluate_agent(agent=pretrained_agent, test_data=dtest)
+    # evaluate_agent_on_afterstates(agent=pretrained_agent, test_data=atest)

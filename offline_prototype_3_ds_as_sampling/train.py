@@ -6,24 +6,25 @@ from simulation_engine import SimulationEngine
 from utils.evaluation_utils import plot_learning, seed_random, evaluate_agent, \
     evaluate_agent_on_afterstates, get_pretrained_agent
 from utils.autoencoder_utils import get_pretrained_ae, evaluate_ae_on_afterstates, evaluate_ae_on_no_mtd_behavior, pretrain_ae_model, \
-    pretrain_all_afterstate_ae_models, evaluate_all_as_ae_models, pretrain_all_ds_as_ae_models
+    evaluate_all_ds_as_ae_models, pretrain_all_ds_as_ae_models
 from time import time
 import numpy as np
 import os
 
 # Hyperparams
-GAMMA = 0.99
+GAMMA = 0.1
 BATCH_SIZE = 100
 BUFFER_SIZE = 500
 MIN_REPLAY_SIZE = 100
 EPSILON_START = 1.0
+EPSILON_DEC = 1e-4
 EPSILON_END = 0.01
 TARGET_UPDATE_FREQ = 100
-LEARNING_RATE = 1e-5
-N_EPISODES = 6500
+LEARNING_RATE = 1e-4
+N_EPISODES = 10000
 LOG_FREQ = 100
 DIMS = 20
-SAMPLES = 5
+SAMPLES = 1
 
 if __name__ == '__main__':
     os.chdir("..")
@@ -34,39 +35,21 @@ if __name__ == '__main__':
     # dtrain, dtest, atrain, atest = DataProvider.get_reduced_dimensions_with_pca_ds_as(DIMS,
     #                                                                                   dir="offline_prototype_3_ds_as_sampling/")
     dtrain, dtest, atrain, atest, scaler = DataProvider.get_scaled_scaled_train_test_split_with_afterstates(
-        scaling_minmax=True, scale_normal_only=False)
+        scaling_minmax=True, scale_normal_only=True)
 
     # get splits for RL & AD of normal data
     dir = "offline_prototype_3_ds_as_sampling/trained_models/"
     model_name = "ae_model_ds.pth"
     path = dir + model_name
     ae_ds_train, dtrain_rl = DataProvider.split_ds_data_for_ae_and_rl(dtrain)
+    ae_ds_train = np.vstack((ae_ds_train, ae_ds_train)) # upsampling to have equal contribution with afterstates
     dims = len(ae_ds_train[0, :-1])
-    pretrain_ae_model(ae_ds_train, path=path, num_std=1)
-    #
-    # # AE evaluation of pretrained model
-    ae_interpreter = get_pretrained_ae(path=path, dims=dims)
-    # # AE can directly be tested on the data that will be used for RL: pass train_data to testing
-    print("---AE trained on decision state normal data---")
-    print("---Evaluation on decision behaviors train---")
-    evaluate_ae_on_no_mtd_behavior(ae_interpreter, test_data=dtrain_rl)
-    print("---Evaluation on afterstate behaviors train---")
-    evaluate_ae_on_afterstates(ae_interpreter, test_data=atrain)
-    ae_train_dict, atrain_rl = DataProvider.split_as_data_for_ae_and_rl(atrain)
-    # pretrain_all_afterstate_ae_models(ae_train_dict, dir=dir, num_std=1)
-    # # evaluate_all_as_ae_models(dtrain_rl, atrain_rl, dims=DIMS, dir=dir)
-    #
+    ae_as_train, atrain_rl = DataProvider.split_as_data_for_ae_and_rl(atrain)
+
     # MODEL trained on all ds and as normal data assumes the least -> MOST REALISTIC
-    pretrain_all_ds_as_ae_models(ae_ds_train, ae_train_dict, num_std=2)
-    #evaluate_all_as_ae_models(dtrain_rl, atrain_rl, dims=dims, dir=dir)
-    print("Evaluating AE trained on all decision and afterstates normal")
-    path = dir + "ae_model_all_ds_as.pth"
-    ae_interpreter = get_pretrained_ae(path=path, dims=dims)
-    print("---Evaluation on decision behaviors train---")
-    evaluate_ae_on_no_mtd_behavior(ae_interpreter, test_data=dtrain)
-    print("---Evaluation on afterstate behaviors train---")
-    evaluate_ae_on_afterstates(ae_interpreter, test_data=atrain)
-    #exit(0)
+    pretrain_all_ds_as_ae_models(ae_ds_train, ae_as_train, num_std=2.5)
+    evaluate_all_ds_as_ae_models(dtrain_rl, atrain_rl, dims=dims, dir=dir)
+    exit(0)
 
     # Reinforcement Learning
     env = SensorEnvironment(decision_train_data=dtrain_rl,

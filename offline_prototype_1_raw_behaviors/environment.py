@@ -1,13 +1,7 @@
 from typing import Dict, Tuple, List
-from collections import defaultdict
 from custom_types import Behavior, MTDTechnique, actions, supervisor_map
-from scipy import stats
-from tabulate import tabulate
 import numpy as np
-import pandas as pd
-import os
 import random
-from data_provider import DataProvider
 
 
 # handles the supervised, online-simulation of episodes
@@ -49,8 +43,6 @@ class SensorEnvironment:
 
     def reset(self):
         self.current_state = self.sample_random_attack_state()
-        self.reward = 0
-        self.done = False
         return self.current_state
 
     # TODO: possibly adapt to distinguish between MTDs that are particularly wasteful in case of wrong deployment

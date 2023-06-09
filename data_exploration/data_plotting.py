@@ -17,7 +17,8 @@ class DataPlotter:
                                                        afterstates: List[Tuple[Behavior, MTDTechnique, str]] = [],
                                                        plot_name: Union[str, None] = None):
         all_data = DataProvider.parse_agent_data_files_to_df(filter_outliers=False,
-                                                             filter_suspected_external_events=False)
+                                                             filter_suspected_external_events=False,
+                                                             exclude_cols=False)
         # find max num samples
         max_number_of_samples = 0
         for behavior in decision_states:
@@ -80,7 +81,7 @@ class DataPlotter:
                                                                decision=False,exclude_cols=False)
 
         all_data = DataProvider.parse_agent_data_files_to_df(filter_outliers=True,
-                                                             filter_suspected_external_events=False, exclude_cols=False)
+                                                             filter_suspected_external_events=False, exclude_cols=True)
 
         cols_to_plot = [col for col in all_data if col not in ['attack', 'state']]
         all_data = all_data.reset_index()
