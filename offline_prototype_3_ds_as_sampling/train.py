@@ -44,7 +44,7 @@ if __name__ == '__main__':
     ae_ds_train, dtrain_rl = split_ds_data_for_ae_and_rl(dtrain)
     # pretrain_ae_model(ae_ds_train, path=path)
     #
-    # # AE evaluation of pretrained model
+    # AE evaluation of pretrained model
     # ae_interpreter = get_pretrained_ae(path=path, dims=DIMS)
     # # AE can directly be tested on the data that will be used for RL: pass train_data to testing
     # print("---AE trained on decision state normal data---")
@@ -57,15 +57,15 @@ if __name__ == '__main__':
     # evaluate_all_as_ae_models(dtrain_rl, atrain_rl, dims=DIMS, dir=dir)
 
     # MODEL trained on all ds and as normal data assumes the least -> MOST REALISTIC
-    # pretrain_all_ds_as_ae_models(ae_ds_train, ae_train_dict)
-    # evaluate_all_as_ae_models(dtrain_rl, atrain_rl, dims=DIMS, dir=dir)
+    pretrain_all_ds_as_ae_models(ae_ds_train, ae_train_dict)
+    evaluate_all_as_ae_models(dtrain_rl, atrain_rl, dims=DIMS, dir=dir)
     # print("Evaluating AE trained on all decision and afterstates normal")
     path = dir + "ae_model_all_ds_as.pth"
     ae_interpreter = get_pretrained_ae(path=path, dims=DIMS)
-    # print("---Evaluation on decision behaviors train---")
-    # evaluate_ae_on_no_mtd_behavior(ae_interpreter, test_data=dtrain)
-    # # print("---Evaluation on afterstate behaviors train---")
-    # evaluate_ae_on_afterstates(ae_interpreter, test_data=atrain)
+    print("---Evaluation on decision behaviors train---")
+    evaluate_ae_on_no_mtd_behavior(ae_interpreter, test_data=dtrain)
+    print("---Evaluation on afterstate behaviors train---")
+    evaluate_ae_on_afterstates(ae_interpreter, test_data=atrain)
     # exit(0)
 
     # Reinforcement Learning

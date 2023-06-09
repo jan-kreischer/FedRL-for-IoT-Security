@@ -133,6 +133,6 @@ def check_normal(b: Behavior, m: MTDTechnique):
         return 0
     if b == Behavior.RANSOMWARE_POC and (m == MTDTechnique.RANSOMWARE_DIRTRAP or m == MTDTechnique.RANSOMWARE_FILE_EXT_HIDE):
         return 0
-    if b == Behavior.CNC_BACKDOOR_JAKORITAR and m == MTDTechnique.CNC_IP_SHUFFLE:
+    if (b == Behavior.CNC_BACKDOOR_JAKORITAR or b == Behavior.CNC_THETICK) and m == MTDTechnique.CNC_IP_SHUFFLE:
         return 0
     return 1

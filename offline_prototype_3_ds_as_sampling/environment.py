@@ -25,9 +25,11 @@ supervisor_map: Dict[int, Tuple[Behavior]] = defaultdict(lambda: -1, {
 
 normal_afterstates = (
     (Behavior.ROOTKIT_BDVL, MTDTechnique.ROOTKIT_SANITIZER),
+    (Behavior.ROOTKIT_BEURK, MTDTechnique.ROOTKIT_SANITIZER),
     (Behavior.RANSOMWARE_POC, MTDTechnique.RANSOMWARE_DIRTRAP),
     (Behavior.RANSOMWARE_POC, MTDTechnique.RANSOMWARE_FILE_EXT_HIDE),
-    (Behavior.CNC_BACKDOOR_JAKORITAR, MTDTechnique.CNC_IP_SHUFFLE)
+    (Behavior.CNC_BACKDOOR_JAKORITAR, MTDTechnique.CNC_IP_SHUFFLE),
+    (Behavior.CNC_THETICK, MTDTechnique.CNC_IP_SHUFFLE)
 )
 
 
@@ -93,7 +95,6 @@ class SensorEnvironment:
                 # raise UserWarning("Should not happen! AE fails to predict majority of normal samples! Too many False Positives!")
                 reward = self.calculate_reward(False)
                 isTerminalState = False
-                # new_state = self.sample_afterstate(Behavior.NORMAL, chosen_mtd)
             else:
                 reward = self.calculate_reward(True)
                 isTerminalState = True
