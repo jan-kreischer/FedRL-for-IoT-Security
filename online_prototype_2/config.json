@@ -13,13 +13,13 @@
       "ScriptName": "CreateDummyFiles.py",
       "RelativePath": "Ransomware/",
       "RunWithPrefix": "python3",
-      "Params": "--path Ransomware/TestFileStructure/ --numberOfDummyFiles 30 --numberOfDummyFilesPerSubdirectory 15 --size 10 --extension pdf"
+      "Params": "--path TestFileStructure/ --numberOfDummyFiles 30 --numberOfDummyFilesPerSubdirectory 15 --size 10 --extension pdf"
     },
     {
       "ScriptName": "ChangeFileTypes.py",
       "RelativePath": "Ransomware/",
       "RunWithPrefix": "python3",
-      "Params": "--path Ransomware/TestFileStructure/ --extensions pdf png so docx --recursive"
+      "Params": "--path TestFileStructure/ --extensions pdf png so docx --recursive"
     }
   ]
 }
