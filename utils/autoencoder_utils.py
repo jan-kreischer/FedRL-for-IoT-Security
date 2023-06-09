@@ -8,9 +8,8 @@ from tabulate import tabulate
 
 # functions to learn autoencoders:
 
-def pretrain_ae_model(ae_data, split=0.8, lr=1e-4, momentum=0.8, num_epochs=300, dir="offline_prototype_3_ds_as_sampling/",
-                      model_name="ae_model.pth"):
-
+def pretrain_ae_model(ae_data, split=0.8, lr=1e-4, momentum=0.8, num_epochs=300,
+                      path="offline_prototype_3_ds_as_sampling/trained_models/ae_model.pth"):
     idx = int(len(ae_data) * split)
     train_ae_x = ae_data[:idx, :-1].astype(np.float32)
     valid_ae_x = ae_data[idx:, :-1].astype(np.float32)
@@ -21,7 +20,7 @@ def pretrain_ae_model(ae_data, split=0.8, lr=1e-4, momentum=0.8, num_epochs=300,
     ae.train(optimizer=torch.optim.SGD(ae.get_model().parameters(), lr=lr, momentum=momentum), num_epochs=num_epochs)
     ae.determine_threshold()
     print(f"AE threshold: {ae.threshold}")
-    ae.save_model(dir=dir, model_name=model_name)
+    ae.save_model(path=path)
 
 
 def get_pretrained_ae(path, dims):
@@ -30,6 +29,7 @@ def get_pretrained_ae(path, dims):
                                             pretrained_model['threshold'], in_features=dims)
     print(f"ae_interpreter threshold: {ae_interpreter.threshold}")
     return ae_interpreter
+
 
 def evaluate_ae_on_no_mtd_behavior(ae_interpreter: AutoEncoderInterpreter, test_data):
     res_dict = {}
@@ -44,4 +44,18 @@ def evaluate_ae_on_no_mtd_behavior(ae_interpreter: AutoEncoderInterpreter, test_
     results = []
     for b, a in res_dict.items():
         results.append([b.value, res_dict[b]])
+    print(tabulate(results, headers=labels, tablefmt="pretty"))
+
+def evaluate_ae_on_afterstates(ae_interpreter: AutoEncoderInterpreter, test_data):
+    res_dict = {}
+    for t in test_data:
+        y_test = np.array([0 if t[0] == Behavior.NORMAL else 1] * len(test_data[t]))
+        y_predicted = ae_interpreter.predict(test_data[t][:, :-2].astype(np.float32))
+
+        acc, f1, conf_mat = calculate_metrics(y_test.flatten(), y_predicted.flatten().numpy())
+        res_dict[t] = f'{(100 * acc):.2f}%'
+    labels = ["Behavior", "MTD", "Accuracy"]
+    results = []
+    for t, a in res_dict.items():
+        results.append([t[0].value, t[1].value, a])
     print(tabulate(results, headers=labels, tablefmt="pretty"))
