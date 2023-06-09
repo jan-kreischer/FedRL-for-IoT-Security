@@ -201,18 +201,20 @@ if __name__ == '__main__':
         data = json.load(json_file)
         validate_config_file(data)
 
+    # get pretrained anomaly detector
     # pretrained_model = torch.load("autoencoder_model.pth")
     # ae_interpreter = AutoEncoderInterpreter(pretrained_model['model_state_dict'],
     #                                         pretrained_model['threshold'], in_features=DIMS)
     #
-    # # agent has no buffer yet
-    # agent = Agent(input_dims=DIMS, n_actions=len(ACTIONS), buffer_size=BUFFER_SIZE,
-    #               batch_size=BATCH_SIZE, lr=LEARNING_RATE, gamma=GAMMA, epsilon=EPSILON_START, eps_end=EPSILON_END)
-    # # get pretrained online and target dqn
-    # pretrained_online_net = torch.load("online_net_0.pth")
-    # pretrained_target_net = torch.load("target_net_0.pth")
-    # agent.online_net.load_state_dict(pretrained_online_net)
-    # agent.target_net.load_state_dict(pretrained_online_net)
+    # get pretrained agent with defined parameters
+    # pretrained_state = torch.load("trained_models/agent_0.pth")
+    # pretrained_agent = Agent(input_dims=DIMS, n_actions=len(ACTIONS), buffer_size=BUFFER_SIZE,
+    #                          batch_size=pretrained_state['batch_size'], lr=pretrained_state['lr'],
+    #                          gamma=pretrained_state['gamma'], epsilon=pretrained_state['eps'],
+    #                          eps_end=pretrained_state['eps_min'], eps_dec=pretrained_state['eps_dec'])
+    # pretrained_agent.online_net.load_state_dict(pretrained_state['online_net_state_dict'])
+    # pretrained_agent.target_net.load_state_dict(pretrained_state['target_net_state_dict'])
+    # pretrained_agent.replay_buffer = pretrained_state['replay_buffer']
     #
     # controller = OnlineRL(ae=ae_interpreter, agent=agent)
     controller = OnlineRL()

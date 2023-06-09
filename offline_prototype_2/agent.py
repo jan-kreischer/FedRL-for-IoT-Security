@@ -62,7 +62,6 @@ class Agent:
         self.lr = lr
         self.action_space = [i for i in range(n_actions)]
 
-        self.buffer_size = buffer_size
         self.replay_buffer = deque(maxlen=buffer_size)
         self.reward_buffer = deque([0.0], maxlen=100)  # for printing progress
 
@@ -128,6 +127,20 @@ class Agent:
     def update_target_network(self):
         self.target_net.load_state_dict(self.online_net.state_dict())
 
-    def save_dqns(self, n: int):
-        torch.save(self.online_net.state_dict(), f"trained_models/online_net_{n}.pth")
-        torch.save(self.target_net.state_dict(), f"trained_models/target_net_{n}.pth")
+    def save_agent_state(self, n: int):
+        torch.save({
+            'online_net_state_dict': self.online_net.state_dict(),
+            'target_net_state_dict': self.target_net.state_dict(),
+            'batch_size': self.batch_size,
+            'replay_buffer': self.replay_buffer,
+            'reward_buffer': self.reward_buffer,
+            'action_space': self.action_space,
+            'gamma': self.gamma,
+            'eps': self.epsilon,
+            'eps_min': self.eps_min,
+            'eps_dec': self.eps_dec,
+            'lr': self.lr
+        }, f"trained_models/agent_{n}.pth")
+
+        #torch.save(self.online_net.state_dict(), f"trained_models/online_net_{n}.pth")
+        #torch.save(self.target_net.state_dict(), f"trained_models/target_net_{n}.pth")

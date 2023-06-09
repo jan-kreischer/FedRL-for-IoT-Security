@@ -27,8 +27,10 @@ if __name__ == '__main__':
     seed_random()
     start = time()
 
+
+
     # read in all preprocessed data for a simulated, supervised environment to sample from
-    #train_data, test_data, scaler = DataManager.get_scaled_train_test_split()
+    # train_data, test_data, scaler = DataManager.get_scaled_train_test_split()
     train_data, test_data = DataManager.get_reduced_dimensions_with_pca(DIMS)
     # get splits for RL & AD of normal data
     n = 100
@@ -72,6 +74,7 @@ if __name__ == '__main__':
     # for b, a in res_dict.items():
     #     results.append([b.value, res_dict[b]])
     # print(tabulate(results, headers=labels, tablefmt="pretty"))
+
 
 
     # Reinforcement Learning
@@ -130,20 +133,29 @@ if __name__ == '__main__':
         print('episode ', i, '| episode_return %.2f' % episode_returns[-1],
               '| average episode_return %.2f' % avg_episode_return,
               '| epsilon %.2f' % agent.epsilon)
-        if i >= N_EPISODES-6:
+        if i >= N_EPISODES - 6:
             print(episode_returns[-10:])
 
     end = time()
     print("Total training time: ", end - start)
 
-    agent.save_dqns(0)
+    agent.save_agent_state(0)
 
     x = [i + 1 for i in range(N_EPISODES)]
     filename = 'mtd_agent.pdf'
     plot_learning(x, episode_returns, eps_history, filename)
 
-    # check predictions with learnt dqn
-    agent.online_net.eval()
+    # check predictions with dqn from trained and stored agent
+    pretrained_state = torch.load("trained_models/agent_0.pth")
+    pretrained_agent = Agent(input_dims=15, n_actions=4, buffer_size=BUFFER_SIZE,
+                             batch_size=pretrained_state['batch_size'], lr=pretrained_state['lr'],
+                             gamma=pretrained_state['gamma'], epsilon=pretrained_state['eps'],
+                             eps_end=pretrained_state['eps_min'], eps_dec=pretrained_state['eps_dec'])
+    pretrained_agent.online_net.load_state_dict(pretrained_state['online_net_state_dict'])
+    pretrained_agent.target_net.load_state_dict(pretrained_state['target_net_state_dict'])
+    pretrained_agent.replay_buffer = pretrained_state['replay_buffer']
+
+    pretrained_agent.online_net.eval()
     results = {}
     with torch.no_grad():
         for b, d in test_data.items():
@@ -151,7 +163,7 @@ if __name__ == '__main__':
                 cnt_corr = 0
                 cnt = 0
                 for state in d:
-                    action = agent.take_greedy_action(state[:-1])
+                    action = pretrained_agent.take_greedy_action(state[:-1])
                     if b in supervisor_map[action]:
                         cnt_corr += 1
                     cnt += 1
