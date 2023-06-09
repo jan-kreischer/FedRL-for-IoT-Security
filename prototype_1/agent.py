@@ -6,24 +6,24 @@ import numpy as np
 from collections import deque
 import random
 
-# TODO:
+# TODO: check
 #  - add softmax layer at the end of dqn
 #  - check code with debugger, run through, understanding of each loc
 #  - analyze reward buffer for first 100/200 contents
-#  - min max scaling on input?
 #  - how do buffer size and batch size belong together
 #  - try removing the first few non-perf features
 #  - how can last step before end be valued most?
-#  - try adjusting the reward -> 0 for fail, 1 for success
+#  - try adjusting the reward -> 0,-1 for fail, 1 for success
 #  - reduce/increase exploration/epsilon
 #  - adapt hidden layers/size
 
 # TODO: Optimization
 #  - integrate that an agent may not repeatedly select MTDs that have not worked!
-#  -> add a buffer of already utilized techniques in an episode!
+#  -> add a buffer of already utilized mtd techniques within a single episode!
 #  -> adapt choose_action!
 #  - ensure that most resource-consuming MTDs are penalized harder than such that are not
 #  (i.e. -1 for dirtrap, -0.8 for ipshuffle, -0.7 filext, -0.5rootkit), because dirtrap is computationally intense, ipshuffle results in downtime, rootkit lasts miliseconds
+
 
 
 
