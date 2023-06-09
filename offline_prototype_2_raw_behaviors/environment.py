@@ -50,7 +50,6 @@ class SensorEnvironment:
         behavior_data = self.train_data[b]
         return behavior_data[np.random.randint(behavior_data.shape[0], size=1), :]
 
-    # TODO: check problem if multiple times normal behavior is not recognized and the training loop gets stuck in trying to act upon normal
     def step(self, action: int):
 
         current_behavior = self.current_state.squeeze()[-1]

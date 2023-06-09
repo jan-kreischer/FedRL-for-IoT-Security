@@ -257,39 +257,6 @@ class DataPlotter:
         plt.savefig(f"data_exploration/screeplot_n_{n}.png")
 
     # @staticmethod
-    # def plot_behaviors_as_kde(device: RaspberryPi):
-    #     for b in Behavior:
-    #         plot_name = f"all_devices_{b.value}_kde"
-    #         all_data_parsed = DataProvider.parse_raw_behavior_files_to_df(filter_outliers=True)
-    #         all_data_parsed = all_data_parsed[all_data_parsed.attack == b.value]
-    #         cols_to_plot = [col for col in all_data_parsed if col not in ['attack']]
-    #
-    #         all_data_parsed['Device & Behavior'] = all_data_parsed.apply(lambda row: f'{device.value} {row.attack}', axis=1)
-    #         all_data_parsed = all_data_parsed.drop(['attack'], axis=1)
-    #         all_data_parsed = all_data_parsed.reset_index()
-    #         fig, axs = plt.subplots(nrows=ceil(len(cols_to_plot) / 4), ncols=4)
-    #         axs = axs.ravel().tolist()
-    #         fig.suptitle(plot_name)
-    #         fig.set_figheight(len(cols_to_plot))
-    #         fig.set_figwidth(50)
-    #         palette = {f'{RaspberryPi.PI3_1GB.value} {b.value}': "red",
-    #                    f'{RaspberryPi.PI4_2GB_WC.value} {b.value}': "blue"}
-    #         for i in range(len(cols_to_plot)):
-    #             axs[i].set_ylim([1e-4, 2])
-    #             if all_data_parsed[cols_to_plot[i]].unique().size == 1:
-    #                 continue
-    #             # for device in RaspberryPi:
-    #             #     if all_data_parsed[all_data_parsed.device == device.value][cols_to_plot[i]].unique().size == 1:
-    #             #         axs[i].axvline(all_data_parsed[all_data_parsed.device == device.value][cols_to_plot[i]].iloc[0],
-    #             #                        ymin=1e-4, ymax=2, color=palette[f'{device.value} {b.value}'])
-    #             sns.kdeplot(data=all_data_parsed, x=cols_to_plot[i], palette=palette, hue="Device & Behavior",
-    #                         common_norm=False, common_grid=True, ax=axs[i], cut=2,
-    #                         log_scale=(False, True))  # False, True
-    #
-    #         if plot_name is not None:
-    #             fig.savefig(f'data_plot_{plot_name}.png', dpi=100)
-
-    # @staticmethod
     # def plot_behaviors_as_kde_pub():
     #     for behav in Behavior:
     #         plot_name = f"all_devices_{behav.value}_kde"
@@ -330,40 +297,4 @@ class DataPlotter:
     #         if plot_name is not None:
     #             fig.savefig(f'data_plot_{plot_name}.pdf', dpi=100)
 
-    #
-    #
-    #
-    # @staticmethod
-    # def plot_delay_and_normal_as_kde():
-    #     plot_name = f"delay_normal_all_devices_hist"
-    #     all_data_parsed = DataHandler.parse_raw_behavior_files_to_df(filter_outliers=True)
-    #     all_data_parsed = all_data_parsed[
-    #         (all_data_parsed.attack == Behavior.DELAY.value) | (all_data_parsed.attack == Behavior.NORMAL.value)]
-    #     cols_to_plot = [col for col in all_data_parsed if col not in ['device', 'attack']]
-    #     all_data_parsed['Monitoring'] = all_data_parsed.apply(lambda row: f'{row.device} {row.attack}', axis=1)
-    #
-    #     all_data_parsed = all_data_parsed.drop(['attack', 'device'], axis=1)
-    #     all_data_parsed = all_data_parsed.reset_index()
-    #     fig, axs = plt.subplots(nrows=ceil(len(cols_to_plot) / 4), ncols=4)
-    #     axs = axs.ravel().tolist()
-    #     fig.suptitle(plot_name)
-    #     fig.set_figheight(len(cols_to_plot))
-    #     fig.set_figwidth(50)
-    #     palette = {f'{RaspberryPi.PI3_1GB.value} {Behavior.NORMAL.value}': "red",
-    #                f'{RaspberryPi.PI4_2GB_WC.value} {Behavior.NORMAL.value}': "blue",
-    #                f'{RaspberryPi.PI4_2GB_BC.value} {Behavior.NORMAL.value}': "orange",
-    #                f'{RaspberryPi.PI4_4GB.value} {Behavior.NORMAL.value}': "green",
-    #                f'{RaspberryPi.PI3_1GB.value} {Behavior.DELAY.value}': "slategrey",
-    #                f'{RaspberryPi.PI4_2GB_WC.value} {Behavior.DELAY.value}': "black",
-    #                f'{RaspberryPi.PI4_2GB_BC.value} {Behavior.DELAY.value}': "lime",
-    #                f'{RaspberryPi.PI4_4GB.value} {Behavior.DELAY.value}': "fuchsia"}
-    #     for i in range(len(cols_to_plot)):
-    #         axs[i].set_ylim([1e-4, 2])
-    #         if all_data_parsed[cols_to_plot[i]].unique().size == 1:
-    #             continue
-    #         sns.kdeplot(data=all_data_parsed, x=cols_to_plot[i], palette=palette, hue="Monitoring",
-    #                     common_norm=False, common_grid=True, ax=axs[i], cut=2,
-    #                     log_scale=(False, True))  # False, True
-    #
-    #     if plot_name is not None:
-    #         fig.savefig(f'data_plot_{plot_name}.png', dpi=100)
+
