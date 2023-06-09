@@ -144,12 +144,13 @@ class DataProvider:
     def __init__(self):
         print("Creating new DataProvider")
     
+    '''
     @staticmethod
-    def parse_no_mtd_behavior_data(filter_suspected_external_events=True,
+    def get_no_mtd_behavior_data(filter_suspected_external_events=True,
                                    filter_constant_columns=True,
                                    filter_outliers=True,
                                    keep_status_columns=False,
-                                   exclude_cols=True,
+                                   exclude_cols=False,
                                    decision=False, pi=3) -> Dict[Behavior, np.ndarray]:
         # print(os.getcwd())
         b_directory, b_file_paths = (decision_states_dir, decision_states_file_paths) if decision else \
@@ -169,6 +170,49 @@ class DataProvider:
         # bdata = {}
 
         for attack in b_file_paths:
+            print(f"getting {attack}")
+            df = DataProvider.__get_filtered_df(b_file_paths[attack],
+                                                filter_suspected_external_events=filter_suspected_external_events,
+                                                startidx=50,
+                                                filter_constant_columns=filter_constant_columns,
+                                                filter_outliers=filter_outliers,
+                                                keep_status_columns=keep_status_columns,
+                                                exclude_cols=exclude_cols)
+            df['attack'] = attack
+            # bdata[attack] = df.to_numpy()
+            if not os.path.isfile(file_name):
+                full_df = pd.concat([full_df, df])
+
+        # full_df.to_csv(file_name, index_label=False)
+        return full_df  # , bdata
+    '''
+    
+    @staticmethod
+    def parse_no_mtd_behavior_data(filter_suspected_external_events=True,
+                                   filter_constant_columns=True,
+                                   filter_outliers=True,
+                                   keep_status_columns=False,
+                                   exclude_cols=False,
+                                   decision=False, pi=3) -> Dict[Behavior, np.ndarray]:
+        # print(os.getcwd())
+        b_directory, b_file_paths = (decision_states_dir, decision_states_file_paths) if decision else \
+            (raw_behaviors_dir_rp3, raw_behaviors_file_paths_rp3) if pi == 3 else \
+                (raw_behaviors_dir_rp4, raw_behaviors_file_paths_rp4)
+        file_name = f'../data/{b_directory}/all_data_filtered_external{"_decision" if decision else ""}' \
+                    f'_{str(filter_suspected_external_events)}' \
+                    f'_constant_{str(filter_constant_columns)}_outliers_{str(filter_outliers)}'
+
+        if keep_status_columns:
+            file_name += "_keepstatus"
+        file_name += ".csv"
+
+        if os.path.isfile(file_name):
+            return pd.read_csv(file_name)
+        full_df = pd.DataFrame()
+        # bdata = {}
+
+        for attack in b_file_paths:
+            print(f"getting {attack}")
             df = DataProvider.__get_filtered_df(b_file_paths[attack],
                                                 filter_suspected_external_events=filter_suspected_external_events,
                                                 startidx=50,
@@ -294,7 +338,7 @@ class DataProvider:
     def __get_filtered_df(path, filter_suspected_external_events=True, startidx=10, endidx=-1,
                           filter_constant_columns=True,
                           filter_outliers=True,
-                          keep_status_columns=False, exclude_cols=True):
+                          keep_status_columns=False, exclude_cols=False):
         df = pd.read_csv(path)
 
         if filter_suspected_external_events:
@@ -306,6 +350,7 @@ class DataProvider:
         df = df[df['connectivity'] == 1]
 
         # remove model-irrelevant columns
+        #print(f"Time_status_columns => {time_status_columns}")
         if not keep_status_columns:
             df = df.drop(time_status_columns, axis=1)
 
@@ -313,9 +358,11 @@ class DataProvider:
             # drop outliers per measurement, indicated by (absolute z score) > 3
             df = df[(np.nan_to_num(np.abs(stats.zscore(df))) < 3).all(axis=1)]
 
+        #print(f"all constant columns => {all_zero_columns}")
         if filter_constant_columns:
             df = df.drop(all_zero_columns, axis=1)
 
+        #print(f"if exclude cols => {cols_to_exclude}")
         if exclude_cols:
             df = df.drop(cols_to_exclude, axis=1)
 
@@ -440,11 +487,14 @@ class DataProvider:
         with mtd need to be considered
         """
         #print(os.getcwd())
-        rdf = DataProvider.parse_no_mtd_behavior_data(decision=decision, pi=pi, filter_outliers=False)
-
+        rdf = DataProvider.parse_no_mtd_behavior_data(decision=decision, pi=pi, filter_outliers=True)
+        print(f"type(rdf): {type(rdf)}")
+        print(f"rdf.columns: {rdf.columns}; {len(rdf.columns)}")
         # take split of all behaviors, concat, calc scaling, scale both train and test split
         train_filtered, df_test = DataProvider.__filter_train_split_for_outliers(rdf, Behavior.NORMAL, split)
-
+        print(f"type(train_filtered): {type(train_filtered)}")
+        print(f"type(df_test): {type(df_test)}")
+        
         # get behavior dicts for train and test
         train_bdata = {}
         test_bdata = {}
@@ -524,6 +574,7 @@ class DataProvider:
         # return also scaler in case of using the agent for online scaling
         return training_data, test_data, scaler
     
+    '''
     @staticmethod
     def get_reduced_dimensions_with_pca_ds_as(dim=15, dir=""):
         ""
@@ -637,6 +688,8 @@ class DataProvider:
         sorted_pc = df.loc[pcn].reindex(df.loc[pcn].abs().sort_values(ascending=False).index)
         return sorted_pc
 
+    '''
+    
     @staticmethod
     def split_ds_data_for_ae_and_rl(dtrain, s=0.3):
         normal_data = dtrain[Behavior.NORMAL]

@@ -20,8 +20,6 @@ class DeepQNetwork(nn.Module):
         self.fc1 = nn.Linear(self.input_dims, self.fc1_dims)
         self.fc2 = nn.Linear(self.fc1_dims, self.fc2_dims)
         self.fc3 = nn.Linear(self.fc2_dims, self.n_actions)
-        #self.softmax = torch.nn.Softmax()
-        # Why are we not using softmax in the last layer
 
         self.optimizer = torch.optim.Adam(self.parameters(), lr=lr)
         self.loss = nn.MSELoss()
@@ -31,5 +29,5 @@ class DeepQNetwork(nn.Module):
     def forward(self, state):
         x = F.relu(self.fc1(state))
         x = F.relu(self.fc2(x))
-        x = F.softmax(self.fc3(x), dim=-1)
+        x = self.fc3(x)
         return x

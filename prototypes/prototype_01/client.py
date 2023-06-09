@@ -7,8 +7,9 @@ import matplotlib.pyplot as plt
 from tabulate import tabulate
 import matplotlib.pyplot as plt
 from time import time, time_ns
-from agent import Agent
+#from agent import Agent
 from sensor_environment import SensorEnvironment
+from agent import Agent
 from src.custom_types import MTDTechnique, Behavior
 
 #%matplotlib inline
@@ -113,6 +114,7 @@ class Client:
     
 
     def plot_learning_curve(self, filename, nr_round: int):
+        print(f"{self.agent.get_name()} learning curve")
         title = f"Learning Curve until Round {nr_round} on Client {self.client_id}"
         returns =  []
         epsilons = []
