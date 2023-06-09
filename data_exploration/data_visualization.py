@@ -3,8 +3,8 @@ import os
 from custom_types import Behavior, RaspberryPi, MTDTechnique
 from data_plotting import DataPlotter
 
-plot_kde = True
-plot_timeline = False
+plot_kde = False
+plot_timeline = True
 
 if __name__ == "__main__":
     os.chdir("..")
@@ -14,7 +14,7 @@ if __name__ == "__main__":
         DataPlotter.plot_decision_or_afterstates_as_kde(
             [(Behavior.NORMAL, "green")],
             [(Behavior.NORMAL, MTDTechnique.RANSOMWARE_DIRTRAP, "blue"),
-             #(Behavior.NORMAL, MTDTechnique.RANSOMWARE_FILE_EXT_HIDE, "lightblue"),
+             (Behavior.NORMAL, MTDTechnique.RANSOMWARE_FILE_EXT_HIDE, "lightblue"),
              (Behavior.NORMAL, MTDTechnique.CNC_IP_SHUFFLE, "orange"),
              (Behavior.NORMAL, MTDTechnique.ROOTKIT_SANITIZER, "red")],
             plot_name="dac_normal_decision_to_normal_afterstates_for_mtd_kde")
@@ -56,6 +56,13 @@ if __name__ == "__main__":
 
         # UserWarning: Logscale warning can be ignored (some samples have negative values for feature iface0TX)
     if plot_timeline:
+        DataPlotter.plot_decision_or_afterstate_behaviors_timeline(
+            [(Behavior.NORMAL, "green")],
+            [(Behavior.NORMAL, MTDTechnique.RANSOMWARE_DIRTRAP, "blue"),
+             (Behavior.NORMAL, MTDTechnique.RANSOMWARE_FILE_EXT_HIDE, "lightblue"),
+             (Behavior.NORMAL, MTDTechnique.CNC_IP_SHUFFLE, "orange"),
+             (Behavior.NORMAL, MTDTechnique.ROOTKIT_SANITIZER, "red")],
+            plot_name="dac_normal_decision_to_normal_afterstates_for_mtd_timeline")
         pass
         # DataPlotter.plot_decision_or_afterstate_behaviors_timeline(
         #     [(Behavior.NORMAL, "green")],
