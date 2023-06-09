@@ -33,14 +33,10 @@ normal_afterstates = [(Behavior.CNC_BACKDOOR_JAKORITAR, MTDTechnique.CNC_IP_SHUF
 class SensorEnvironment:
     # training data split/test data
     def __init__(self, decision_train_data: Dict[Behavior, np.ndarray] = None,
-                 decision_test_data: Dict[Behavior, np.ndarray] = None,
                  after_train_data: Dict[Tuple[Behavior, MTDTechnique], np.ndarray] = None,
-                 after_test_data: Dict[Tuple[Behavior, MTDTechnique], np.ndarray] = None,
-                 interpreter: AutoEncoderInterpreter = None, state_samples = 1):
+                 interpreter: AutoEncoderInterpreter = None, state_samples=1):
         self.dtrain_data = decision_train_data
-        self.dtest_data = decision_test_data
         self.atrain_data = after_train_data
-        self.atest_data = after_test_data
         self.state_samples_ae = state_samples
         self.current_state: np.array = None
         self.observation_space_size: int = len(self.dtrain_data[Behavior.RANSOMWARE_POC][0][:-1])
@@ -57,7 +53,8 @@ class SensorEnvironment:
             attack_data = self.dtrain_data[self.reset_to_behavior]
             self.reset_to_behavior = None
         else:
-            rb = random.choice([b for b in Behavior if b != Behavior.NORMAL and b != Behavior.ROOTKIT_BEURK and b != Behavior.CNC_THETICK])
+            rb = random.choice([b for b in Behavior if
+                                b != Behavior.NORMAL and b != Behavior.ROOTKIT_BEURK and b != Behavior.CNC_THETICK])
             attack_data = self.dtrain_data[rb]
         return attack_data[np.random.randint(attack_data.shape[0], size=1), :]
 
@@ -67,13 +64,12 @@ class SensorEnvironment:
 
     def step(self, action: int):
         current_behavior = self.current_state.squeeze()[-1] if self.current_state.squeeze()[-1] in Behavior else \
-        self.current_state.squeeze()[-2]
-        #print(f"current behavior = {current_behavior}")
+            self.current_state.squeeze()[-2]
+        # print(f"current behavior = {current_behavior}")
         chosen_mtd = actions[action]
 
-
         if current_behavior in supervisor_map[action] or (current_behavior, chosen_mtd) in normal_afterstates:
-            #print("correct mtd chosen according to supervisor")
+            # print("correct mtd chosen according to supervisor")
             new_state = self.sample_afterstate(current_behavior, chosen_mtd)
 
             # ae predicts too many false positives: episode should not end, but behavior is normal (because MTD was correct)
@@ -90,7 +86,8 @@ class SensorEnvironment:
                     reward = self.calculate_reward(True)
                     isTerminalState = True
                 if self.state_samples_ae > 1:
-                    new_state = np.expand_dims(new_state[0, :], axis=0)  # throw away all but one transition for better decorrelation
+                    new_state = np.expand_dims(new_state[0, :],
+                                               axis=0)  # throw away all but one transition for better decorrelation
         else:
             # print("incorrect mtd chosen according to supervisor")
             new_state = self.sample_afterstate(current_behavior, chosen_mtd)

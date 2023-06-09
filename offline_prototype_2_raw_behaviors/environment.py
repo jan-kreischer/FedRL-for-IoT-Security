@@ -28,16 +28,13 @@ supervisor_map: Dict[int, Tuple[Behavior]] = defaultdict(lambda: -1, {
 # handles the unsupervised, online-simulation of episodes
 class SensorEnvironment:
 
-    def __init__(self, train_data: Dict[Behavior, np.ndarray] = None, test_data: Dict[Behavior, np.ndarray] = None,
-                 monitor=None, interpreter: AutoEncoderInterpreter = None, state_samples=1):
+    def __init__(self, train_data: Dict[Behavior, np.ndarray] = None,
+                 interpreter: AutoEncoderInterpreter = None, state_samples=1):
         self.state_samples_ae = state_samples
         self.train_data = train_data
-        self.test_data = test_data
         self.current_state: np.array = None
         self.observation_space_size: int = len(self.train_data[Behavior.RANSOMWARE_POC][0][:-1])
         self.actions: List[int] = [i for i in range(len(actions))]
-
-        self.monitor = monitor
         self.interpreter = interpreter
         self.reset_to_behavior = None
 
@@ -106,7 +103,7 @@ class SensorEnvironment:
 
     # TODO: possibly adapt to distinguish between MTDs that are particularly wasteful in case of wrong deployment
     def calculate_reward(self, success):
-        """this method can be exchanged for the online/unsupervised RL system with the autoencoder"""
+        """this method can be refined to distinguish particularly wasteful/beneficial mtds"""
         if success:
             return 1
         else:

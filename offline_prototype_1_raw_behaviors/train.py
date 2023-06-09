@@ -32,7 +32,7 @@ if __name__ == '__main__':
     # read in all preprocessed data for a simulated, supervised environment to sample from
     #train_data, test_data, scaler = DataProvider.get_scaled_train_test_split()
     train_data, test_data = DataProvider.get_reduced_dimensions_with_pca(DIMS, pi=PI)
-    env = SensorEnvironment(train_data, test_data)
+    env = SensorEnvironment(train_data)
 
     agent = Agent(input_dims=env.observation_space_size, n_actions=len(env.actions), buffer_size=BUFFER_SIZE,
                   batch_size=BATCH_SIZE, lr=LEARNING_RATE, gamma=GAMMA, epsilon=EPSILON_START, eps_end=EPSILON_END)

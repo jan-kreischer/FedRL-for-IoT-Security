@@ -26,11 +26,8 @@ supervisor_map: Dict[int, Tuple[Behavior]] = defaultdict(lambda: -1, {
 # handles the supervised, online-simulation of episodes
 class SensorEnvironment:
 
-    def __init__(self, train_data: Dict[Behavior, np.ndarray] = None, test_data: Dict[Behavior, np.ndarray] = None,
-                 monitor=None):
+    def __init__(self, train_data: Dict[Behavior, np.ndarray] = None):
         self.train_data = train_data
-        self.test_data = test_data
-        self.monitor = monitor
         self.current_state: np.array = None
         self.observation_space_size: int = len(self.train_data[Behavior.RANSOMWARE_POC][0][:-1])
         self.actions: List[int] = [i for i in range(len(actions))]
@@ -47,27 +44,20 @@ class SensorEnvironment:
         return behavior_data[np.random.randint(behavior_data.shape[0], size=1), :]
 
     def step(self, action: int):
-
         current_behavior = self.current_state.squeeze()[-1]
-        if self.monitor is None:
-            if current_behavior in supervisor_map[action]:
-                # print("correct mtd chosen according to supervisor")
-                new_state = self.sample_behavior(Behavior.NORMAL)
-                reward = self.calculate_reward(True)
-                isTerminalState = True
-            else:
-                # print("incorrect mtd chosen according to supervisor")
-                new_state = self.sample_behavior(current_behavior)
-                reward = self.calculate_reward(False)
-                isTerminalState = False
+
+        if current_behavior in supervisor_map[action]:
+            # print("correct mtd chosen according to supervisor")
+            new_state = self.sample_behavior(Behavior.NORMAL)
+            reward = self.calculate_reward(True)
+            isTerminalState = True
         else:
-            # would integrate a monitoring component here for a live system
-            # new_state = self.monitor.get_current_behavior(),
-            # but reward would need to be calculated by autoencoder
-            reward = None
+            # print("incorrect mtd chosen according to supervisor")
+            new_state = self.sample_behavior(current_behavior)
+            reward = self.calculate_reward(False)
+            isTerminalState = False
 
         self.current_state = new_state
-
         return new_state, reward, isTerminalState
 
     def reset(self):
@@ -79,7 +69,7 @@ class SensorEnvironment:
     # TODO: possibly adapt to distinguish between MTDs that are particularly wasteful in case of wrong deployment
     def calculate_reward(self, success):
         """
-        this method can be exchanged for the online/unsupervised RL system with the autoencoder
+        this method can be refined to distinguish particularly wasteful MTDs (i.e. Dirtrap penalized harder than rootkit sanitization)
         """
         if success:
             return 1
