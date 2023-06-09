@@ -1,9 +1,9 @@
 import torch 
 from torch import nn
 
-def initial_autoencoder_architecture():
+def initial_autoencoder_architecture(n_features):
     return nn.Sequential(
-        nn.Linear(46, 23),
+        nn.Linear(n_features, 23),
         nn.BatchNorm1d(23),
         nn.GELU(),
         nn.Linear(23, 11),
@@ -11,7 +11,7 @@ def initial_autoencoder_architecture():
         nn.Linear(11, 23),
         nn.BatchNorm1d(23),
         nn.GELU(),
-        nn.Linear(23, 46),
+        nn.Linear(23, n_features,),
         nn.GELU()
     )
 
