@@ -4,7 +4,9 @@
 **/.ipynb_checkpoints
 .ipynb_checkpoints
 
-*.idea
+**/.idea
+.idea
+
 *test
 
 *.png
@@ -13,7 +15,7 @@
 *.pth
 
 # Byte-compiled / optimized / DLL files
-__pycache__/
+**/__pycache__/
 *.py[cod]
 *$py.class
 

@@ -1,7 +1,9 @@
 # FedRL for IT-Sec
 
 This work pays large tribute to Timo Schenk's work on RL based MTD deployment that can be found [here](https://github.com/Leitou/rl-based-mtd).
+A full documentation of this work including the theoretical background can be found [here](https://www.overleaf.com/read/sjmchctvctxp).
 
+## 1. Introduction/ Motivation
 Optimizing MTD Deployment on IoT Devices using Reinforcement Learning
 
 ## Content :label:
