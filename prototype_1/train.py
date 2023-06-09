@@ -7,7 +7,7 @@ from custom_types import MTDTechnique, Behavior
 from data_manager import DataManager
 from prototype_1.environment import SensorEnvironment
 from prototype_1.agent import Agent, DeepQNetwork
-from utils.utils import plot_learning
+from utils.utils import plot_learning, seed_random
 from time import time
 import numpy as np
 import random
@@ -15,19 +15,21 @@ import random
 # Hyperparams
 GAMMA = 0.99
 BATCH_SIZE = 100
-BUFFER_SIZE = 50000
+BUFFER_SIZE = 500
 MIN_REPLAY_SIZE = 100
 EPSILON_START = 1.0
-EPSILON_END = 0.02
+EPSILON_END = 0.01
 TARGET_UPDATE_FREQ = 100
-LEARNING_RATE = 0.00001
-N_EPISODES = 2000
+LEARNING_RATE = 1e-5
+N_EPISODES = 15000
 LOG_FREQ = 100
 
 if __name__ == '__main__':
+    seed_random()
     start = time()
-    # read in all data for a simulated, supervised environment to sample from
-    env = SensorEnvironment(DataManager.parse_all_behavior_data())
+
+    # read in all preprocessed data for a simulated, supervised environment to sample from
+    env = SensorEnvironment(DataManager.get_scaled_all_data())
 
     agent = Agent(input_dims=env.observation_space_size, n_actions=len(env.actions), buffer_size=BUFFER_SIZE,
                   batch_size=BATCH_SIZE, lr=LEARNING_RATE, gamma=GAMMA, epsilon=EPSILON_START, eps_end=EPSILON_END)

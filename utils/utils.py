@@ -1,5 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import torch
+import random
 
 def plot_learning(x, returns, epsilons, filename):
     fig=plt.figure()
@@ -29,3 +31,8 @@ def plot_learning(x, returns, epsilons, filename):
     ax2.tick_params(axis='y', colors="C1")
 
     plt.savefig(filename)
+
+def seed_random():
+    random.seed(42)
+    torch.random.manual_seed(42)
+    np.random.seed(42)

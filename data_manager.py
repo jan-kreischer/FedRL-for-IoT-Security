@@ -1,6 +1,7 @@
 from typing import Dict
 from custom_types import Behavior
 from scipy import stats
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from tabulate import tabulate
 import numpy as np
 import pandas as pd
@@ -116,6 +117,20 @@ class DataManager:
 
         full_df.to_csv(file_name, index_label=False)
         return full_df
+
+    @staticmethod
+    def get_scaled_all_data(scaling_minmax=True):
+        all_data = DataManager.parse_all_files_to_df().to_numpy()[:,:-1]
+        scaler = StandardScaler() if not scaling_minmax else MinMaxScaler()
+        scaler.fit(all_data)
+
+        bdata = DataManager.parse_all_behavior_data()
+        scaled_bdata = {}
+        # return directory as
+        for b in bdata:
+            scaled_bdata[b] = np.hstack((scaler.transform(bdata[b][:, :-1]), np.expand_dims(bdata[b][:,-1], axis=1)))
+
+        return scaled_bdata
 
     @staticmethod
     def show_data_availability(raw=False):

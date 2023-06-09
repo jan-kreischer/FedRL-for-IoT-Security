@@ -89,4 +89,4 @@ class SensorEnvironment:
         if success:
             return 1
         else:
-            return 0 #-1
+            return -1
