@@ -62,8 +62,8 @@ Training Data Split
 ---  
 ### Training Round 1/10  
   
-- Training Round 1 on Client 1 took 6.24s  
-- Training Round 1 on Client 2 took 6.18s  
+- Training Round 1 on Client 1 took 8.19s  
+- Training Round 1 on Client 2 took 6.99s  
 ![graph](round-01\_agent-01\_learning-curve.png)  
 ![graph](round-01\_agent-02\_learning-curve.png)  
 
@@ -111,8 +111,8 @@ Global Agent
 ---  
 ### Training Round 2/10  
   
-- Training Round 2 on Client 1 took 7.13s  
-- Training Round 2 on Client 2 took 6.55s  
+- Training Round 2 on Client 1 took 5.65s  
+- Training Round 2 on Client 2 took 6.06s  
 ![graph](round-02\_agent-01\_learning-curve.png)  
 ![graph](round-02\_agent-02\_learning-curve.png)  
 
@@ -160,8 +160,8 @@ Global Agent
 ---  
 ### Training Round 3/10  
   
-- Training Round 3 on Client 1 took 6.12s  
-- Training Round 3 on Client 2 took 4.11s  
+- Training Round 3 on Client 1 took 6.43s  
+- Training Round 3 on Client 2 took 6.23s  
 ![graph](round-03\_agent-01\_learning-curve.png)  
 ![graph](round-03\_agent-02\_learning-curve.png)  
 
