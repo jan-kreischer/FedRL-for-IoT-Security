@@ -1,4 +1,4 @@
-import os
+ import os
 
 from data_provider import DataProvider
 from offline_prototype_1_raw_behaviors.environment import SensorEnvironment
@@ -9,13 +9,17 @@ from time import time
 import numpy as np
 
 # Hyperparams
+
+# discount factor for future rewards
 GAMMA = 0.1 #0.99
 BATCH_SIZE = 100
 BUFFER_SIZE = 500
 MIN_REPLAY_SIZE = 100
+# Epsilon determining Exploration Exploitation Trade Off
 EPSILON_START = 1.0
 EPSILON_DEC = 1e-4
 EPSILON_END = 0.01
+
 TARGET_UPDATE_FREQ = 100
 LEARNING_RATE = 1e-4
 N_EPISODES = 10000
@@ -33,6 +37,7 @@ if __name__ == '__main__':
     # train_data, test_data = DataProvider.get_reduced_dimensions_with_pca(DIMS, pi=PI, normal_only=True)
     env = SensorEnvironment(train_data)
 
+    # The input size is the number of features 
     print("state size: ", env.observation_space_size)
     agent = Agent(input_dims=env.observation_space_size, n_actions=len(env.actions), buffer_size=BUFFER_SIZE,
                   batch_size=BATCH_SIZE, lr=LEARNING_RATE, gamma=GAMMA, epsilon=EPSILON_START, eps_end=EPSILON_END)

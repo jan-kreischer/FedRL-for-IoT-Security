@@ -13,6 +13,7 @@ class SensorEnvironment:
         self.observation_space_size: int = len(self.train_data[Behavior.RANSOMWARE_POC][0][:-1])
         self.actions: List[int] = [i for i in range(len(actions))]
 
+    # Returns a randomly selected attack state with non normal behaviour.
     def sample_random_attack_state(self):
         """i.e. for starting state of an episode,
         (with replacement; it is possible that the same sample is chosen multiple times)"""
@@ -20,6 +21,7 @@ class SensorEnvironment:
         attack_data = self.train_data[rb]
         return attack_data[np.random.randint(attack_data.shape[0], size=1), :]
 
+    # Return random sample with specified behaviour
     def sample_behavior(self, b: Behavior):
         behavior_data = self.train_data[b]
         return behavior_data[np.random.randint(behavior_data.shape[0], size=1), :]

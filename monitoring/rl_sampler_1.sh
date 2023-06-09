@@ -1,5 +1,5 @@
 #!/bin/bash -u
-
+# What is this script doing?
 
 ##############################################################
 #############		SCRIPT CONFIGURATION		##############
