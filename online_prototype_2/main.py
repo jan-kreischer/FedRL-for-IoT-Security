@@ -108,13 +108,15 @@ class OnlineRL():
         os.chdir(selected_mtd[PATH])
         print(os.getcwd())
 
-        # mtd_params = ""
-        # try:
-        #     mtd_params += str(mtd_solution[PARAMS])
-        # except KeyError:
-        #     pass
-        #  mtd_solution[SCRIPT_NAME], mtd_solution[PATH], mtd_params,
-        #      mtd_solution[RUN_PREFIX]
+        mtd_params = ""
+        try:
+            mtd_params += str(selected_mtd[PARAMS])
+        except KeyError:
+            pass
+
+        print("run: " + selected_mtd[RUN_PREFIX] + ' ' + str(selected_mtd[SCRIPT_NAME]) + ' ' + mtd_params)
+        os.system(selected_mtd[RUN_PREFIX] + ' ' + str(selected_mtd[SCRIPT_NAME]) + ' ' + mtd_params)
+
 
 
     def provide_feedback_and_update(self, data, isAnomaly):
