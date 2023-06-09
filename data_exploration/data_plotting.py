@@ -66,7 +66,7 @@ class DataPlotter:
 
         fig.tight_layout()
         if plot_name is not None:
-            fig.savefig(f'data_plot_{plot_name}.png', dpi=100)
+            fig.savefig(f'data_exploration/data_plot_{plot_name}.png', dpi=100)
             print(f'Saved {plot_name}')
 
 
@@ -107,7 +107,7 @@ class DataPlotter:
 
         fig.tight_layout()
         if plot_name is not None:
-            fig.savefig(f'data_plot_{plot_name}.png', dpi=100)
+            fig.savefig(f'data_exploration/data_plot_{plot_name}.png', dpi=100)
             print(f'Saved {plot_name}')
 
     @staticmethod
@@ -152,7 +152,13 @@ class DataPlotter:
 
         fig.tight_layout()
         if plot_name is not None:
-            fig.savefig(f'data_plot_{plot_name}.png', dpi=100)
+            fig.savefig(f'data_exploration/data_plot_{plot_name}.png', dpi=100)
+
+
+
+
+
+
 
     # @staticmethod
     # def plot_behaviors_as_kde(device: RaspberryPi):
