@@ -80,8 +80,6 @@ if __name__ == '__main__':
         avg_episode_return = np.mean(episode_returns[-10:])
         eps_history.append(agent.epsilon)
 
-        print(episode_return / episode_steps)
-
         print('episode ', i, '| episode_return %.2f' % episode_returns[-1],
               '| average episode_return %.2f' % avg_episode_return,
               '| epsilon %.2f' % agent.epsilon)
