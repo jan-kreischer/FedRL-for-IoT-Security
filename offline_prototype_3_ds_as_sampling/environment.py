@@ -60,15 +60,30 @@ class SensorEnvironment:
         return after_data[np.random.randint(after_data.shape[0], size=1), :]
 
     def step(self, action: int):
-        current_behavior = self.current_state.squeeze()[-1] if self.current_state.squeeze()[-1] in Behavior else \
-            self.current_state.squeeze()[-2]
+        if self.current_state.squeeze()[-1] in Behavior:
+            current_behavior = self.current_state.squeeze()[-1]
+            prev_mtd = None
+        else:
+            current_behavior = self.current_state.squeeze()[-2]
+            prev_mtd = self.current_state.squeeze()[-1]
+
         # print(f"current behavior = {current_behavior}")
         chosen_mtd = actions[action]
 
         # Theoretically there is a bug here regarding process flow, see explanation
-        if current_behavior in supervisor_map[action]:
+        if current_behavior in supervisor_map[action] or check_normal(current_behavior, prev_mtd):
             # print("correct mtd chosen according to supervisor")
-            new_state = self.sample_afterstate(current_behavior, chosen_mtd)
+
+            # condition below ensures that if the previous mtd has already been successful, but the episode did not end
+            # (due to a false positive), then the Behavior will be set to normal+the new mtd.
+            # A normal+chosen_mtd afterstate models reality most accurately in this case.
+            # For the case of not having yet chosen the correct mtd, afterstates are sampled according to
+            # current behavior and chosen mtd
+            if check_normal(current_behavior, prev_mtd):
+                new_state = self.sample_afterstate(Behavior.NORMAL, chosen_mtd)
+            else:
+                new_state = self.sample_afterstate(current_behavior, chosen_mtd)
+
 
             # ae predicts too many false positives: episode should not end, but behavior is normal (because MTD was correct)
             # note that this should not happen, as ae should learn to recognize normal behavior with near perfect accuracy
