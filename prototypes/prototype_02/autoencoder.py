@@ -8,7 +8,7 @@ from tabulate import tabulate
 class AutoEncoder(torch.nn.Module):
     
 
-    def __init__(self, model, X_valid, X_test, y_test, evaluation_data, num_stds=[1], activation_function=torch.nn.ReLU(), batch_size: int = 64, verbose=False):
+    def __init__(self, model, X_valid, X_test, y_test, evaluation_data, n_std=20, activation_function=torch.nn.ReLU(), batch_size: int = 64, verbose=False):
 
         super().__init__()
         
@@ -22,7 +22,7 @@ class AutoEncoder(torch.nn.Module):
         self.y_test = y_test
         
         self.evaluation_data = evaluation_data
-        self.num_stds = num_stds
+        self.n_std = n_std
         
         n_features = X_test.shape[1]
         
@@ -87,7 +87,13 @@ class AutoEncoder(torch.nn.Module):
         self.loss_standard_deviation = losses.std()
 
         
-    def predict(self, x, num_std = 1):
+    def predict(self, x, n_std=None):
+        
+        if n_std==None:
+            n_std = self.n_std
+        else:
+            n_std = self.n_std
+            
         test_data = torch.utils.data.TensorDataset(
             torch.from_numpy(x).type(torch.float32)
         )
@@ -103,7 +109,7 @@ class AutoEncoder(torch.nn.Module):
                 model_predictions = ae_loss(model_predictions, batch_x).unsqueeze(0)  # unsqueeze as batch_size set to 1
                 all_predictions = torch.cat((all_predictions, model_predictions))
 
-        threshold = self.loss_mean + num_std * self.loss_standard_deviation
+        threshold = self.loss_mean + n_std * self.loss_standard_deviation
         all_predictions = (all_predictions > threshold).type(torch.long)
         return all_predictions.flatten()
     
@@ -129,44 +135,49 @@ class AutoEncoder(torch.nn.Module):
     
     
     def score(self):
-        num_std, accuracy = self.accuracy_score(None, None)
+        n_std, accuracy = self.accuracy_score(None, None)
         if self.verbose:
-            print(f"Highest validation accuracy achieved {accuracy:.2f} with num_std={num_std}")
-            self.evaluate(num_std)
+            print(f"Highest validation accuracy achieved {accuracy:.2f} with n_std={n_std}")
+            self.evaluate(n_std)
         return accuracy
     
     
     def accuracy_score(self, X, y):
         #if not self.threshold:
         #loss_mean, loss_standard_deviation = self.analyze_loss(X)
-        #num_stds = np.arange(0.1, 3, 0.1)
+        #n_stds = np.arange(0.1, 3, 0.1)
         if self.loss_mean == None or self.loss_standard_deviation == None:
               #print("accuracy_score_optimized > accurcy_loss()")
               self.analyze_loss()
     
         best_accuracy = 0
-        best_num_std = 0
+        best_n_std = 0
         #accuracies = []
         y_dev = self.predict_deviation((self.X_test).astype(np.float32))
-        for num_std in self.num_stds:
+        for n_std in self.n_stds:
             y_true = self.y_test
-            threshold = self.loss_mean + num_std * self.loss_standard_deviation
+            threshold = self.loss_mean + n_std * self.loss_standard_deviation
             y_pred = (y_dev > threshold).type(torch.long).detach().cpu().numpy()
             
             accuracy = accuracy_score(y_true, y_pred)
             if accuracy > best_accuracy:
                 best_accuracy = accuracy
-                best_num_std = num_std
+                best_n_std = n_std
             #if self.verbose:
-            #    print(f"num_std {num_std:.2f} -> accuracy: {accuracy}")
+            #    print(f"n_std {n_std:.2f} -> accuracy: {accuracy}")
 
-        return best_num_std, best_accuracy
+        return best_n_std, best_accuracy
     
     
-    def evaluate(self, num_std=0.1, tablefmt='pipe'):
+    def evaluate(self, n_std=None, tablefmt='pipe'):
         results = []
         labels= [0,1]
         pos_label = 1
+        
+        if n_std==None:
+            n_std = self.n_std
+        else:
+            n_std = self.n_std
         
         y_true_total = np.empty([0])
         y_pred_total = np.empty([0])
@@ -174,7 +185,7 @@ class AutoEncoder(torch.nn.Module):
             y_true = np.array([0 if behavior == Behavior.NORMAL else 1] * len(data)).astype(int)
             y_true_total = np.concatenate((y_true_total, y_true))
 
-            y_pred = self.predict(data[:, :-1].astype(np.float32), num_std=num_std)
+            y_pred = self.predict(data[:, :-1].astype(np.float32), n_std=n_std)
             y_pred_total = np.concatenate((y_pred_total, y_pred))
 
             accuracy = accuracy_score(y_true, y_pred)
