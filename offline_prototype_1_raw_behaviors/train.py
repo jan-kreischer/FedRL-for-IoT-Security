@@ -22,6 +22,7 @@ LEARNING_RATE = 1e-5
 N_EPISODES = 10000
 LOG_FREQ = 100
 DIMS = 15
+PI = 3
 
 if __name__ == '__main__':
     os.chdir("..")
@@ -30,7 +31,7 @@ if __name__ == '__main__':
 
     # read in all preprocessed data for a simulated, supervised environment to sample from
     #train_data, test_data, scaler = DataProvider.get_scaled_train_test_split()
-    train_data, test_data = DataProvider.get_reduced_dimensions_with_pca(DIMS, pi=3)
+    train_data, test_data = DataProvider.get_reduced_dimensions_with_pca(DIMS, pi=PI)
     env = SensorEnvironment(train_data, test_data)
 
     agent = Agent(input_dims=env.observation_space_size, n_actions=len(env.actions), buffer_size=BUFFER_SIZE,
