@@ -1,5 +1,5 @@
 from typing import Dict
-from custom_types import Behavior, MTDTechnique
+from src.custom_types import Behavior, MTDTechnique
 from scipy import stats
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from sklearn.decomposition import PCA
@@ -13,101 +13,103 @@ import joblib
 import os
 import pickle
 
+relative_data_path = "data"
+
 # raw behaviors without any MTD framework/Agent Components running
 raw_behaviors_dir_rp3 = "raw_behaviors_no_agent_rp3"
 raw_behaviors_file_paths_rp3: Dict[Behavior, str] = {
-    Behavior.NORMAL: f"data/{raw_behaviors_dir_rp3}/normal_expfs_online_samples_1_2022-08-20-09-16_5s.csv",
-    Behavior.RANSOMWARE_POC: f"data/{raw_behaviors_dir_rp3}/ransom_expfs_online_samples_1_2022-08-22-14-04_5s.csv",
-    Behavior.ROOTKIT_BDVL: f"data/{raw_behaviors_dir_rp3}/rootkit_bdvl_online_samples_1_2022-08-19-08-45_5s.csv",
-    Behavior.ROOTKIT_BEURK: f"data/{raw_behaviors_dir_rp3}/rootkit_beurk_online_samples_1_2022-09-01-18-12_5s.csv",
-    Behavior.CNC_THETICK: f"data/{raw_behaviors_dir_rp3}/cnc_thetick_online_samples_1_2022-08-30-16-11_5s.csv",
-    # Behavior.CNC_BACKDOOR_JAKORITAR: f"data/{raw_behaviors_dir_rp3}/cnc_backdoor_jakoritar_expfs_samples_1_2022-08-21-13-33_5s.csv"
-    Behavior.CNC_BACKDOOR_JAKORITAR: f"data/{raw_behaviors_dir_rp3}/cnc_backdoor_jakoritar_new_online_samples_1_2022-09-02-09-19_5s.csv",
-    Behavior.CNC_OPT1: f"data/{raw_behaviors_dir_rp3}/cnc_opt_1_file_extr_online_samples_1_2022-09-24-22-08_5s.csv",
-    Behavior.CNC_OPT2: f"data/{raw_behaviors_dir_rp3}/cnc_opt_2_sysinfo_online_samples_1_2022-09-24-14-04_5s.csv",
+    Behavior.NORMAL: f"{relative_data_path}/{raw_behaviors_dir_rp3}/normal_expfs_online_samples_1_2022-08-20-09-16_5s.csv",
+    Behavior.RANSOMWARE_POC: f"{relative_data_path}/{raw_behaviors_dir_rp3}/ransom_expfs_online_samples_1_2022-08-22-14-04_5s.csv",
+    Behavior.ROOTKIT_BDVL: f"{relative_data_path}/{raw_behaviors_dir_rp3}/rootkit_bdvl_online_samples_1_2022-08-19-08-45_5s.csv",
+    Behavior.ROOTKIT_BEURK: f"{relative_data_path}/{raw_behaviors_dir_rp3}/rootkit_beurk_online_samples_1_2022-09-01-18-12_5s.csv",
+    Behavior.CNC_THETICK: f"{relative_data_path}/{raw_behaviors_dir_rp3}/cnc_thetick_online_samples_1_2022-08-30-16-11_5s.csv",
+    # Behavior.CNC_BACKDOOR_JAKORITAR: f"{relative_data_path}/{raw_behaviors_dir_rp3}/cnc_backdoor_jakoritar_expfs_samples_1_2022-08-21-13-33_5s.csv"
+    Behavior.CNC_BACKDOOR_JAKORITAR: f"{relative_data_path}/{raw_behaviors_dir_rp3}/cnc_backdoor_jakoritar_new_online_samples_1_2022-09-02-09-19_5s.csv",
+    Behavior.CNC_OPT1: f"{relative_data_path}/{raw_behaviors_dir_rp3}/cnc_opt_1_file_extr_online_samples_1_2022-09-24-22-08_5s.csv",
+    Behavior.CNC_OPT2: f"{relative_data_path}/{raw_behaviors_dir_rp3}/cnc_opt_2_sysinfo_online_samples_1_2022-09-24-14-04_5s.csv",
 }
 
 raw_behaviors_dir_rp4 = "raw_behaviors_no_agent_rp4"
 raw_behaviors_file_paths_rp4: Dict[Behavior, str] = {
-    Behavior.NORMAL: f"data/{raw_behaviors_dir_rp4}/normal_samples_2022-06-13-11-25_50s.csv",
-    Behavior.RANSOMWARE_POC: f"data/{raw_behaviors_dir_rp4}/ransomware_samples_2022-06-20-08-49_50s.csv",
-    Behavior.ROOTKIT_BEURK: f"data/{raw_behaviors_dir_rp4}/rootkit_beurk_samples_2022-06-17-09-08_50s.csv",
-    Behavior.ROOTKIT_BDVL: f"data/{raw_behaviors_dir_rp4}/rootkit_bdvl_samples_2022-06-16-19-16_50s.csv",
-    Behavior.CNC_THETICK: f"data/{raw_behaviors_dir_rp4}/cnc_backdoor_jakoritar_samples_2022-06-18-09-35_50s.csv",
-    Behavior.CNC_BACKDOOR_JAKORITAR: f"data/{raw_behaviors_dir_rp4}/cnc_thetick_samples_2022-06-19-16-54_50s.csv"
+    Behavior.NORMAL: f"{relative_data_path}/{raw_behaviors_dir_rp4}/normal_samples_2022-06-13-11-25_50s.csv",
+    Behavior.RANSOMWARE_POC: f"{relative_data_path}/{raw_behaviors_dir_rp4}/ransomware_samples_2022-06-20-08-49_50s.csv",
+    Behavior.ROOTKIT_BEURK: f"{relative_data_path}/{raw_behaviors_dir_rp4}/rootkit_beurk_samples_2022-06-17-09-08_50s.csv",
+    Behavior.ROOTKIT_BDVL: f"{relative_data_path}/{raw_behaviors_dir_rp4}/rootkit_bdvl_samples_2022-06-16-19-16_50s.csv",
+    Behavior.CNC_THETICK: f"{relative_data_path}/{raw_behaviors_dir_rp4}/cnc_backdoor_jakoritar_samples_2022-06-18-09-35_50s.csv",
+    Behavior.CNC_BACKDOOR_JAKORITAR: f"{relative_data_path}/{raw_behaviors_dir_rp4}/cnc_thetick_samples_2022-06-19-16-54_50s.csv"
 }
 
 # behaviors with MTD framework/Agent Components running as per directory "online_prototype_monitoring"
 decision_state = "decision"
 decision_states_dir = "decision_states_online_agent"
 decision_states_file_paths: Dict[Behavior, str] = {
-    Behavior.NORMAL: f"data/{decision_states_dir}/normal_expfs_online_samples_1_2022-08-18-08-31_5s.csv",
-    # Behavior.NORMAL: f"data/{decision_states_dir}/normal_noexpfs_online_samples_1_2022-08-15-14-07_5s.csv",
-    Behavior.RANSOMWARE_POC: f"data/{decision_states_dir}/ransom_noexpfs_online_samples_1_2022-08-16-08-43_5s.csv",
-    Behavior.ROOTKIT_BDVL: f"data/{decision_states_dir}/rootkit_bdvl_online_samples_1_2022-08-12-16-40_5s.csv",
-    # Behavior.CNC_BACKDOOR_JAKORITAR: f"data/{decision_states_dir}/cnc_jakoritar_online_samples_1_2022-08-13-06-50_5s.csv"
-    # Behavior.CNC_BACKDOOR_JAKORITAR: f"data/{decision_states_dir}/cnc_backdoor_jakoritar_good_noexpfs_online_samples_1_2022-08-22-09-09_5s.csv",
-    Behavior.CNC_BACKDOOR_JAKORITAR: f"data/{decision_states_dir}/cnc_backdoor_jakoritar_new_online_samples_1_2022-09-06-15-29_5s.csv",
-    Behavior.ROOTKIT_BEURK: f"data/{decision_states_dir}/rootkit_beurk_online_samples_1_2022-09-08-08-55_5s.csv",
-    Behavior.CNC_THETICK: f"data/{decision_states_dir}/cnc_thetick_online_samples_1_2022-09-12-10-27_5s.csv",
-    Behavior.CNC_OPT1: f"data/{decision_states_dir}/cnc_opt_1_file_extr_online_samples_1_2022-09-20-17-30_5s.csv",
-    Behavior.CNC_OPT2: f"data/{decision_states_dir}/cnc_opt_2_sysinfo_online_samples_1_2022-09-24-09-46_5s.csv"
+    Behavior.NORMAL: f"{relative_data_path}/{decision_states_dir}/normal_expfs_online_samples_1_2022-08-18-08-31_5s.csv",
+    # Behavior.NORMAL: f"{relative_data_path}/{decision_states_dir}/normal_noexpfs_online_samples_1_2022-08-15-14-07_5s.csv",
+    Behavior.RANSOMWARE_POC: f"{relative_data_path}/{decision_states_dir}/ransom_noexpfs_online_samples_1_2022-08-16-08-43_5s.csv",
+    Behavior.ROOTKIT_BDVL: f"{relative_data_path}/{decision_states_dir}/rootkit_bdvl_online_samples_1_2022-08-12-16-40_5s.csv",
+    # Behavior.CNC_BACKDOOR_JAKORITAR: f"{relative_data_path}/{decision_states_dir}/cnc_jakoritar_online_samples_1_2022-08-13-06-50_5s.csv"
+    # Behavior.CNC_BACKDOOR_JAKORITAR: f"{relative_data_path}/{decision_states_dir}/cnc_backdoor_jakoritar_good_noexpfs_online_samples_1_2022-08-22-09-09_5s.csv",
+    Behavior.CNC_BACKDOOR_JAKORITAR: f"{relative_data_path}/{decision_states_dir}/cnc_backdoor_jakoritar_new_online_samples_1_2022-09-06-15-29_5s.csv",
+    Behavior.ROOTKIT_BEURK: f"{relative_data_path}/{decision_states_dir}/rootkit_beurk_online_samples_1_2022-09-08-08-55_5s.csv",
+    Behavior.CNC_THETICK: f"{relative_data_path}/{decision_states_dir}/cnc_thetick_online_samples_1_2022-09-12-10-27_5s.csv",
+    Behavior.CNC_OPT1: f"{relative_data_path}/{decision_states_dir}/cnc_opt_1_file_extr_online_samples_1_2022-09-20-17-30_5s.csv",
+    Behavior.CNC_OPT2: f"{relative_data_path}/{decision_states_dir}/cnc_opt_2_sysinfo_online_samples_1_2022-09-24-09-46_5s.csv"
 }
 afterstate = "after"
 afterstates_dir = "afterstates_online_agent"
 afterstates_file_paths: Dict[Behavior, Dict[MTDTechnique, str]] = {
     Behavior.NORMAL: {
-        MTDTechnique.RANSOMWARE_DIRTRAP: f"data/{afterstates_dir}/normal_as_dirtrap_expfs_online_samples_2_2022-08-17-14-23_5s.csv",
-        MTDTechnique.RANSOMWARE_FILE_EXT_HIDE: f"data/{afterstates_dir}/normal_as_filetypes_noexpfs_online_samples_2_2022-08-18-08-29_5s.csv",
-        MTDTechnique.ROOTKIT_SANITIZER: f"data/{afterstates_dir}/normal_as_removerk_noexpfs_online_samples_2_2022-08-17-08-17_5s.csv",
-        # MTDTechnique.CNC_IP_SHUFFLE: f"data/{afterstates_dir}/normal_as_changeip_noexpfs_online_samples_2_2022-08-17-14-22_5s.csv",
-        MTDTechnique.CNC_IP_SHUFFLE: f"data/{afterstates_dir}/normal_as_changeip_new_online_samples_2_2022-09-12-08-01_5s.csv"
+        MTDTechnique.RANSOMWARE_DIRTRAP: f"{relative_data_path}/{afterstates_dir}/normal_as_dirtrap_expfs_online_samples_2_2022-08-17-14-23_5s.csv",
+        MTDTechnique.RANSOMWARE_FILE_EXT_HIDE: f"{relative_data_path}/{afterstates_dir}/normal_as_filetypes_noexpfs_online_samples_2_2022-08-18-08-29_5s.csv",
+        MTDTechnique.ROOTKIT_SANITIZER: f"{relative_data_path}/{afterstates_dir}/normal_as_removerk_noexpfs_online_samples_2_2022-08-17-08-17_5s.csv",
+        # MTDTechnique.CNC_IP_SHUFFLE: f"{relative_data_path}/{afterstates_dir}/normal_as_changeip_noexpfs_online_samples_2_2022-08-17-14-22_5s.csv",
+        MTDTechnique.CNC_IP_SHUFFLE: f"{relative_data_path}/{afterstates_dir}/normal_as_changeip_new_online_samples_2_2022-09-12-08-01_5s.csv"
     },
     Behavior.RANSOMWARE_POC: {
-        MTDTechnique.RANSOMWARE_DIRTRAP: f"data/{afterstates_dir}/ransom_as_dirtrap_expfs_online_samples_2_2022-08-16-09-33_5s.csv",
-        MTDTechnique.RANSOMWARE_FILE_EXT_HIDE: f"data/{afterstates_dir}/ransom_as_filetypes_expfs_online_samples_2_2022-08-16-14-36_5s.csv",
-        MTDTechnique.CNC_IP_SHUFFLE: f"data/{afterstates_dir}/ransom_as_changeip_expfs_online_samples_2_2022-08-15-21-09_5s.csv",
-        MTDTechnique.ROOTKIT_SANITIZER: f"data/{afterstates_dir}/ransom_as_removerk_noexpfs_online_samples_2_2022-08-16-19-06_5s.csv"
+        MTDTechnique.RANSOMWARE_DIRTRAP: f"{relative_data_path}/{afterstates_dir}/ransom_as_dirtrap_expfs_online_samples_2_2022-08-16-09-33_5s.csv",
+        MTDTechnique.RANSOMWARE_FILE_EXT_HIDE: f"{relative_data_path}/{afterstates_dir}/ransom_as_filetypes_expfs_online_samples_2_2022-08-16-14-36_5s.csv",
+        MTDTechnique.CNC_IP_SHUFFLE: f"{relative_data_path}/{afterstates_dir}/ransom_as_changeip_expfs_online_samples_2_2022-08-15-21-09_5s.csv",
+        MTDTechnique.ROOTKIT_SANITIZER: f"{relative_data_path}/{afterstates_dir}/ransom_as_removerk_noexpfs_online_samples_2_2022-08-16-19-06_5s.csv"
     },
     Behavior.ROOTKIT_BDVL: {
-        MTDTechnique.RANSOMWARE_DIRTRAP: f"data/{afterstates_dir}/rootkit_bdvl_as_dirtrap_samples_noexpfs_2022-08-12-17-02_5s.csv",
-        MTDTechnique.RANSOMWARE_FILE_EXT_HIDE: f"data/{afterstates_dir}/rootkit_bdvl_as_filetypes_noexpfs_cip_online_samples_2_2022-08-12-21-14_5s.csv",
-        MTDTechnique.CNC_IP_SHUFFLE: f"data/{afterstates_dir}/rootkit_bdvl_as_changeip_expfs_cip_online_samples_2_2022-08-12-20-42_5s.csv",
-        MTDTechnique.ROOTKIT_SANITIZER: f"data/{afterstates_dir}/rootkit_bdvl_as_removerk_noexpfs_online_samples_2_2022-08-13-06-02_5s.csv"
+        MTDTechnique.RANSOMWARE_DIRTRAP: f"{relative_data_path}/{afterstates_dir}/rootkit_bdvl_as_dirtrap_samples_noexpfs_2022-08-12-17-02_5s.csv",
+        MTDTechnique.RANSOMWARE_FILE_EXT_HIDE: f"{relative_data_path}/{afterstates_dir}/rootkit_bdvl_as_filetypes_noexpfs_cip_online_samples_2_2022-08-12-21-14_5s.csv",
+        MTDTechnique.CNC_IP_SHUFFLE: f"{relative_data_path}/{afterstates_dir}/rootkit_bdvl_as_changeip_expfs_cip_online_samples_2_2022-08-12-20-42_5s.csv",
+        MTDTechnique.ROOTKIT_SANITIZER: f"{relative_data_path}/{afterstates_dir}/rootkit_bdvl_as_removerk_noexpfs_online_samples_2_2022-08-13-06-02_5s.csv"
     },
     Behavior.CNC_BACKDOOR_JAKORITAR: {
-        # MTDTechnique.RANSOMWARE_DIRTRAP: f"data/{afterstates_dir}/old_cnc_jakoritar_as_dirtrap_expfs_online_samples_2_2022-08-15-08-59_5s.csv",
-        MTDTechnique.RANSOMWARE_DIRTRAP: f"data/{afterstates_dir}/cnc_backdoor_jakoritar_as_dirtrap_online_samples_2_2022-09-07-09-06_5s.csv",
-        # MTDTechnique.RANSOMWARE_FILE_EXT_HIDE: f"data/{afterstates_dir}/old_cnc_jakoritar_as_filetypes_noexpfs_online_samples_2_2022-08-15-09-23_5s.csv",
-        MTDTechnique.RANSOMWARE_FILE_EXT_HIDE: f"data/{afterstates_dir}/cnc_backdoor_jakoritar_as_filetypes_online_samples_2_2022-09-06-20-14_5s.csv",
-        ## very different raw syscalls: MTDTechnique.CNC_IP_SHUFFLE: f"data/{afterstates_dir}/old_cnc_jakoritar_as_changeip_expfs_online_samples_2_2022-08-15-14-08_5s.csv",
-        ## nan values: MTDTechnique.CNC_IP_SHUFFLE: f"data/{afterstates_dir}/cnc_backdoor_jakoritar_as_changeip_online_samples_2_2022-09-07-15-26_5s",
-        MTDTechnique.CNC_IP_SHUFFLE: f"data/{afterstates_dir}/cnc_backdoor_jakoritar_as_changeip_nohup_client_online_samples_2_2022-08-24-14-41_5s.csv",
-        MTDTechnique.ROOTKIT_SANITIZER: f"data/{afterstates_dir}/old_cnc_jakoritar_as_removerk_expfs_online_samples_2_2022-08-13-10-52_5s.csv",
+        # MTDTechnique.RANSOMWARE_DIRTRAP: f"{relative_data_path}/{afterstates_dir}/old_cnc_jakoritar_as_dirtrap_expfs_online_samples_2_2022-08-15-08-59_5s.csv",
+        MTDTechnique.RANSOMWARE_DIRTRAP: f"{relative_data_path}/{afterstates_dir}/cnc_backdoor_jakoritar_as_dirtrap_online_samples_2_2022-09-07-09-06_5s.csv",
+        # MTDTechnique.RANSOMWARE_FILE_EXT_HIDE: f"{relative_data_path}/{afterstates_dir}/old_cnc_jakoritar_as_filetypes_noexpfs_online_samples_2_2022-08-15-09-23_5s.csv",
+        MTDTechnique.RANSOMWARE_FILE_EXT_HIDE: f"{relative_data_path}/{afterstates_dir}/cnc_backdoor_jakoritar_as_filetypes_online_samples_2_2022-09-06-20-14_5s.csv",
+        ## very different raw syscalls: MTDTechnique.CNC_IP_SHUFFLE: f"{relative_data_path}/{afterstates_dir}/old_cnc_jakoritar_as_changeip_expfs_online_samples_2_2022-08-15-14-08_5s.csv",
+        ## nan values: MTDTechnique.CNC_IP_SHUFFLE: f"{relative_data_path}/{afterstates_dir}/cnc_backdoor_jakoritar_as_changeip_online_samples_2_2022-09-07-15-26_5s",
+        MTDTechnique.CNC_IP_SHUFFLE: f"{relative_data_path}/{afterstates_dir}/cnc_backdoor_jakoritar_as_changeip_nohup_client_online_samples_2_2022-08-24-14-41_5s.csv",
+        MTDTechnique.ROOTKIT_SANITIZER: f"{relative_data_path}/{afterstates_dir}/old_cnc_jakoritar_as_removerk_expfs_online_samples_2_2022-08-13-10-52_5s.csv",
     },
     Behavior.ROOTKIT_BEURK: {
-        MTDTechnique.RANSOMWARE_DIRTRAP: f"data/{afterstates_dir}/rootkit_beurk_as_dirtrap_online_samples_2_2022-09-10-18-10_5s.csv",
-        MTDTechnique.RANSOMWARE_FILE_EXT_HIDE: f"data/{afterstates_dir}/rootkit_beurk_as_filetypes_online_samples_2_2022-09-11-18-07_5s.csv",
-        MTDTechnique.CNC_IP_SHUFFLE: f"data/{afterstates_dir}/rootkit_beurk_as_changeip_online_samples_2_2022-09-09-14-27_5s.csv",
-        MTDTechnique.ROOTKIT_SANITIZER: f"data/{afterstates_dir}/rootkit_beurk_as_removerk_online_samples_2_2022-09-10-09-51_5s.csv"
+        MTDTechnique.RANSOMWARE_DIRTRAP: f"{relative_data_path}/{afterstates_dir}/rootkit_beurk_as_dirtrap_online_samples_2_2022-09-10-18-10_5s.csv",
+        MTDTechnique.RANSOMWARE_FILE_EXT_HIDE: f"{relative_data_path}/{afterstates_dir}/rootkit_beurk_as_filetypes_online_samples_2_2022-09-11-18-07_5s.csv",
+        MTDTechnique.CNC_IP_SHUFFLE: f"{relative_data_path}/{afterstates_dir}/rootkit_beurk_as_changeip_online_samples_2_2022-09-09-14-27_5s.csv",
+        MTDTechnique.ROOTKIT_SANITIZER: f"{relative_data_path}/{afterstates_dir}/rootkit_beurk_as_removerk_online_samples_2_2022-09-10-09-51_5s.csv"
     },
     Behavior.CNC_THETICK: {
-        MTDTechnique.RANSOMWARE_DIRTRAP: f"data/{afterstates_dir}/cnc_thetick_as_dirtrap_online_samples_2_2022-09-13-08-15_5s.csv",
-        MTDTechnique.RANSOMWARE_FILE_EXT_HIDE: f"data/{afterstates_dir}/cnc_thetick_as_filetypes_online_samples_2_2022-09-13-14-11_5s.csv",
-        MTDTechnique.CNC_IP_SHUFFLE: f"data/{afterstates_dir}/cnc_thetick_as_changeip_online_samples_2_2022-09-13-21-10_5s.csv",
-        MTDTechnique.ROOTKIT_SANITIZER: f"data/{afterstates_dir}/cnc_thetick_as_removerk_online_samples_2_2022-09-12-14-07_5s.csv",
+        MTDTechnique.RANSOMWARE_DIRTRAP: f"{relative_data_path}/{afterstates_dir}/cnc_thetick_as_dirtrap_online_samples_2_2022-09-13-08-15_5s.csv",
+        MTDTechnique.RANSOMWARE_FILE_EXT_HIDE: f"{relative_data_path}/{afterstates_dir}/cnc_thetick_as_filetypes_online_samples_2_2022-09-13-14-11_5s.csv",
+        MTDTechnique.CNC_IP_SHUFFLE: f"{relative_data_path}/{afterstates_dir}/cnc_thetick_as_changeip_online_samples_2_2022-09-13-21-10_5s.csv",
+        MTDTechnique.ROOTKIT_SANITIZER: f"{relative_data_path}/{afterstates_dir}/cnc_thetick_as_removerk_online_samples_2_2022-09-12-14-07_5s.csv",
     },
     Behavior.CNC_OPT1: {
-        MTDTechnique.RANSOMWARE_DIRTRAP: f"data/{afterstates_dir}/cnc_opt_1_file_extr_as_dirtrap_online_samples_2_2022-09-21-14-33_5s.csv",
-        MTDTechnique.RANSOMWARE_FILE_EXT_HIDE: f"data/{afterstates_dir}/cnc_opt_1_file_extr_as_filetypes_online_samples_2_2022-09-25-09-20_5s.csv",
-        MTDTechnique.CNC_IP_SHUFFLE: f"data/{afterstates_dir}/cnc_opt_1_file_extr_as_changeip_online_samples_2_2022-09-20-21-40_5s.csv",
-        MTDTechnique.ROOTKIT_SANITIZER: f"data/{afterstates_dir}/cnc_opt_1_file_extr_as_removerk_online_samples_2_2022-09-21-08-19_5s.csv",
+        MTDTechnique.RANSOMWARE_DIRTRAP: f"{relative_data_path}/{afterstates_dir}/cnc_opt_1_file_extr_as_dirtrap_online_samples_2_2022-09-21-14-33_5s.csv",
+        MTDTechnique.RANSOMWARE_FILE_EXT_HIDE: f"{relative_data_path}/{afterstates_dir}/cnc_opt_1_file_extr_as_filetypes_online_samples_2_2022-09-25-09-20_5s.csv",
+        MTDTechnique.CNC_IP_SHUFFLE: f"{relative_data_path}/{afterstates_dir}/cnc_opt_1_file_extr_as_changeip_online_samples_2_2022-09-20-21-40_5s.csv",
+        MTDTechnique.ROOTKIT_SANITIZER: f"{relative_data_path}/{afterstates_dir}/cnc_opt_1_file_extr_as_removerk_online_samples_2_2022-09-21-08-19_5s.csv",
     },
     Behavior.CNC_OPT2: {
-        MTDTechnique.RANSOMWARE_DIRTRAP: f"data/{afterstates_dir}/cnc_opt_2_sysinfo_as_dirtrap_online_samples_2_2022-09-22-20-22_5s.csv",
-        MTDTechnique.RANSOMWARE_FILE_EXT_HIDE: f"data/{afterstates_dir}/cnc_opt_2_sysinfo_as_filetypes_online_samples_2_2022-09-22-16-11_5s.csv",
-        MTDTechnique.CNC_IP_SHUFFLE: f"data/{afterstates_dir}/cnc_opt_2_sysinfo_as_changeip_online_samples_2_2022-09-23-19-30_5s.csv",
-        MTDTechnique.ROOTKIT_SANITIZER: f"data/{afterstates_dir}/cnc_opt_2_sysinfo_as_removerk_online_samples_2_2022-09-23-08-14_5s.csv"
+        MTDTechnique.RANSOMWARE_DIRTRAP: f"{relative_data_path}/{afterstates_dir}/cnc_opt_2_sysinfo_as_dirtrap_online_samples_2_2022-09-22-20-22_5s.csv",
+        MTDTechnique.RANSOMWARE_FILE_EXT_HIDE: f"{relative_data_path}/{afterstates_dir}/cnc_opt_2_sysinfo_as_filetypes_online_samples_2_2022-09-22-16-11_5s.csv",
+        MTDTechnique.CNC_IP_SHUFFLE: f"{relative_data_path}/{afterstates_dir}/cnc_opt_2_sysinfo_as_changeip_online_samples_2_2022-09-23-19-30_5s.csv",
+        MTDTechnique.ROOTKIT_SANITIZER: f"{relative_data_path}/{afterstates_dir}/cnc_opt_2_sysinfo_as_removerk_online_samples_2_2022-09-23-08-14_5s.csv"
     }
 
 }
@@ -268,10 +270,10 @@ class DataProvider:
                       keep_status_columns=False,
                       exclude_cols=True) -> pd.DataFrame:
         normal_paths = [
-            f"data/{decision_states_dir}/normal_noexpfs_online_samples_1_2022-08-15-14-07_5s.csv",
-            f"data/{decision_states_dir}/normal_expfs_online_samples_1_2022-08-18-08-31_5s.csv",
-            f"data/{decision_states_dir}/incompl_installs_normal_online_samples_1_2022-08-02-20-36_5s.csv",
-            f"data/{decision_states_dir}/incompl_installs_normal_online_samples_1_ssh_conn_open_2022-08-02-15-51_5s.csv"
+            f"{relative_data_path}/{decision_states_dir}/normal_noexpfs_online_samples_1_2022-08-15-14-07_5s.csv",
+            f"{relative_data_path}/{decision_states_dir}/normal_expfs_online_samples_1_2022-08-18-08-31_5s.csv",
+            f"{relative_data_path}/{decision_states_dir}/incompl_installs_normal_online_samples_1_2022-08-02-20-36_5s.csv",
+            f"{relative_data_path}/{decision_states_dir}/incompl_installs_normal_online_samples_1_ssh_conn_open_2022-08-02-15-51_5s.csv"
         ]
         full_df = pd.DataFrame()
         for i, norm_p in enumerate(normal_paths):
@@ -435,6 +437,7 @@ class DataProvider:
         Either decision states or raw behaviors can be utilized (decision flag) as no combinations
         with mtd need to be considered
         """
+        print(os.getcwd())
         rdf = DataProvider.parse_no_mtd_behavior_data(decision=decision, pi=pi, filter_outliers=False)
 
         # take split of all behaviors, concat, calc scaling, scale both train and test split

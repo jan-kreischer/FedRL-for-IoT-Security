@@ -1,8 +1,8 @@
 import numpy as np
-from autoencoder import AutoEncoder, AutoEncoderInterpreter
+from src.autoencoder import AutoEncoder, AutoEncoderInterpreter
 import torch
-from utils.evaluation_utils import calculate_metrics, check_anomalous
-from custom_types import Behavior, MTDTechnique
+from src.evaluation_utils import calculate_metrics, check_anomalous
+from src.custom_types import Behavior, MTDTechnique
 from tabulate import tabulate
 
 

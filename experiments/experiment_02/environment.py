@@ -1,7 +1,7 @@
 from typing import Dict, Tuple, List
 from collections import defaultdict
-from custom_types import Behavior, MTDTechnique, actions, supervisor_map
-from autoencoder import AutoEncoderInterpreter
+from src.custom_types import Behavior, MTDTechnique, actions, supervisor_map
+from src.autoencoder import AutoEncoderInterpreter
 from scipy import stats
 from tabulate import tabulate
 import torch
