@@ -1,6 +1,7 @@
 from typing import Dict
 from custom_types import Behavior
 from scipy import stats
+from tabulate import tabulate
 import numpy as np
 import pandas as pd
 import os
@@ -70,6 +71,24 @@ class EpisodeGenerator:
         full_df.to_csv(file_name, index_label=False)
         return full_df
 
+    @staticmethod
+    def show_data_availability(raw=False):
+        all_data = EpisodeGenerator.parse_all_files_to_df(filter_outliers=not raw, filter_suspected_external_events=not raw)
+        print(f'Total data points: {len(all_data)}')
+        drop_cols = [col for col in list(all_data) if col not in ['attack', 'block:block_bio_backmerge']]
+        grouped = all_data.drop(drop_cols, axis=1).rename(columns={'block:block_bio_backmerge': 'count'}).groupby(
+            ['attack'], as_index=False).count()
+        labels = ['Behavior', 'Count']
+        rows = []
+        for behavior in Behavior:
+            row = [behavior.value]
+            cnt_row = grouped.loc[(grouped['attack'] == behavior.value)]
+            row += [cnt_row['count'].iloc[0]]
+            rows.append(row)
+        print(tabulate(
+            rows, headers=labels, tablefmt="pretty"))
+
+
 
 
     @staticmethod
@@ -77,5 +96,6 @@ class EpisodeGenerator:
         pass
 
 if __name__ == "__main__":
-    all_data = EpisodeGenerator.parse_all_files_to_df()
-    print(all_data.shape)
+    #all_data = EpisodeGenerator.parse_all_files_to_df()
+    #print(all_data.shape)
+    EpisodeGenerator.show_data_availability()
