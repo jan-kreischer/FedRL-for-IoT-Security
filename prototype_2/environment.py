@@ -46,6 +46,7 @@ class SensorEnvironment:
         behavior_data = self.train_data[b]
         return behavior_data[np.random.randint(behavior_data.shape[0], size=1), :]
 
+    # TODO: implement use of autoencoder here
     def step(self, action: int):
 
         current_behaviour = self.current_state.squeeze()[-1]
