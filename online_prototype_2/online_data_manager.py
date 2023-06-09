@@ -19,7 +19,7 @@ all_zero_columns = ["alarmtimer:alarmtimer_fired", "alarmtimer:alarmtimer_start"
 
 class DataManager:
     @staticmethod
-    def parse_file_to_df(file_name, filter_suspected_external_events=True,
+    def __parse_file_to_df(file_name, filter_suspected_external_events=True,
                               filter_constant_columns=True,
                               filter_outliers=True,
                               keep_status_columns=False) -> pd.DataFrame:
@@ -47,8 +47,8 @@ class DataManager:
         return df
 
     @staticmethod
-    def get_scale_and_pca_transformed_data():
-        data = DataManager.parse_file_to_df().to_numpy()
+    def get_scale_and_pca_transformed_data(file_name):
+        data = DataManager.__parse_file_to_df(file_name).to_numpy()
         scaler = joblib.load('scaler.gz')
         pca = joblib.load('pcafit.gz')
         return pca.transform(scaler.transform(data))
