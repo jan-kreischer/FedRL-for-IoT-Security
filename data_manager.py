@@ -151,7 +151,7 @@ class DataManager:
             test_bdata[b] = d_test
             if b != Behavior.NORMAL:
                 train = np.vstack((train, d_train))
-            #test = np.vstack((test, d_test))
+                #test = np.vstack((test, d_test))
 
         # fit scaler on all training data combined
         scaler = StandardScaler() if not scaling_minmax else MinMaxScaler()

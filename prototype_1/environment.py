@@ -15,7 +15,7 @@ actions = (MTDTechnique.CNC_IP_SHUFFLE, MTDTechnique.ROOTKIT_SANITIZER,
            MTDTechnique.RANSOMWARE_DIRTRAP, MTDTechnique.RANSOMWARE_FILE_EXT_HIDE)
 
 supervisor_map: Dict[int, Tuple[Behavior]] = defaultdict(lambda: -1, {
-    #MTDTechnique.NO_MTD: (Behavior.NORMAL,),
+    # MTDTechnique.NO_MTD: (Behavior.NORMAL,),
     0: (Behavior.CNC_BACKDOOR_JAKORITAR, Behavior.CNC_THETICK),
     1: (Behavior.ROOTKIT_BDVL, Behavior.ROOTKIT_BEURK),
     2: (Behavior.RANSOMWARE_POC,),
@@ -23,28 +23,27 @@ supervisor_map: Dict[int, Tuple[Behavior]] = defaultdict(lambda: -1, {
 })
 
 
-
-
 # handles the supervised, online-simulation of episodes
 class SensorEnvironment:
 
-    def __init__(self, all_data: Dict[Behavior, np.ndarray] = None, monitor=None):
-        self.data = all_data
+    def __init__(self, train_data: Dict[Behavior, np.ndarray] = None, test_data: Dict[Behavior, np.ndarray] = None,
+                 monitor=None):
+        self.train_data = train_data
+        self.test_data = test_data
         self.monitor = monitor
-        self.current_state: pd.DataFrame = None
-        self.observation_space_size: int = len(self.data[Behavior.RANSOMWARE_POC][0][:-1])
+        self.current_state: np.array = None
+        self.observation_space_size: int = len(self.train_data[Behavior.RANSOMWARE_POC][0][:-1])
         self.actions: List[int] = [i for i in range(len(actions))]
-
 
     def sample_random_attack_state(self):
         """i.e. for starting state of an episode,
         (with replacement; it is possible that the same sample is chosen multiple times)"""
         rb = random.choice([b for b in Behavior if b != Behavior.NORMAL])
-        attack_data = self.data[rb]
+        attack_data = self.train_data[rb]
         return attack_data[np.random.randint(attack_data.shape[0], size=1), :]
 
     def sample_behaviour(self, b: Behavior):
-        behavior_data = self.data[b]
+        behavior_data = self.train_data[b]
         return behavior_data[np.random.randint(behavior_data.shape[0], size=1), :]
 
     def step(self, action: int):
@@ -52,12 +51,12 @@ class SensorEnvironment:
         current_behaviour = self.current_state.squeeze()[-1]
         if self.monitor is None:
             if current_behaviour in supervisor_map[action]:
-                #print("correct mtd chosen according to supervisor")
+                # print("correct mtd chosen according to supervisor")
                 new_state = self.sample_behaviour(Behavior.NORMAL)
                 reward = self.calculate_reward(True)
                 isTerminalState = True
             else:
-                #print("incorrect mtd chosen according to supervisor")
+                # print("incorrect mtd chosen according to supervisor")
                 new_state = self.sample_behaviour(current_behaviour)
                 reward = self.calculate_reward(False)
                 isTerminalState = False
@@ -75,9 +74,6 @@ class SensorEnvironment:
         self.reward = 0
         self.done = False
         return self.current_state
-
-
-
 
     # TODO: possibly adapt to distinguish between MTDs that are particularly wasteful in case of wrong deployment
     def calculate_reward(self, success):
