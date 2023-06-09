@@ -1,23 +1,37 @@
 import os
 
 from custom_types import Behavior, RaspberryPi
-from data_plotter import DataPlotter
+from data_plotting import DataPlotter
 
-plot_kde = True
+plot_kde = False
 plot_timeline = True
 
 if __name__ == "__main__":
-    os.chdir("..")
-    if plot_kde:
+    if plot_kde:pass
         #DataPlotter.plot_delay_and_normal_as_kde()
         #DataPlotter.plot_behaviors_as_kde()
-        DataPlotter.plot_devices_as_kde_pub()
+        #DataPlotter.plot_devices_as_kde_pub()
     if plot_timeline:
-        DataPlotter.plot_behaviors_pub(
-            [(RaspberryPi.PI3_1GB, Behavior.NORMAL, "red"),
-             (RaspberryPi.PI4_2GB_WC, Behavior.NORMAL, "blue"),
-             (RaspberryPi.PI4_2GB_BC, Behavior.NORMAL, "orange"),
-             (RaspberryPi.PI4_4GB, Behavior.NORMAL, "green")], plot_name="normal_behavior_device_comparison")
+        DataPlotter.plot_behaviors(#_pub(
+            [(RaspberryPi.PI4_2GB_WC, Behavior.NORMAL, "blue"),
+             (RaspberryPi.PI4_2GB_WC, Behavior.ROOTKIT_BDVL, "orange"),
+             (RaspberryPi.PI4_2GB_WC, Behavior.ROOTKIT_BEURK, "green"),
+             #(RaspberryPi.PI4_2GB_WC, Behavior.CNC_THETICK, "yellow"),
+             #(RaspberryPi.PI4_2GB_WC, Behavior.CNC_BACKDOOR_JAKORITAR, "cyan"),
+             #(RaspberryPi.PI4_2GB_WC, Behavior.RANSOMWARE_POC, "black")
+             ], plot_name="normal_rootkit_pi_4_2gb_histogram")
+
+        DataPlotter.plot_behaviors(  # _pub(
+            [(RaspberryPi.PI4_2GB_WC, Behavior.NORMAL, "blue"),
+             (RaspberryPi.PI4_2GB_WC, Behavior.CNC_THETICK, "yellow"),
+             (RaspberryPi.PI4_2GB_WC, Behavior.CNC_BACKDOOR_JAKORITAR, "cyan"),
+             ], plot_name="normal_cnc_pi_4_2gb_histogram")
+
+        DataPlotter.plot_behaviors(  # _pub(
+            [(RaspberryPi.PI4_2GB_WC, Behavior.NORMAL, "blue"),
+             (RaspberryPi.PI4_2GB_WC, Behavior.RANSOMWARE_POC, "black"),
+             ], plot_name="normal_ransom_pi_4_2gb_histogram")
+
         #
         # DataPlotter.plot_behaviors(
         #     [(RaspberryPi.PI4_2GB_WC, Behavior.HOP, "darkred"),

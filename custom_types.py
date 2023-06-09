@@ -1,6 +1,10 @@
 from enum import Enum
 
 
+class RaspberryPi(Enum):
+    PI4_2GB_WC = "pi_4_2gb"
+    PI3_1GB = "pi_3_1gb"
+
 class Behavior(Enum):
     NORMAL = "normal"
     ROOTKIT_BDVL = "bdvl"

@@ -4,8 +4,6 @@ from data_provider import DataProvider, time_status_columns, all_zero_columns
 from custom_types import Behavior
 
 
-
-
 def show_data_availability(raw=False):
     all_data = DataProvider.parse_all_files_to_df(filter_outliers=not raw,
                                                   filter_suspected_external_events=not raw)

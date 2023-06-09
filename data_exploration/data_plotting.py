@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from math import ceil
 
-from custom_types import Behavior
+from custom_types import Behavior, RaspberryPi
 from data_provider import DataProvider
 
 
@@ -17,10 +17,10 @@ class DataPlotter:
         max_number_of_samples = 0
         for behavior in behaviors:
             df_behavior = all_data_parsed.loc[
-                (all_data_parsed['attack'] == behavior[1].value) & (all_data_parsed['device'] == behavior[0].value)]
+                (all_data_parsed['attack'] == behavior[1].value) ]#& (all_data_parsed['device'] == behavior[0].value)]
             if len(df_behavior) > max_number_of_samples:
                 max_number_of_samples = len(df_behavior)
-        cols_to_plot = [col for col in all_data_parsed if col not in ['device', 'attack']]
+        cols_to_plot = [col for col in all_data_parsed if col not in ['attack']]
 
         fig, axs = plt.subplots(nrows=ceil(len(cols_to_plot) / 4), ncols=4)
         axs = axs.ravel().tolist()
@@ -30,7 +30,7 @@ class DataPlotter:
         for i in range(len(cols_to_plot)):
             for device, behavior, line_color in behaviors:
                 df_b = all_data_parsed.loc[
-                    (all_data_parsed['attack'] == behavior.value) & (all_data_parsed['device'] == device.value)]
+                    (all_data_parsed['attack'] == behavior.value) ]#& (all_data_parsed['device'] == device.value)]
                 xes_b = [i for i in range(max_number_of_samples)]
                 ys_actual_b = df_b[cols_to_plot[i]].tolist()
                 ys_upsampled_b = [ys_actual_b[i % len(ys_actual_b)] for i in range(max_number_of_samples)]
@@ -46,15 +46,15 @@ class DataPlotter:
     @staticmethod
     def plot_behaviors_pub(behaviors: List[Tuple[RaspberryPi, Behavior, str]], plot_name: Union[str, None] = None):
         # first find max number of samples
-        all_data_parsed = DataHandler.parse_all_files_to_df(filter_outliers=False,
+        all_data_parsed = DataProvider.parse_all_files_to_df(filter_outliers=False,
                                                             filter_suspected_external_events=False)
         max_number_of_samples = 0
         for behavior in behaviors:
             df_behavior = all_data_parsed.loc[
-                (all_data_parsed['attack'] == behavior[1].value) & (all_data_parsed['device'] == behavior[0].value)]
+                (all_data_parsed['attack'] == behavior[1].value)] #& (all_data_parsed['device'] == behavior[0].value)]
             if len(df_behavior) > max_number_of_samples:
                 max_number_of_samples = len(df_behavior)
-        cols_to_plot = [col for col in all_data_parsed if col not in ['device', 'attack']]
+        cols_to_plot = [col for col in all_data_parsed if col not in ['attack']]
 
         fig, axs = plt.subplots(nrows=ceil(len(cols_to_plot) / 4), ncols=4)
         axs = axs.ravel().tolist()
@@ -65,15 +65,14 @@ class DataPlotter:
         for i in range(len(cols_to_plot)):
             for device, behavior, line_color in behaviors:
                 df_b = all_data_parsed.loc[
-                    (all_data_parsed['attack'] == behavior.value) & (all_data_parsed['device'] == device.value)]
+                    (all_data_parsed['attack'] == behavior.value)] #& (all_data_parsed['device'] == device.value)]
                 xes_b = [i for i in range(max_number_of_samples)]
                 ys_actual_b = df_b[cols_to_plot[i]].tolist()
                 ys_upsampled_b = [ys_actual_b[i % len(ys_actual_b)] for i in range(max_number_of_samples)]
                 axs[i].set_yscale('log')
-                label = "RP3" if device == RaspberryPi.PI3_1GB else "RP4_1" if device == RaspberryPi.PI4_2GB_WC else \
-                    "RP4_2" if device == RaspberryPi.PI4_2GB_BC else "RP_4"
-                axs[i].plot(xes_b, ys_upsampled_b, color=line_color, label=(label + " " + behavior.value))
-            # axs[i].set_title(cols_to_plot[i], fontsize='xx-large') # remove title
+                label = "RP3" if device == RaspberryPi.PI3_1GB else "RP4"
+                axs[i].plot(xes_b, ys_upsampled_b, color=line_color, label=(label + " " + str(behavior.value)))
+            axs[i].set_title(cols_to_plot[i], fontsize='xx-large')
             axs[i].set_ylabel("log features")
             axs[i].set_xlabel("time steps")
             axs[i].legend(title='Device & Behavior')
