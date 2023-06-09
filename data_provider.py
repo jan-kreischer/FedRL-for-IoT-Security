@@ -42,7 +42,8 @@ decision_states_file_paths: Dict[Behavior, str] = {
     Behavior.RANSOMWARE_POC: f"data/{decision_states_dir}/ransom_noexpfs_online_samples_1_2022-08-16-08-43_5s",
     Behavior.ROOTKIT_BDVL: f"data/{decision_states_dir}/rootkit_bdvl_online_samples_1_2022-08-12-16-40_5s",
     # Behavior.CNC_BACKDOOR_JAKORITAR: f"data/{decision_states_dir}/cnc_jakoritar_online_samples_1_2022-08-13-06-50_5s"
-    Behavior.CNC_BACKDOOR_JAKORITAR: f"data/{decision_states_dir}/cnc_backdoor_jakoritar_noexpfs_online_samples_1_2022-08-22-09-09_5s"
+    # Behavior.CNC_BACKDOOR_JAKORITAR: f"data/{decision_states_dir}/cnc_backdoor_jakoritar_good_noexpfs_online_samples_1_2022-08-22-09-09_5s",
+    Behavior.CNC_BACKDOOR_JAKORITAR: f"data/{decision_states_dir}/cnc_backdoor_jakoritar_new_online_samples_1_2022-09-06-15-29_5s"
 }
 afterstate = "after"
 afterstates_dir = "afterstates_online_agent"
@@ -66,10 +67,14 @@ afterstates_file_paths: Dict[Behavior, Dict[MTDTechnique, str]] = {
         MTDTechnique.ROOTKIT_SANITIZER: f"data/{afterstates_dir}/rootkit_bdvl_as_removerk_noexpfs_online_samples_2_2022-08-13-06-02_5s"
     },
     Behavior.CNC_BACKDOOR_JAKORITAR: {
-        MTDTechnique.RANSOMWARE_DIRTRAP: f"data/{afterstates_dir}/cnc_jakoritar_as_dirtrap_expfs_online_samples_2_2022-08-15-08-59_5s",
-        MTDTechnique.RANSOMWARE_FILE_EXT_HIDE: f"data/{afterstates_dir}/cnc_jakoritar_as_filetypes_noexpfs_online_samples_2_2022-08-15-09-23_5s",
-        MTDTechnique.CNC_IP_SHUFFLE: f"data/{afterstates_dir}/cnc_jakoritar_as_changeip_expfs_online_samples_2_2022-08-15-14-08_5s",
-        MTDTechnique.ROOTKIT_SANITIZER: f"data/{afterstates_dir}/cnc_jakoritar_as_removerk_expfs_online_samples_2_2022-08-13-10-52_5s",
+        #MTDTechnique.RANSOMWARE_DIRTRAP: f"data/{afterstates_dir}/old_cnc_jakoritar_as_dirtrap_expfs_online_samples_2_2022-08-15-08-59_5s",
+        MTDTechnique.RANSOMWARE_DIRTRAP: f"data/{afterstates_dir}/cnc_backdoor_jakoritar_as_dirtrap_online_samples_2_2022-09-07-09-06_5s",
+        #MTDTechnique.RANSOMWARE_FILE_EXT_HIDE: f"data/{afterstates_dir}/old_cnc_jakoritar_as_filetypes_noexpfs_online_samples_2_2022-08-15-09-23_5s",
+        MTDTechnique.RANSOMWARE_FILE_EXT_HIDE: f"data/{afterstates_dir}/cnc_backdoor_jakoritar_as_filetypes_online_samples_2_2022-09-06-20-14_5s",
+        # MTDTechnique.CNC_IP_SHUFFLE: f"data/{afterstates_dir}/old_cnc_jakoritar_as_changeip_expfs_online_samples_2_2022-08-15-14-08_5s",
+        # MTDTechnique.CNC_IP_SHUFFLE: f"data/{afterstates_dir}/cnc_backdoor_jakoritar_as_changeip_online_samples_2_2022-09-07-15-26_5s",
+        MTDTechnique.CNC_IP_SHUFFLE: f"data/{afterstates_dir}/cnc_backdoor_jakoritar_as_changeip_nohup_client_online_samples_2_2022-08-24-14-41_5s",
+        MTDTechnique.ROOTKIT_SANITIZER: f"data/{afterstates_dir}/old_cnc_jakoritar_as_removerk_expfs_online_samples_2_2022-08-13-10-52_5s",
     }
 }
 

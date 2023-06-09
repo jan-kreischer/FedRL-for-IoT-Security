@@ -58,7 +58,7 @@ if __name__ == '__main__':
     # evaluate_all_as_ae_models(dtrain_rl, atrain_rl, dims=DIMS, dir=dir)
 
     # MODEL trained on all ds and as normal data assumes the least -> MOST REALISTIC
-    pretrain_all_ds_as_ae_models(ae_ds_train, ae_train_dict)
+    # pretrain_all_ds_as_ae_models(ae_ds_train, ae_train_dict)
     print("Evaluating AE trained on all decision and afterstates normal")
     path = dir + "ae_model_all_ds_as.pth"
     ae_interpreter = get_pretrained_ae(path=path, dims=DIMS)
