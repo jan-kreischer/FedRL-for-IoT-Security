@@ -567,3 +567,18 @@ class DataProvider:
         # df['max_loading_score'] = df.apply(maxCol, axis=1)
         sorted_pc = df.loc[pcn].reindex(df.loc[pcn].abs().sort_values(ascending=False).index)
         return sorted_pc
+
+    @staticmethod
+    def split_ds_data_for_ae_and_rl(dtrain, n=200):
+        normal_data = dtrain[Behavior.NORMAL]
+        dtrain[Behavior.NORMAL] = normal_data[:n]
+        return normal_data[n:], dtrain
+
+    @staticmethod
+    def split_as_data_for_ae_and_rl(train_data, n=200):
+        ae_dict = {}
+        for mtd in MTDTechnique:
+            normal_mtd_train = train_data[(Behavior.NORMAL, mtd)]
+            train_data[(Behavior.NORMAL, mtd)] = normal_mtd_train[:n]
+            ae_dict[mtd] = normal_mtd_train[n:]
+        return ae_dict, train_data
