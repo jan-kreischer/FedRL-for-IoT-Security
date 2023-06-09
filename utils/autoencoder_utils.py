@@ -85,7 +85,7 @@ def evaluate_ae_on_afterstates(ae_interpreter: AutoEncoderInterpreter, test_data
         y_predicted = ae_interpreter.predict(test_data[t][:, :-2].astype(np.float32))
 
         acc, f1, conf_mat = calculate_metrics(y_test.flatten(), y_predicted.flatten().numpy())
-        res_dict[t] = f'{(100 * acc):.2f}, {"anomaly" if isAnomaly else "normal"}%'
+        res_dict[t] = f'{(100 * acc):.2f}%, {"anomaly" if isAnomaly else "normal"}'
     labels = ["Behavior", "MTD", "Accuracy", "Objective"]
     results = []
     for t, a in res_dict.items():
