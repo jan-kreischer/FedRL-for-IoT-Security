@@ -4,12 +4,15 @@ import subprocess
 import psutil
 from abc import ABC, abstractmethod
 from online_data_manager import DataManager
+from anomaly_detector import AutoEncoderInterpreter
+import torch
 
 
 # TODO: make abstract (template method pattern) in case of multiple online methods
 class OnlineRL():
     monitor_counter = 0
     start_str_datafile = "online_samples_"
+    #start_str_datafile = "normal_samples_"
 
     def __init__(self):
         pass
@@ -88,7 +91,7 @@ def kill(pid):
 
 if __name__ == '__main__':
     # TODO:
-    #  call monitoring, or at least read data -> last 10 samples
+    #  call monitoring, or at least read data -> last 10 samples (180s!)
     #  call AD/pretrained AE network and get results
     #  call DQN if anomaly is flagged, else wait till next monitoring (every hour?)
     #  call the MTD deployerframework with the MTD matching the action
@@ -99,7 +102,40 @@ if __name__ == '__main__':
 
     controller = OnlineRL()
 
-    # testing
+    # uncomment before moving online
     # controller.monitor(180)
-    OnlineRL.monitor_counter += 1
-    controller.read_data()
+    OnlineRL.monitor_counter += 3
+    # read the monitored data from file and apply all preset scalings and transforms
+    data = controller.read_data()
+
+    # run data through pretrained anomaly detector
+    pretrained_model = torch.load("autoencoder_model.pth")
+    ae_interpreter = AutoEncoderInterpreter(pretrained_model['model_state_dict'],
+                                            pretrained_model['threshold'], in_features=data.shape[1])
+    #print(f"ae_interpreter threshold: {ae_interpreter.threshold}")
+    flagged_anomalies = ae_interpreter.predict(data)
+    print(flagged_anomalies)
+
+    # TODO: options:
+    # - improve the accuracy of the anomaly detector
+    # -> 1. change testdata: closing shh session in normal monitor -> python script call with nohup
+    # TODO:compare data monitored offline and via this script for differences, exclude features? more pcs?
+
+    # ---> flagged all as anomaly - conclusion: process python3 main.py mainly influences the normal behavior
+    # -> 2. change traindata: retrain agent on more realistic data
+    # ---> during monitoring python main.py must run in a similar stack situation
+
+    # dependent on flagged majority deploy MTD or not
+    # in case of majority abnormal
+    if torch.sum(flagged_anomalies) / len(flagged_anomalies) > 0.5:
+        #raise UserWarning("Should not happen! AE fails to predict majority of normal samples")
+        controller.dqn_predict()
+    else:
+        # do nothing until next monitoring loop
+        pass
+
+
+
+
+
+

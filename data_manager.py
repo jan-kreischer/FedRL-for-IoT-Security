@@ -191,11 +191,11 @@ class DataManager:
             pca_test[b] = np.hstack((pca.transform(d[:, :-1]), np.expand_dims(d[:, -1], axis=1)))
 
         scaler_file, pca_file = "scaler.gz", "pcafit.gz"
+
         if not os.path.isfile(scaler_file):
             joblib.dump(scaler, scaler_file)
         if not os.path.isfile(pca_file):
             joblib.dump(pca, pca_file)
-
 
         return pca_train, pca_test
 
@@ -231,14 +231,15 @@ class DataManager:
     @staticmethod
     def get_pca_loading_scores_dataframe(n=15):
         pca = DataManager.fit_pca(n)
-        loadings = pd.DataFrame(pca.components_, columns=pd.read_csv(data_file_paths[Behavior.CNC_BACKDOOR_JAKORITAR]).drop(
+        loadings = pd.DataFrame(pca.components_,
+                                columns=pd.read_csv(data_file_paths[Behavior.CNC_BACKDOOR_JAKORITAR]).drop(
                                     time_status_columns, axis=1).drop(all_zero_columns, axis=1).columns,
-                                index=["PC" + str(i) for i in range(1, n+1)])
+                                index=["PC" + str(i) for i in range(1, n + 1)])
         return loadings
 
     @staticmethod
     def get_highest_weight_loading_scores_for_pc(n_pcs=15, pcn="PC1"):
-        #maxCol = lambda x: max(x.min(), x.max(), key=abs)
+        # maxCol = lambda x: max(x.min(), x.max(), key=abs)
         df = DataManager.get_pca_loading_scores_dataframe(n_pcs)
         # df['max_loading_score'] = df.apply(maxCol, axis=1)
         sorted_pc = df.loc[pcn].reindex(df.loc[pcn].abs().sort_values(ascending=False).index)
