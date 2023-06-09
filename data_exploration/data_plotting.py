@@ -120,7 +120,7 @@ class DataPlotter:
             fig.savefig(f'data_exploration/data_plot_{plot_name}.png', dpi=100)
 
     @staticmethod
-    def plot_normals_kde(plot_name,num_behaviors=4, colors=["green", "red", "blue", "violet"]):
+    def plot_normals_kde(plot_name, num_behaviors=4, colors=["green", "red", "blue", "violet"]):
         ndata = DataProvider.parse_normals(filter_outliers=False,
                                            filter_suspected_external_events=False)
         print(len(ndata))
@@ -155,10 +155,10 @@ class DataPlotter:
 
     @staticmethod
     def plot_behaviors(behaviors: List[Tuple[RaspberryPi, Behavior, str]], raw_behaviors: bool = True,
-                       plot_name: Union[str, None] = None):
+                       plot_name: Union[str, None] = None, pi=3):
 
         all_data_parsed = DataProvider.parse_raw_behavior_files_to_df(filter_outliers=False,
-                                                                      filter_suspected_external_events=False)
+                                                                      filter_suspected_external_events=False, pi=pi)
         # first find max number of samples
         max_number_of_samples = 0
         for behavior in behaviors:
@@ -197,9 +197,9 @@ class DataPlotter:
 
     @staticmethod
     def plot_devices_as_kde(device: RaspberryPi):
-
+        pi = 4 if device == RaspberryPi.PI4_2GB_WC else 3
         plot_name = f"all_behaviors_{device.value}_kde"
-        all_data_parsed = DataProvider.parse_raw_behavior_files_to_df(filter_outliers=True)
+        all_data_parsed = DataProvider.parse_raw_behavior_files_to_df(filter_outliers=True, pi=pi)
         cols_to_plot = [col for col in all_data_parsed if col not in ['attack']]
         dv = "RP3" if device == RaspberryPi.PI3_1GB else "RP4"
         all_data_parsed['Device & Behavior'] = all_data_parsed.apply(lambda row: f'{dv} {row.attack}', axis=1)
@@ -218,7 +218,7 @@ class DataPlotter:
                    f'{dv} {Behavior.CNC_THETICK.value}': "grey",
                    f'{dv} {Behavior.CNC_BACKDOOR_JAKORITAR.value}': "red"}
         for i in range(len(cols_to_plot)):
-            axs[i].set_ylim([1e-6, 2 * 1e-4])  # adapt limitations specifically for features
+            axs[i].set_ylim([1e-6, 2 * 1e-1])  # adapt limitations specifically for features
             axs[i].set_xlabel("feature range")
             axs[i].set_ylabel("density")
             for b in Behavior:
