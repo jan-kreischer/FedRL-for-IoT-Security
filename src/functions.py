@@ -75,3 +75,9 @@ def split_training_data(training_data, n_strides):
             strides[i][key] = array_split[i]
         
     return strides
+
+def split_data(data, split=0.8):
+    row = int(len(data) * split)
+    X_train = data[:row, :-1].astype(np.float32)
+    X_valid = data[row:, :-1].astype(np.float32)
+    return X_train, X_valid
