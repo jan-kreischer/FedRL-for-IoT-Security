@@ -1,7 +1,7 @@
 # FedRL for IT-Sec
 
 This work pays large tribute to Timo Schenk's work on RL based MTD deployment that can be found [here](https://github.com/Leitou/rl-based-mtd).  
-A full documentation of this work including the theoretical background can be found in the PDF report.
+A full documentation of this work including the theoretical background can be found in the [PDF-report](report.pdf).
 
 ## 1. Introduction/ Motivation
 Federated Reinforcement Learning for Private and Collaborative Selection of Moving Target Defense Mechanisms for IoT Devices Security.

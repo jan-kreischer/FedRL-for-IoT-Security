@@ -1,7 +1,6 @@
 from src.custom_types import Behavior
 
 unit_sampling_probabilities = {
-    #Behavior.NORMAL: 0,
     Behavior.ROOTKIT_BDVL: 1/7,
     Behavior.ROOTKIT_BEURK: 1/7,
     Behavior.CNC_BACKDOOR_JAKORITAR: 1/7,
@@ -12,7 +11,6 @@ unit_sampling_probabilities = {
 }
 
 regular_sampling_probabilities = {
-    #Behavior.NORMAL: 0,
     Behavior.ROOTKIT_BDVL: 0.12235818,
     Behavior.ROOTKIT_BEURK: 0.17105027,
     Behavior.CNC_BACKDOOR_JAKORITAR: 0.08568661,
@@ -23,7 +21,6 @@ regular_sampling_probabilities = {
 }
 
 inverted_sampling_probabilities = {
-    #Behavior.NORMAL: 0,
     Behavior.ROOTKIT_BDVL: 2/7 - 0.12235818,
     Behavior.ROOTKIT_BEURK: 2/7 - 0.17105027,
     Behavior.CNC_BACKDOOR_JAKORITAR: 2/7 - 0.08568661,
@@ -53,6 +50,9 @@ defense_balanced_sampling_probabilities = {
     Behavior.CNC_OPT2: 1/16,
     Behavior.RANSOMWARE_POC: 1/4
 }
+
+# ---------------------------------------
+# Client Exclusive Sampling Probabilities
 
 weak_client_exclusive_sampling_probabilities_01 = {
     #Behavior.NORMAL: 0,

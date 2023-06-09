@@ -5,25 +5,8 @@ import matplotlib.pyplot as plt
 from src.custom_types import Behavior
 
 class Experiment:
-    def __init__(self, base_path, experiment_id, experiment_version):
-        self.base_path = base_path
-        self.experiment_id = experiment_id
-        self.experiment_version = experiment_version
+    def __init__(self):
         
-    def get_experiment_path(self, overwrite=False):
-        path = os.path.join(self.base_path, f"experiments/experiment_{self.experiment_id:02d}")
-        if self.experiment_version != 0:
-            path = os.path.join(path, f"version_{self.experiment_version:02d}")
-         
-        if overwrite & os.path.exists(path):
-            shutil.rmtree(path)          
-            os.makedirs(path)
-            
-        if not os.path.exists(path):
-            os.makedirs(path)
-
-        return path
-    
     def add_server(self, server):
         self.server = server
         
@@ -36,7 +19,7 @@ class Experiment:
                 verbose=False):
         self.verbose = verbose
         if self.verbose:
-            print(f"=== STARTING EXPERIMENT {self.experiment_id}.{self.experiment_version} ===\n")
+            print(f"=== STARTING EXPERIMENT ===\n")
         self.server = server
         self.nr_rounds = nr_rounds
         self.nr_episodes_per_round = nr_episodes_per_round
