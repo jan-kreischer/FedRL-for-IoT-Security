@@ -43,7 +43,8 @@ decision_states_file_paths: Dict[Behavior, str] = {
     Behavior.ROOTKIT_BDVL: f"data/{decision_states_dir}/rootkit_bdvl_online_samples_1_2022-08-12-16-40_5s",
     # Behavior.CNC_BACKDOOR_JAKORITAR: f"data/{decision_states_dir}/cnc_jakoritar_online_samples_1_2022-08-13-06-50_5s"
     # Behavior.CNC_BACKDOOR_JAKORITAR: f"data/{decision_states_dir}/cnc_backdoor_jakoritar_good_noexpfs_online_samples_1_2022-08-22-09-09_5s",
-    Behavior.CNC_BACKDOOR_JAKORITAR: f"data/{decision_states_dir}/cnc_backdoor_jakoritar_new_online_samples_1_2022-09-06-15-29_5s"
+    Behavior.CNC_BACKDOOR_JAKORITAR: f"data/{decision_states_dir}/cnc_backdoor_jakoritar_new_online_samples_1_2022-09-06-15-29_5s",
+    Behavior.ROOTKIT_BEURK: f"data/{decision_states_dir}/rootkit_beurk_online_samples_1_2022-09-08-08-55_5s"
 }
 afterstate = "after"
 afterstates_dir = "afterstates_online_agent"
@@ -67,14 +68,20 @@ afterstates_file_paths: Dict[Behavior, Dict[MTDTechnique, str]] = {
         MTDTechnique.ROOTKIT_SANITIZER: f"data/{afterstates_dir}/rootkit_bdvl_as_removerk_noexpfs_online_samples_2_2022-08-13-06-02_5s"
     },
     Behavior.CNC_BACKDOOR_JAKORITAR: {
-        #MTDTechnique.RANSOMWARE_DIRTRAP: f"data/{afterstates_dir}/old_cnc_jakoritar_as_dirtrap_expfs_online_samples_2_2022-08-15-08-59_5s",
+        # MTDTechnique.RANSOMWARE_DIRTRAP: f"data/{afterstates_dir}/old_cnc_jakoritar_as_dirtrap_expfs_online_samples_2_2022-08-15-08-59_5s",
         MTDTechnique.RANSOMWARE_DIRTRAP: f"data/{afterstates_dir}/cnc_backdoor_jakoritar_as_dirtrap_online_samples_2_2022-09-07-09-06_5s",
-        #MTDTechnique.RANSOMWARE_FILE_EXT_HIDE: f"data/{afterstates_dir}/old_cnc_jakoritar_as_filetypes_noexpfs_online_samples_2_2022-08-15-09-23_5s",
+        # MTDTechnique.RANSOMWARE_FILE_EXT_HIDE: f"data/{afterstates_dir}/old_cnc_jakoritar_as_filetypes_noexpfs_online_samples_2_2022-08-15-09-23_5s",
         MTDTechnique.RANSOMWARE_FILE_EXT_HIDE: f"data/{afterstates_dir}/cnc_backdoor_jakoritar_as_filetypes_online_samples_2_2022-09-06-20-14_5s",
-        # MTDTechnique.CNC_IP_SHUFFLE: f"data/{afterstates_dir}/old_cnc_jakoritar_as_changeip_expfs_online_samples_2_2022-08-15-14-08_5s",
-        # MTDTechnique.CNC_IP_SHUFFLE: f"data/{afterstates_dir}/cnc_backdoor_jakoritar_as_changeip_online_samples_2_2022-09-07-15-26_5s",
+        ## very different raw syscalls: MTDTechnique.CNC_IP_SHUFFLE: f"data/{afterstates_dir}/old_cnc_jakoritar_as_changeip_expfs_online_samples_2_2022-08-15-14-08_5s",
+        ## nan values: MTDTechnique.CNC_IP_SHUFFLE: f"data/{afterstates_dir}/cnc_backdoor_jakoritar_as_changeip_online_samples_2_2022-09-07-15-26_5s",
         MTDTechnique.CNC_IP_SHUFFLE: f"data/{afterstates_dir}/cnc_backdoor_jakoritar_as_changeip_nohup_client_online_samples_2_2022-08-24-14-41_5s",
         MTDTechnique.ROOTKIT_SANITIZER: f"data/{afterstates_dir}/old_cnc_jakoritar_as_removerk_expfs_online_samples_2_2022-08-13-10-52_5s",
+    },
+    Behavior.ROOTKIT_BEURK: {
+        MTDTechnique.ROOTKIT_SANITIZER: f"data/{afterstates_dir}/rootkit_beurk_as_removerk_online_samples_2_2022-09-10-09-51_5s",
+        MTDTechnique.CNC_IP_SHUFFLE: f"data/{afterstates_dir}/rootkit_beurk_as_changeip_online_samples_2_2022-09-09-14-27_5s",
+        MTDTechnique.RANSOMWARE_DIRTRAP: f"data/{afterstates_dir}/rootkit_beurk_as_dirtrap_online_samples_2_2022-09-10-18-10_5s",
+        MTDTechnique.RANSOMWARE_FILE_EXT_HIDE: f"data/{afterstates_dir}/rootkit_beurk_as_filetypes_online_samples_2_2022-09-11-18-07_5s"
     }
 }
 
@@ -84,10 +91,11 @@ all_zero_columns = ['cpuNice', 'cpuHardIrq', 'alarmtimer:alarmtimer_fired', 'tas
                     'alarmtimer:alarmtimer_start', 'cachefiles:cachefiles_create',
                     'cachefiles:cachefiles_lookup', 'cachefiles:cachefiles_mark_active',
                     'dma_fence:dma_fence_init', 'udp:udp_fail_queue_rcv_skb']
-cols_to_exclude = ['tasks', 'tasksSleeping', 'tasksZombie',
-                   'ramFree', 'ramUsed', 'ramCache', 'memAvail', 'numEncrypted',
-                   'iface0RX', 'iface0TX', 'iface1RX', 'iface1TX'
-                   ]
+# cols_to_exclude = ['tasks', 'tasksSleeping', 'tasksZombie',
+#                    'ramFree', 'ramUsed', 'ramCache', 'memAvail', 'numEncrypted',
+#                    'iface0RX', 'iface0TX', 'iface1RX', 'iface1TX'
+#                    ]
+cols_to_exclude = []
 
 
 # 'tasksRunning', 'tasksStopped' - included in zero cols
@@ -270,7 +278,7 @@ class DataProvider:
                           keep_status_columns=False, stat_cols=time_status_columns, cols_to_exclude=cols_to_exclude):
 
         df = pd.read_csv(path)
-        assert df.isnull().values.any() == False, "behavior data should not contain NaN values"
+
 
         if filter_suspected_external_events:
             # filter first hour of samples: 3600s / 50s = 72
@@ -294,6 +302,7 @@ class DataProvider:
         if len(cols_to_exclude) > 0:
             df = df.drop(cols_to_exclude, axis=1)
 
+        assert df.isnull().values.any() == False, "behavior data should not contain NaN values"
         return df
 
     # @staticmethod

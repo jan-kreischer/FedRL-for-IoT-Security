@@ -4,7 +4,8 @@ import numpy as np
 from tqdm import tqdm
 
 
-def auto_encoder_model(in_features: int, hidden_size: int = 8):
+# TODO: adapt hidden size!
+def auto_encoder_model(in_features: int, hidden_size: int = 15):
     return nn.Sequential(
         nn.Linear(in_features, hidden_size),
         nn.BatchNorm1d(hidden_size),
@@ -38,7 +39,7 @@ class AutoEncoder():
         self.valid_loader = torch.utils.data.DataLoader(data_valid, batch_size=batch_size_valid, shuffle=True)
         self.validation_losses = []
 
-        self.model = auto_encoder_model(in_features=train_x.shape[1])
+        self.model = auto_encoder_model(in_features=train_x.shape[1], hidden_size=int(train_x.shape[1]/2))
         self.threshold = np.nan
 
     def get_model(self):
@@ -62,7 +63,7 @@ class AutoEncoder():
                 optimizer.step()
                 current_losses.append(loss.item())
             epoch_losses.append(sum(current_losses) / len(current_losses))
-            print(f'Training Loss in epoch {e + 1}: {epoch_losses[e]}')
+            # print(f'Training Loss in epoch {e + 1}: {epoch_losses[e]}')
 
     def determine_threshold(self) -> float:
         mses = []

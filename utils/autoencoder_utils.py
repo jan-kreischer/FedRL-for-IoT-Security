@@ -70,7 +70,7 @@ def pretrain_all_ds_as_ae_models(dtrain, ae_train_dict, dir="offline_prototype_3
 def get_pretrained_ae(path, dims):
     pretrained_model = torch.load(path)
     ae_interpreter = AutoEncoderInterpreter(pretrained_model['model_state_dict'],
-                                            pretrained_model['threshold'], in_features=dims)
+                                            pretrained_model['threshold'], in_features=dims, hidden_size=int(dims/2))
     print(f"ae_interpreter threshold: {ae_interpreter.threshold}")
     return ae_interpreter
 
@@ -129,7 +129,7 @@ def evaluate_all_as_ae_models(dtrain, atrain, dims, dir):
 def check_normal(b: Behavior, m: MTDTechnique):
     if b == Behavior.NORMAL:
         return 0
-    if b == Behavior.ROOTKIT_BDVL and m == MTDTechnique.ROOTKIT_SANITIZER:
+    if (b == Behavior.ROOTKIT_BDVL or b == Behavior.ROOTKIT_BEURK) and m == MTDTechnique.ROOTKIT_SANITIZER:
         return 0
     if b == Behavior.RANSOMWARE_POC and (m == MTDTechnique.RANSOMWARE_DIRTRAP or m == MTDTechnique.RANSOMWARE_FILE_EXT_HIDE):
         return 0
