@@ -31,7 +31,7 @@ class DataManager:
     def parse_all_behavior_data(filter_suspected_external_events=True,
                               filter_constant_columns=True,
                               filter_outliers=True,
-                              keep_status_columns=False) -> Dict[Behavior, pd.DataFrame]:
+                              keep_status_columns=False) -> Dict[Behavior, np.ndarray]:
         #print(os.getcwd())
         file_name = f'../data/{path}/all_data_filtered_external_{str(filter_suspected_external_events)}' \
                     f'_constant_{str(filter_constant_columns)}_outliers_{str(filter_outliers)}'
@@ -66,7 +66,7 @@ class DataManager:
                 df = df.drop(all_zero_columns, axis=1)
 
             df['attack'] = attack
-            bdata[attack] = df
+            bdata[attack] = df.to_numpy()
             #if not os.path.isfile(file_name): full_df = pd.concat([full_df, df])
 
         #full_df.to_csv(file_name, index_label=False)

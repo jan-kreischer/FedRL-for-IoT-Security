@@ -28,20 +28,22 @@ supervisor_map: Dict[int, Tuple[Behavior]] = defaultdict(lambda: -1, {
 # handles the supervised, online-simulation of episodes
 class SensorEnvironment:
 
-    def __init__(self, all_data: Dict[Behavior, pd.DataFrame] = None, monitor=None):
+    def __init__(self, all_data: Dict[Behavior, np.ndarray] = None, monitor=None):
         self.data = all_data
         self.monitor = monitor
         self.current_state: pd.DataFrame = None
-        self.observation_space_size: int = len(self.data[Behavior.RANSOMWARE_POC].iloc[0])
+        self.observation_space_size: int = len(self.data[Behavior.RANSOMWARE_POC][0])
         self.actions: int = [i for i in range(len(actions))]
 
     def sample_random_attack_state(self):
         """i.e. for starting state of an episode"""
         rb = random.choice([b for b in Behavior if b != Behavior.NORMAL])
-        return self.data[rb].sample()
+        attack_data = self.data[rb]
+        return attack_data[np.random.randint(attack_data.shape[0], size=1), :]
 
     def sample_behaviour(self, b: Behavior):
-        return self.data[b].sample()
+        behavior_data = self.data[b]
+        return behavior_data[np.random.randint(behavior_data.shape[0], size=1), :]
 
     def step(self, action: int):
 
