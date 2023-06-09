@@ -235,16 +235,17 @@ if __name__ == '__main__':
 
     # remove before moving online
     # # controller.monitor(180)
-    # OnlineRL.monitor_counter += 3
+    OnlineRL.monitor_counter += 1
+    data = controller.read_data()
 
     # read the monitored data from file and apply all preset scalings and transforms
-    decision_data = controller.read_data()
-    after_data = controller.read_data()
-
-    # run data through pretrained anomaly detector
-    isAnomaly = controller.interprete_data(decision_data)
-    action = controller.choose_action(decision_data)
-    controller.provide_feedback_and_update(decision_data, action, after_data, isAnomaly)
+    # decision_data = controller.read_data()
+    # after_data = controller.read_data()
+    #
+    # # run data through pretrained anomaly detector
+    # isAnomaly = controller.interprete_data(decision_data)
+    # action = controller.choose_action(decision_data)
+    # controller.provide_feedback_and_update(decision_data, action, after_data, isAnomaly)
     #
     # print(isAnomaly)
     # if isAnomaly:
