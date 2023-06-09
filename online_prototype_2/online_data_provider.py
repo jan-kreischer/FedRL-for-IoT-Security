@@ -11,9 +11,15 @@ import joblib
 
 
 time_status_columns = ["time", "timestamp", "seconds", "connectivity"]
-all_zero_columns = ["alarmtimer:alarmtimer_fired", "alarmtimer:alarmtimer_start", "cachefiles:cachefiles_create",
-                    "cachefiles:cachefiles_lookup", "cachefiles:cachefiles_mark_active", "dma_fence:dma_fence_init",
-                    "udp:udp_fail_queue_rcv_skb"]
+all_zero_columns = ['cpuNice', 'cpuHardIrq', 'alarmtimer:alarmtimer_fired',
+       'alarmtimer:alarmtimer_start', 'cachefiles:cachefiles_create',
+       'cachefiles:cachefiles_lookup', 'cachefiles:cachefiles_mark_active',
+       'dma_fence:dma_fence_init', 'udp:udp_fail_queue_rcv_skb']
+    #
+    #
+    # ["alarmtimer:alarmtimer_fired", "alarmtimer:alarmtimer_start", "cachefiles:cachefiles_create",
+    #                 "cachefiles:cachefiles_lookup", "cachefiles:cachefiles_mark_active", "dma_fence:dma_fence_init",
+    #                 "udp:udp_fail_queue_rcv_skb"]
 
 
 
