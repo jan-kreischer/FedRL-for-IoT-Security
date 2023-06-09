@@ -61,7 +61,7 @@ class SensorEnvironment:
         return attack_data[np.random.randint(attack_data.shape[0], size=1), :]
 
     def sample_afterstate(self, b: Behavior, m: MTDTechnique):
-        after_data = self.atrain_data[(b,m)]
+        after_data = self.atrain_data[(b, m)]
         return after_data[np.random.randint(after_data.shape[0], size=1), :]
 
     def step(self, action: int):
