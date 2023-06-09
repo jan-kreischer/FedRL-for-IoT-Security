@@ -2,7 +2,7 @@ from data_manager import DataManager
 from prototype_2.environment import SensorEnvironment, supervisor_map
 from prototype_2.agent import Agent, DeepQNetwork
 from custom_types import Behavior
-from autoencoder import AutoEncoderInterpreter
+from autoencoder import AutoEncoder, AutoEncoderInterpreter
 from utils.utils import plot_learning, seed_random
 from time import time
 import torch
@@ -37,14 +37,25 @@ if __name__ == '__main__':
     s = 0.8
     normal_data = train_data[Behavior.NORMAL]
     train_data[Behavior.NORMAL] = normal_data[:n]  # use fixed number of samples for Reinforcement Agent training
-    ae_data = normal_data[n:]  # use remaining samples for autoencoder
-    idx = int(len(ae_data) * s)
-    train_ae_x, train_ae_y = ae_data[:idx, :-1].astype(np.float32), np.arange(idx)  # just a placeholder for the torch dataloader
-    valid_ae_x, valid_ae_y = ae_data[idx:, :-1].astype(np.float32), np.arange(len(ae_data) - idx)
+    # UNCOMMENT BELOW for retraining of autoencoder
+    # ae_data = normal_data[n:]  # use remaining samples for autoencoder
+    # idx = int(len(ae_data) * s)
+    # train_ae_x, train_ae_y = ae_data[:idx, :-1].astype(np.float32), np.arange(
+    #     idx)  # just a placeholder for the torch dataloader
+    # valid_ae_x, valid_ae_y = ae_data[idx:, :-1].astype(np.float32), np.arange(len(ae_data) - idx)
+    #
+    # # AD training
+    # ae_interpreter = AutoEncoder(train_x=train_ae_x, train_y=train_ae_y, valid_x=valid_ae_x,
+    #                              valid_y=valid_ae_y)
+    # ae_interpreter.train(optimizer=torch.optim.SGD(ae_interpreter.get_model().parameters(), lr=0.001, momentum=0.9))
+    # ae_interpreter.determine_threshold()
+    # ae_interpreter.save_model()
 
-    # AD training
-    ae_interpreter = AutoEncoderInterpreter(train_x=train_ae_x, train_y=train_ae_y, valid_x=valid_ae_x,
-                                            valid_y=valid_ae_y)
+    # AE evaluation of pretrained model
+    pretrained_model = torch.load("trained_models/autoencoder_model.pth")
+    ae_interpreter = AutoEncoderInterpreter(pretrained_model['model_state_dict'],
+                                            pretrained_model['threshold'], in_features=15, hidden_size=6)
+
 
     exit()
 
