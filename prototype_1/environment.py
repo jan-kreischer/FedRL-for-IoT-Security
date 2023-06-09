@@ -48,7 +48,7 @@ class SensorEnvironment:
         print(action.value)
         current_behaviour = self.current_state.iloc[0]["attack"]
         if self.monitor is None:
-            if current_behaviour in [b.value for b in supervisor_map[action]]:
+            if current_behaviour in supervisor_map[action]:
                 print("correct mtd chosen according to supervisor")
                 new_state = self.sample_behaviour(Behavior.NORMAL)
                 reward = self.calculate_reward(True)
