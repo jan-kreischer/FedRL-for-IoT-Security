@@ -22,7 +22,7 @@ class AutoEncoder():
 
     def __init__(self, train_x: np.ndarray, train_y: np.ndarray,
                  valid_x: np.ndarray, valid_y: np.ndarray,
-                 batch_size: int = 64, batch_size_valid=64):
+                 batch_size: int = 64, batch_size_valid=1):
 
         data_train = torch.utils.data.TensorDataset(
             torch.from_numpy(train_x).type(torch.float),
@@ -48,20 +48,20 @@ class AutoEncoder():
             raise ValueError("No model set!")
 
         epoch_losses = []
-        for _ in tqdm(range(num_epochs), unit="epoch", leave=False):
-            for le in range(num_epochs):
-                self.model.train()
-                current_losses = []
-                for batch_idx, (x, _) in enumerate(self.data_loader):
-                    x = x  # x.cuda()
-                    optimizer.zero_grad()
-                    model_out = self.model(x)
-                    loss = loss_function(model_out, x)
-                    loss.backward()
-                    optimizer.step()
-                    current_losses.append(loss.item())
-                epoch_losses.append(sum(current_losses) / len(current_losses))
-                # print(f'Training Loss in epoch {le + 1}: {epoch_losses[le]}')
+        #for e in tqdm(range(num_epochs), unit="epoch", leave=False):
+        for e in range(num_epochs):
+            self.model.train()
+            current_losses = []
+            for batch_idx, (x, _) in enumerate(self.data_loader):
+                x = x  # x.cuda()
+                optimizer.zero_grad()
+                model_out = self.model(x)
+                loss = loss_function(model_out, x)
+                loss.backward()
+                optimizer.step()
+                current_losses.append(loss.item())
+            epoch_losses.append(sum(current_losses) / len(current_losses))
+            print(f'Training Loss in epoch {e + 1}: {epoch_losses[e]}')
 
     def determine_threshold(self) -> float:
         mses = []

@@ -21,7 +21,7 @@ TARGET_UPDATE_FREQ = 100
 LEARNING_RATE = 1e-5
 N_EPISODES = 5000
 LOG_FREQ = 100
-DIMS = 89
+DIMS = 20
 
 if __name__ == '__main__':
     seed_random()
@@ -30,25 +30,26 @@ if __name__ == '__main__':
     # TODO: autoencoder training
 
     # read in all preprocessed data for a simulated, supervised environment to sample from
-    train_data, test_data, scaler = DataManager.get_scaled_train_test_split()
-    #train_data, test_data = DataManager.get_reduced_dimensions_with_pca(DIMS)
+    #train_data, test_data, scaler = DataManager.get_scaled_train_test_split()
+    train_data, test_data = DataManager.get_reduced_dimensions_with_pca(DIMS)
 
     # get splits for RL & AD of normal data
-    n = 500
+    n = 100
     s = 0.8
-    normal_data = train_data[Behavior.NORMAL]
-    train_data[Behavior.NORMAL] = normal_data[:n]  # use fixed number of samples for Reinforcement Agent training
-    # UNCOMMENT BELOW for retraining of autoencoder
+    b = Behavior.NORMAL
+    normal_data = train_data[b]
+    train_data[b] = normal_data[:n]  # use fixed number of samples for Reinforcement Agent training
+    # COMMENT/UNCOMMENT BELOW for retraining of autoencoder
     ae_data = normal_data[n:]  # use remaining samples for autoencoder
     idx = int(len(ae_data) * s)
     train_ae_x, train_ae_y = ae_data[:idx, :-1].astype(np.float32), np.arange(
         idx)  # just a placeholder for the torch dataloader
     valid_ae_x, valid_ae_y = ae_data[idx:, :-1].astype(np.float32), np.arange(len(ae_data) - idx)
-
+    print(f"size train: {train_ae_x.shape}, size valid: {valid_ae_x.shape}")
     # AD training
     ae = AutoEncoder(train_x=train_ae_x, train_y=train_ae_y, valid_x=valid_ae_x,
                                  valid_y=valid_ae_y)
-    ae.train(optimizer=torch.optim.SGD(ae.get_model().parameters(), lr=0.001, momentum=0.9), num_epochs=50)
+    ae.train(optimizer=torch.optim.SGD(ae.get_model().parameters(), lr=0.0001, momentum=0.9), num_epochs=100)
     ae.determine_threshold()
     print(f"ae threshold: {ae.threshold}")
     ae.save_model()
