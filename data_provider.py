@@ -40,8 +40,11 @@ decision_states_file_paths: Dict[Behavior, str] = {
 afterstate = "after"
 afterstates_dir = "afterstates_online_agent"
 afterstates_file_paths: Dict[Behavior, Dict[MTDTechnique, str]] = {
-    Behavior.NORMAL: {  # to be monitored
-
+    Behavior.NORMAL: {
+        MTDTechnique.RANSOMWARE_DIRTRAP: f"data/{afterstates_dir}/normal_as_dirtrap_expfs_online_samples_2_2022-08-17-14-23_5s",
+        #MTDTechnique.RANSOMWARE_FILE_EXT_HIDE: f"data/{afterstates_dir}/",
+        MTDTechnique.ROOTKIT_SANITIZER: f"data/{afterstates_dir}/normal_as_removerk_noexpfs_online_samples_2_2022-08-17-08-17_5s",
+        MTDTechnique.CNC_IP_SHUFFLE: f"data/{afterstates_dir}/normal_as_changeip_noexpfs_online_samples_2_2022-08-17-14-22_5s"
     },
     Behavior.RANSOMWARE_POC: {
         MTDTechnique.RANSOMWARE_DIRTRAP: f"data/{afterstates_dir}/ransom_as_dirtrap_expfs_online_samples_2_2022-08-16-09-33_5s",
