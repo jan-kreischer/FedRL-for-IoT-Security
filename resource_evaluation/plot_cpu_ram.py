@@ -19,15 +19,46 @@ if __name__ == '__main__':
     print(cpu_lines)
 
     memactive = [l.split(",")[-5] for l in ram_lines][1:]
+    memtotal = [l.split(",")[6] for l in ram_lines][1:]
     cpuuser = [l.split(",")[2] for l in cpu_lines][1:]
+    cpusystem = [l.split(",")[3] for l in cpu_lines][1:]
 
-    print(memactive)
-    print(cpuuser)
+    memactive = [float(e) for e in memactive]
+    memtotal = [float(e) for e in memtotal]
+    cpuuser = [float(e) for e in cpuuser]
+    cpusystem = [float(e) for e in cpusystem]
 
-    print(len(memactive))
-    plt.plot(range(len(memactive)), memactive, "-b", label="mem active")
-    plt.plot(range(len(cpuuser)), cpuuser, "-r", label="cpu user")
-    #plt.yscale("linear")
-    plt.title("CPU and RAM Usage")
-    plt.legend()
-    plt.show()
+    fig, axs = plt.subplots(nrows=4, ncols=1)
+    #fig.subplots_adjust(bottom=0.1, top=0.8)
+    axs = axs.ravel().tolist()
+    #fig.suptitle("Resource Evaluation")
+    fig.set_figheight(15)
+    fig.tight_layout(pad=5.0)
+
+    axs[0].plot(range(len(memactive)), memactive, "-b", label="Mem Active")
+    axs[0].set_ylabel("")
+    axs[0].set_xlabel("seconds")
+    axs[0].set_title("Mem Active", fontsize='xx-large')
+
+    axs[1].plot(range(len(memtotal)), memtotal, "-b", label="Mem Free")
+    axs[1].set_ylabel("")
+    axs[1].set_xlabel("seconds")
+    axs[1].set_title("Mem Free", fontsize='xx-large')
+
+    axs[2].plot(range(len(cpuuser)), cpuuser, "-r", label="CPU User")
+    axs[2].set_ylabel("% User")
+    axs[2].set_xlabel("seconds")
+    axs[2].set_title("CPU System", fontsize='xx-large')
+
+    axs[3].plot(range(len(cpusystem)), cpusystem, "-r", label="CPU System")
+    axs[3].set_ylabel("% System")
+    axs[3].set_xlabel("seconds")
+    axs[3].set_title("CPU System", fontsize='xx-large')
+
+
+    fig.savefig(f'res_eval.png', dpi=100)
+
+
+    #plt.title("CPU and RAM Usage")
+    #plt.legend()
+    #plt.show()
