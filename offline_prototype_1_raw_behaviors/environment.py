@@ -27,7 +27,7 @@ supervisor_map: Dict[int, Tuple[Behavior]] = defaultdict(lambda: -1, {
 class SensorEnvironment:
 
     def __init__(self, train_data: Dict[Behavior, np.ndarray] = None, test_data: Dict[Behavior, np.ndarray] = None,
-                 monitor=None, ):
+                 monitor=None):
         self.train_data = train_data
         self.test_data = test_data
         self.monitor = monitor
@@ -42,22 +42,22 @@ class SensorEnvironment:
         attack_data = self.train_data[rb]
         return attack_data[np.random.randint(attack_data.shape[0], size=1), :]
 
-    def sample_behaviour(self, b: Behavior):
+    def sample_behavior(self, b: Behavior):
         behavior_data = self.train_data[b]
         return behavior_data[np.random.randint(behavior_data.shape[0], size=1), :]
 
     def step(self, action: int):
 
-        current_behaviour = self.current_state.squeeze()[-1]
+        current_behavior = self.current_state.squeeze()[-1]
         if self.monitor is None:
-            if current_behaviour in supervisor_map[action]:
+            if current_behavior in supervisor_map[action]:
                 # print("correct mtd chosen according to supervisor")
-                new_state = self.sample_behaviour(Behavior.NORMAL)
+                new_state = self.sample_behavior(Behavior.NORMAL)
                 reward = self.calculate_reward(True)
                 isTerminalState = True
             else:
                 # print("incorrect mtd chosen according to supervisor")
-                new_state = self.sample_behaviour(current_behaviour)
+                new_state = self.sample_behavior(current_behavior)
                 reward = self.calculate_reward(False)
                 isTerminalState = False
         else:
@@ -79,10 +79,6 @@ class SensorEnvironment:
     # TODO: possibly adapt to distinguish between MTDs that are particularly wasteful in case of wrong deployment
     def calculate_reward(self, success):
         """
-        if current_behavior == supervisor_map[action]:
-        then return positive
-        else return negative
-
         this method can be exchanged for the online/unsupervised RL system with the autoencoder
         """
         if success:

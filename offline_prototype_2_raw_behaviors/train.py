@@ -1,14 +1,14 @@
 from data_provider import DataProvider
-from offline_prototype_2.environment import SensorEnvironment, supervisor_map
-from offline_prototype_2.agent import Agent, DeepQNetwork
+from offline_prototype_2_raw_behaviors.environment import SensorEnvironment, supervisor_map
+from agent import Agent
 from custom_types import Behavior
-from autoencoder import AutoEncoder, AutoEncoderInterpreter
-from utils.utils import plot_learning, seed_random, calculate_metrics
+from autoencoder import AutoEncoderInterpreter
+from utils.utils import plot_learning, seed_random
 from time import time
-from tabulate import tabulate
 import torch
 import numpy as np
 import random
+import os
 
 # Hyperparams
 GAMMA = 0.99
@@ -24,10 +24,9 @@ LOG_FREQ = 100
 DIMS = 15
 
 if __name__ == '__main__':
+    os.chdir("..")
     seed_random()
     start = time()
-
-
 
     # read in all preprocessed data for a simulated, supervised environment to sample from
     # train_data, test_data, scaler = DataProvider.get_scaled_train_test_split()
@@ -54,7 +53,7 @@ if __name__ == '__main__':
     # ae.save_model()
 
     # AE evaluation of pretrained model
-    pretrained_model = torch.load("trained_models/autoencoder_model.pth")
+    pretrained_model = torch.load("offline_prototype_2_raw_behaviors/trained_models/autoencoder_model.pth")
     ae_interpreter = AutoEncoderInterpreter(pretrained_model['model_state_dict'],
                                             pretrained_model['threshold'], in_features=DIMS)
     print(f"ae_interpreter threshold: {ae_interpreter.threshold}")
@@ -139,14 +138,14 @@ if __name__ == '__main__':
     end = time()
     print("Total training time: ", end - start)
 
-    agent.save_agent_state(0)
+    agent.save_agent_state(0, "offline_prototype_2_raw_behaviors")
 
     x = [i + 1 for i in range(N_EPISODES)]
     filename = 'mtd_agent.pdf'
     plot_learning(x, episode_returns, eps_history, filename)
 
     # check predictions with dqn from trained and stored agent
-    pretrained_state = torch.load("trained_models/agent_0.pth")
+    pretrained_state = torch.load("offline_prototype_2_raw_behaviors/trained_models/agent_0.pth")
     pretrained_agent = Agent(input_dims=15, n_actions=4, buffer_size=BUFFER_SIZE,
                              batch_size=pretrained_state['batch_size'], lr=pretrained_state['lr'],
                              gamma=pretrained_state['gamma'], epsilon=pretrained_state['eps'],
