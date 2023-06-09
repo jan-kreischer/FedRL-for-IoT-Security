@@ -17,14 +17,19 @@ class SensorEnvironment:
 
         if self.monitor == None:
             # TODO: sample with episode_generator
+            pass
+            # goal: get a state
+
         else:
-            # TODO: sample with monitoring component
+            # would integrate a monitoring component here for a live system
+            pass
 
         return new_state, isTerminalState
 
 
     def reset(self):
         # TODO: take random sample of a behavior
+
 
         pass
 
