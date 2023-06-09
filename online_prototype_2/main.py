@@ -2,12 +2,15 @@ import time
 import os
 import subprocess
 import psutil
+import json
+import jsonschema
 from abc import ABC, abstractmethod
 from online_data_manager import DataManager
 from anomaly_detector import AutoEncoderInterpreter
 from agent import Agent
 import torch
 import numpy as np
+
 
 
 # TODO: make abstract (template method pattern) in case of multiple online methods
@@ -89,6 +92,30 @@ class OnlineRL():
 
     def launch_mtd(self, n: int):
         print("Launching MTD " + ACTIONS[n])
+        # TODO:
+        #  call the right MTD by integrating the json schema
+        with open('config.json') as json_file:
+            data = json.load(json_file)
+            validate_config_file(data)
+
+        # get commands from config file exactly:
+        selected_mtd = None
+        for mtd_conf in data[MTD_SOLUTIONS]:
+            if mtd_conf[SCRIPT_NAME] == ACTIONS[n]:
+                selected_mtd = mtd_conf
+        print(selected_mtd)
+        print(os.getcwd())
+        os.chdir(selected_mtd[PATH])
+        print(os.getcwd())
+
+        # mtd_params = ""
+        # try:
+        #     mtd_params += str(mtd_solution[PARAMS])
+        # except KeyError:
+        #     pass
+        #  mtd_solution[SCRIPT_NAME], mtd_solution[PATH], mtd_params,
+        #      mtd_solution[RUN_PREFIX]
+
 
     def provide_feedback_and_update(self, data, isAnomaly):
         pass
@@ -101,9 +128,38 @@ def kill(pid):
         child.kill()
     parent.kill()
 
+def validate_config_file(json_data):
+    with open('config-schema.json') as json_schema_file:
+        json_schema = json.load(json_schema_file)
+        try:
+            jsonschema.validate(instance=json_data, schema=json_schema, cls=jsonschema.Draft4Validator)
+        except jsonschema.ValidationError as err:
+            err.message = 'The config file does not follow the json schema and is therefore not compatible!'
+            raise err
+        return True
+
+
+# jsonschema data
+SCRIPT_NAME = 'ScriptName'
+PATH = 'RelativePath'
+#PRIORITY = 'Priority'
+TYPE = 'Type'
+MTD_SOLUTIONS = 'MTDSolutions'
+#ATTACK_TYPES = 'AttackTypes'
+#DEPL_POLICY = 'DeploymentPolicy'
+#ALLOW_EXT = 'AllowAllExternalReports'
+#WHITE_LIST = 'WhiteListForExternalReports'
+PARAMS = 'Params'
+RUN_PREFIX = 'RunWithPrefix'
+#PORT = 'PortToUse'
+
+
+
+
 DIMS = 15
-ACTIONS = ("MTDTechnique.CNC_IP_SHUFFLE", "MTDTechnique.ROOTKIT_SANITIZER",
-           "MTDTechnique.RANSOMWARE_DIRTRAP", "MTDTechnique.RANSOMWARE_FILE_EXT_HIDE")
+# !!!Order is important!!!
+ACTIONS = ("ChangeIpAddress.py", "RemoveRootkit.py",
+           "CreateDummyFiles.py", "ChangeFileTypes.py")
 GAMMA = 0.99
 BATCH_SIZE = 100
 BUFFER_SIZE = 500
@@ -117,6 +173,7 @@ LOG_FREQ = 100
 
 
 if __name__ == '__main__':
+
     # TODO:
     #  call monitoring, or at least read data -> last 10 samples (180s!)
     #  call AD/pretrained AE network and get results
@@ -142,7 +199,8 @@ if __name__ == '__main__':
 
 
     controller = OnlineRL(ae=ae_interpreter, agent=agent)
-
+    controller.launch_mtd(0)
+    exit(0)
     # uncomment before moving online
     # controller.monitor(180)
     OnlineRL.monitor_counter += 3

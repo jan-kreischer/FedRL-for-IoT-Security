@@ -1,0 +1,25 @@
+{  "MTDSolutions": [
+    {
+      "ScriptName": "ChangeIpAddress.py",
+      "RelativePath": "CnC/",
+      "RunWithPrefix": "python3"
+    },
+    {
+      "ScriptName": "RemoveRootkit.py",
+      "RelativePath": "/opt/MTDFramework/Rootkit/",
+      "RunWithPrefix": "LD_PRELOAD=/lib/arm-linux-gnueabihf/libc.so.6 python3"
+    },
+    {
+      "ScriptName": "CreateDummyFiles.py",
+      "RelativePath": "/opt/MTDFramework/Ransomware/",
+      "RunWithPrefix": "python3",
+      "Params": "--path /home/ --numberOfDummyFiles 30 --numberOfDummyFilesPerSubdirectory 15 --size 10 --extension pdf"
+    },
+    {
+      "ScriptName": "ChangeFileTypes.py",
+      "RelativePath": "/opt/MTDFramework/Ransomware/",
+      "RunWithPrefix": "python3",
+      "Params": "--path /home/ --extensions pdf png so docx --recursive"
+    }
+  ]
+}
