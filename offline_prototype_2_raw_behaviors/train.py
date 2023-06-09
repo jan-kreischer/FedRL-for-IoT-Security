@@ -3,6 +3,7 @@ from offline_prototype_2_raw_behaviors.environment import SensorEnvironment, sup
 from agent import Agent
 from custom_types import Behavior
 from autoencoder import AutoEncoder, AutoEncoderInterpreter
+from utils.agent_learning_utils import init_replay_memory
 from utils.evaluation_utils import plot_learning, seed_random, calculate_metrics, get_pretrained_agent, evaluate_agent
 from utils.autoencoder_utils import evaluate_ae_on_no_mtd_behavior, pretrain_ae_model, get_pretrained_ae
 from tabulate import tabulate
@@ -60,17 +61,7 @@ if __name__ == '__main__':
     episode_returns, eps_history = [], []
 
     # initialize memory replay buffer (randomly)
-    obs = env.reset()
-    for _ in range(MIN_REPLAY_SIZE):
-        action = random.choice(env.actions)
-
-        new_obs, reward, done = env.step(action)
-        transition = (obs[:, :-1], action, reward, new_obs[:, :-1], done)
-        agent.replay_buffer.append(transition)
-
-        obs = new_obs
-        if done:
-            obs = env.reset()
+    init_replay_memory(agent=agent, env=env, min_size=MIN_REPLAY_SIZE)
 
     # main training
     step = 0
@@ -79,7 +70,6 @@ if __name__ == '__main__':
         episode_steps = 0
         done = False
         obs = env.reset()
-
         while not done:
             action = agent.choose_action(obs[:, :-1])
 
@@ -126,4 +116,4 @@ if __name__ == '__main__':
                                             input_dims=env.observation_space_size, n_actions=len(env.actions),
                                             buffer_size=BUFFER_SIZE)
 
-    evaluate_agent(agent, test_data=test_data)
+    evaluate_agent(pretrained_agent, test_data=test_data)
