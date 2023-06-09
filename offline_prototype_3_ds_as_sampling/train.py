@@ -20,10 +20,10 @@ EPSILON_START = 1.0
 EPSILON_END = 0.01
 TARGET_UPDATE_FREQ = 100
 LEARNING_RATE = 1e-5
-N_EPISODES = 10000
+N_EPISODES = 5000
 LOG_FREQ = 100
 DIMS = 15
-SAMPLES = 20
+SAMPLES = 10
 
 if __name__ == '__main__':
     os.chdir("..")
@@ -69,7 +69,7 @@ if __name__ == '__main__':
 
     # Reinforcement Learning
     env = SensorEnvironment(decision_train_data=dtrain_rl,
-                            after_train_data=atrain, interpreter=ae_interpreter,
+                            after_train_data=atrain_rl, interpreter=ae_interpreter,
                             state_samples=SAMPLES)
 
     agent = Agent(input_dims=env.observation_space_size, n_actions=len(env.actions), buffer_size=BUFFER_SIZE,

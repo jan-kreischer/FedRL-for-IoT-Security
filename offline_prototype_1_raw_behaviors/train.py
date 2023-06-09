@@ -4,7 +4,7 @@ from data_provider import DataProvider
 from offline_prototype_1_raw_behaviors.environment import SensorEnvironment
 from agent import Agent
 from simulation_engine import SimulationEngine
-from utils.evaluation_utils import plot_learning, seed_random, evaluate_agent, get_pretrained_agent
+from utils.evaluation_utils import plot_learning, seed_random, evaluate_agent, get_pretrained_agent, evaluate_agent_on_afterstates
 from time import time
 import numpy as np
 
@@ -58,6 +58,12 @@ if __name__ == '__main__':
                                             buffer_size=BUFFER_SIZE)
     # check predictions with learnt dqn
     evaluate_agent(pretrained_agent, test_data=test_data)
+
+    print("evaluate p1 agent on 'real' decision and afterstate data:")
+    dtrain, dtest, atrain, atest = DataProvider.get_reduced_dimensions_with_pca_ds_as(DIMS,
+                                                                                      dir="offline_prototype_3_ds_as_sampling/")
+    evaluate_agent(agent=pretrained_agent, test_data=dtest)
+    evaluate_agent_on_afterstates(agent=pretrained_agent, test_data=atest)
 
 
 

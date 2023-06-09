@@ -3,7 +3,8 @@ from offline_prototype_2_raw_behaviors.environment import SensorEnvironment
 from agent import Agent
 from custom_types import Behavior
 from simulation_engine import SimulationEngine
-from utils.evaluation_utils import plot_learning, seed_random, get_pretrained_agent, evaluate_agent
+from utils.evaluation_utils import plot_learning, seed_random, get_pretrained_agent, evaluate_agent, \
+    evaluate_agent_on_afterstates
 from utils.autoencoder_utils import evaluate_ae_on_no_mtd_behavior, get_pretrained_ae
 from time import time
 import numpy as np
@@ -22,7 +23,7 @@ N_EPISODES = 5000
 LOG_FREQ = 100
 DIMS = 30  # TODO check
 PI = 3
-SAMPLES = 1
+SAMPLES = 100
 
 if __name__ == '__main__':
     os.chdir("..")
@@ -41,8 +42,7 @@ if __name__ == '__main__':
     # COMMENT/UNCOMMENT BELOW for pretraining of autoencoder
     ae_path = "offline_prototype_2_raw_behaviors/trained_models/ae_model_pi3.pth"
     ae_data = normal_data[n:]  # use remaining samples for autoencoder
-    #train_ae_x, valid_ae_x = pretrain_ae_model(ae_data=ae_data, path=ae_path)
-
+    # train_ae_x, valid_ae_x = pretrain_ae_model(ae_data=ae_data, path=ae_path)
 
     # AE evaluation of pretrained model
     ae_interpreter = get_pretrained_ae(path=ae_path, dims=DIMS)
@@ -78,3 +78,9 @@ if __name__ == '__main__':
                                             buffer_size=BUFFER_SIZE)
 
     evaluate_agent(pretrained_agent, test_data=test_data)
+
+    print("evaluate p2 agent on 'real' decision and afterstate data:")
+    dtrain, dtest, atrain, atest = DataProvider.get_reduced_dimensions_with_pca_ds_as(DIMS,
+                                                                                      dir="offline_prototype_3_ds_as_sampling/")
+    evaluate_agent(agent=pretrained_agent, test_data=dtest)
+    evaluate_agent_on_afterstates(agent=pretrained_agent, test_data=atest)
