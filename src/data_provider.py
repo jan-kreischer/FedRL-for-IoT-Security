@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from tabulate import tabulate
 import numpy as np
 import pandas as pd
+from sklearn.model_selection import train_test_split
 
 pd.options.mode.chained_assignment = None  # default='warn'
 import joblib
@@ -142,88 +143,23 @@ cols_to_exclude += ['cpuIdle', 'cpuIowait', 'block:block_bio_backmerge', 'block:
 
 class DataProvider:
     def __init__(self):
-        print("Creating new DataProvider")
-    
-    '''
-    @staticmethod
-    def get_no_mtd_behavior_data(filter_suspected_external_events=True,
-                                   filter_constant_columns=True,
-                                   filter_outliers=False,
-                                   keep_status_columns=False,
-                                   exclude_cols=False,
-                                   decision=False, pi=3) -> Dict[Behavior, np.ndarray]:
-        # print(os.getcwd())
-        b_directory, b_file_paths = (decision_states_dir, decision_states_file_paths) if decision else \
-            (raw_behaviors_dir_rp3, raw_behaviors_file_paths_rp3) if pi == 3 else \
-                (raw_behaviors_dir_rp4, raw_behaviors_file_paths_rp4)
-        file_name = f'../data/{b_directory}/all_data_filtered_external{"_decision" if decision else ""}' \
-                    f'_{str(filter_suspected_external_events)}' \
-                    f'_constant_{str(filter_constant_columns)}_outliers_{str(filter_outliers)}'
-
-        if keep_status_columns:
-            file_name += "_keepstatus"
-        file_name += ".csv"
-
-        if os.path.isfile(file_name):
-            return pd.read_csv(file_name)
-        full_df = pd.DataFrame()
-        # bdata = {}
-
-        for attack in b_file_paths:
-            print(f"getting {attack}")
-            df = DataProvider.get_filtered_df(b_file_paths[attack],
-                                                filter_suspected_external_events=filter_suspected_external_events,
-                                                startidx=50,
-                                                filter_constant_columns=filter_constant_columns,
-                                                filter_outliers=filter_outliers,
-                                                keep_status_columns=keep_status_columns,
-                                                exclude_cols=exclude_cols)
-            df['attack'] = attack
-            # bdata[attack] = df.to_numpy()
-            if not os.path.isfile(file_name):
-                full_df = pd.concat([full_df, df])
-
-        # full_df.to_csv(file_name, index_label=False)
-        return full_df  # , bdata
-    '''
+        print("")
     
     @staticmethod
     def parse_no_mtd_behavior_data(filter_suspected_external_events=True,
                                    filter_constant_columns=True,
-                                   filter_outliers=False,
-                                   keep_status_columns=False,
                                    exclude_cols=False,
-                                   decision=False, pi=3) -> Dict[Behavior, np.ndarray]:
-        # print(os.getcwd())
-        b_directory, b_file_paths = (decision_states_dir, decision_states_file_paths) if decision else \
-            (raw_behaviors_dir_rp3, raw_behaviors_file_paths_rp3) if pi == 3 else \
-                (raw_behaviors_dir_rp4, raw_behaviors_file_paths_rp4)
-        file_name = f'../data/{b_directory}/all_data_filtered_external{"_decision" if decision else ""}' \
-                    f'_{str(filter_suspected_external_events)}' \
-                    f'_constant_{str(filter_constant_columns)}_outliers_{str(filter_outliers)}'
-
-        if keep_status_columns:
-            file_name += "_keepstatus"
-        file_name += ".csv"
-
-        if os.path.isfile(file_name):
-            return pd.read_csv(file_name)
+                                   decision=False) -> Dict[Behavior, np.ndarray]:
+        b_directory, b_file_paths = (decision_states_dir, decision_states_file_paths) if decision else (raw_behaviors_dir_rp3, raw_behaviors_file_paths_rp3)
         full_df = pd.DataFrame()
-        # bdata = {}
-
         for attack in b_file_paths:
-            print(f"getting {attack}")
             df = DataProvider.get_filtered_df(b_file_paths[attack],
                                                 filter_suspected_external_events=filter_suspected_external_events,
                                                 startidx=50,
                                                 filter_constant_columns=filter_constant_columns,
-                                                filter_outliers=filter_outliers,
-                                                keep_status_columns=keep_status_columns,
                                                 exclude_cols=exclude_cols)
             df['attack'] = attack
-            # bdata[attack] = df.to_numpy()
-            if not os.path.isfile(file_name):
-                full_df = pd.concat([full_df, df])
+            full_df = pd.concat([full_df, df])
 
         # full_df.to_csv(file_name, index_label=False)
         return full_df  # , bdata
@@ -231,20 +167,7 @@ class DataProvider:
     @staticmethod
     def parse_mtd_behavior_data(filter_suspected_external_events=True,
                                 filter_constant_columns=True,
-                                filter_outliers=False,
-                                keep_status_columns=False,
                                 exclude_cols=False) -> Dict[Behavior, np.ndarray]:
-        # function should return a dictionary of all the
-        file_name = f'../data/{afterstates_dir}/all_afterstate_data_filtered_external' \
-                    f'_{str(filter_suspected_external_events)}' \
-                    f'_constant_{str(filter_constant_columns)}_outliers_{str(filter_outliers)}'
-
-        if keep_status_columns:
-            file_name += "_keepstatus"
-        file_name += ".csv"
-
-        if os.path.isfile(file_name):
-            return pd.read_csv(file_name)
 
         full_df = pd.DataFrame()
 
@@ -254,91 +177,16 @@ class DataProvider:
                 df = DataProvider.get_filtered_df(afterstates_file_paths[asb][mtd],
                                                     filter_suspected_external_events=filter_suspected_external_events,
                                                     filter_constant_columns=filter_constant_columns,
-                                                    filter_outliers=filter_outliers,
-                                                    keep_status_columns=keep_status_columns,
                                                     exclude_cols=exclude_cols)
                 df['attack'] = asb
                 df['state'] = mtd
-                if not os.path.isfile(file_name):
-                    full_df = pd.concat([full_df, df])
+                full_df = pd.concat([full_df, df])
 
-                # adata[(asb, mtd)] = df.to_numpy()
-        # full_df.to_csv(file_name, index_label=False)
         return full_df  # ,adata
 
     @staticmethod
-    def parse_agent_data_files_to_df(filter_suspected_external_events=True,
-                                     filter_constant_columns=True,
-                                     filter_outliers=False,
-                                     keep_status_columns=False,
-                                     exclude_cols=True) -> pd.DataFrame:
-
-        #print(os.getcwd())
-        file_name = f'./data/all_agent_data_filtered_external_{str(filter_suspected_external_events)}' \
-                    f'_constant_{str(filter_constant_columns)}_outliers_{str(filter_outliers)}'
-        if keep_status_columns:
-            file_name += "_keepstatus"
-        file_name += ".csv"
-        if os.path.isfile(file_name):
-            return pd.read_csv(file_name)
-
-        full_df = pd.DataFrame()
-        for dsb in decision_states_file_paths:
-            df = DataProvider.get_filtered_df(decision_states_file_paths[dsb],
-                                                filter_suspected_external_events=filter_suspected_external_events,
-                                                filter_constant_columns=filter_constant_columns,
-                                                filter_outliers=filter_outliers,
-                                                keep_status_columns=keep_status_columns,
-                                                exclude_cols=exclude_cols)
-            df['attack'] = dsb.value
-            df['state'] = decision_state
-            full_df = pd.concat([full_df, df])
-
-        for asb in afterstates_file_paths:
-            for mtd in afterstates_file_paths[asb]:
-                df = DataProvider.get_filtered_df(afterstates_file_paths[asb][mtd],
-                                                    filter_suspected_external_events=filter_suspected_external_events,
-                                                    filter_constant_columns=filter_constant_columns,
-                                                    filter_outliers=filter_outliers,
-                                                    keep_status_columns=keep_status_columns,
-                                                    exclude_cols=exclude_cols)
-                df['attack'] = asb.value
-                df['state'] = f"{afterstate} {mtd.value}"
-                full_df = pd.concat([full_df, df])
-
-        full_df.to_csv(file_name, index_label=False)
-        return full_df
-
-    @staticmethod
-    def parse_normals(filter_suspected_external_events=True,
-                      filter_constant_columns=True,
-                      filter_outliers=False,
-                      keep_status_columns=False,
-                      exclude_cols=True) -> pd.DataFrame:
-        normal_paths = [
-            f"{relative_data_path}/{decision_states_dir}/normal_noexpfs_online_samples_1_2022-08-15-14-07_5s.csv",
-            f"{relative_data_path}/{decision_states_dir}/normal_expfs_online_samples_1_2022-08-18-08-31_5s.csv",
-            f"{relative_data_path}/{decision_states_dir}/incompl_installs_normal_online_samples_1_2022-08-02-20-36_5s.csv",
-            f"{relative_data_path}/{decision_states_dir}/incompl_installs_normal_online_samples_1_ssh_conn_open_2022-08-02-15-51_5s.csv"
-        ]
-        full_df = pd.DataFrame()
-        for i, norm_p in enumerate(normal_paths):
-            df = DataProvider.get_filtered_df(norm_p,
-                                                filter_suspected_external_events=filter_suspected_external_events,
-                                                filter_constant_columns=filter_constant_columns,
-                                                filter_outliers=filter_outliers,
-                                                keep_status_columns=keep_status_columns,
-                                                exclude_cols=exclude_cols)
-            df['attack'] = Behavior.NORMAL.value
-            df['state'] = decision_state + str(i)
-            full_df = pd.concat([full_df, df])
-        return full_df
-
-    @staticmethod
-    def get_filtered_df(path, filter_suspected_external_events=True, startidx=10, endidx=-1,
-                          filter_constant_columns=True,
-                          filter_outliers=False,
-                          keep_status_columns=False, exclude_cols=False):
+    def get_filtered_df(path, filter_suspected_external_events=False, startidx=10, endidx=-1,
+                          filter_constant_columns=True, exclude_cols=False):
         df = pd.read_csv(path)
 
         if filter_suspected_external_events:
@@ -351,12 +199,8 @@ class DataProvider:
 
         # remove model-irrelevant columns
         #print(f"Time_status_columns => {time_status_columns}")
-        if not keep_status_columns:
-            df = df.drop(time_status_columns, axis=1)
 
-        #if filter_outliers:
-            # drop outliers per measurement, indicated by (absolute z score) > 3
-            #df = df[(np.nan_to_num(np.abs(stats.zscore(df))) < 3).all(axis=1)]
+        df = df.drop(time_status_columns, axis=1)
 
         #print(f"all constant columns => {all_zero_columns}")
         if filter_constant_columns:
@@ -371,11 +215,11 @@ class DataProvider:
 
     @staticmethod
     def get_scaled_train_test_split_anomaly_detection_afterstates(normal_split=0.7, scaling_minmax=False):
-        ddf = DataProvider.parse_no_mtd_behavior_data(decision=True, filter_outliers=False)
-        adf = DataProvider.parse_mtd_behavior_data(filter_outliers=False)
+        ddf = DataProvider.parse_no_mtd_behavior_data(decision=True)
+        adf = DataProvider.parse_mtd_behavior_data()
 
         # get decision state normal split
-        normal_train, normal_test = DataProvider.filter_train_split_for_outliers(ddf, Behavior.NORMAL, normal_split)
+        normal_train, normal_test =  train_test_split(ddf, train_size=normal_split) 
         # fit on normal train
         scaler = StandardScaler() if not scaling_minmax else MinMaxScaler()
         scaler.fit(normal_train[:, :-1])
@@ -406,17 +250,17 @@ class DataProvider:
     def get_scaled_scaled_train_test_split_with_afterstates(split=0.8, scaling_minmax=True, scale_normal_only=True):
 
         #  1 get both dicts for decision and afterstates
-        ddf = DataProvider.parse_no_mtd_behavior_data(decision=True, filter_outliers=False, pi=3)
+        ddf = DataProvider.parse_no_mtd_behavior_data(decision=True)
         print(ddf.shape)
-        adf = DataProvider.parse_mtd_behavior_data(filter_outliers=False)
+        adf = DataProvider.parse_mtd_behavior_data()
         print(adf.shape)
         # take split of all behaviors, concat, calc scaling, scale both train and test split
         # get behavior dicts for train and test
-        train_filtered, df_test = DataProvider.filter_train_split_for_outliers(ddf, Behavior.NORMAL, split)
+        train_filtered, df_test = train_test_split(ddf, train_size=split) 
         train_ddata = {}
         test_ddata = {}
         for b in ddf["attack"].unique():
-            dtrain_filtered, df_test = DataProvider.filter_train_split_for_outliers(ddf, b, split)
+            dtrain_filtered, df_test = train_test_split(ddf, train_size=split) 
             train_ddata[b] = dtrain_filtered
             test_ddata[b] = df_test
             if b != Behavior.NORMAL and not scale_normal_only:
@@ -427,7 +271,7 @@ class DataProvider:
         test_adata = {}
         for b in adf["attack"].unique():
             for mtd in adf[adf["attack"] == b]["state"].unique():
-                atrain_filtered, a_test = DataProvider.filter_as_train_split_for_outliers(adf, b, mtd, split)
+                atrain_filtered, a_test = train_test_split(adf, train_size=split) 
                 train_adata[(b, mtd)] = atrain_filtered
                 test_adata[(b, mtd)] = a_test
                 if scale_normal_only and b == Behavior.NORMAL:
@@ -459,55 +303,23 @@ class DataProvider:
         return scaled_dtrain, scaled_dtest, scaled_atrain, scaled_atest, scaler
 
     @staticmethod
-    def filter_train_split_for_outliers(df: pd.DataFrame, b: Behavior, split=0.8):
-        print(f"FILTER: {len(df)}")
-        df = df[df["attack"] == b].drop(["attack"], axis=1)
-        df_test = df.sample(frac=1 - split)  # .reset_index(drop=True)
-        df_train = pd.concat([df, df_test]).drop_duplicates(keep=False)
-        train_filtered = df_train[(np.nan_to_num(np.abs(stats.zscore(df_train))) < 3).all(axis=1)]
-        train_filtered["attack"] = b
-        df_test["attack"] = b
-        train_filtered = train_filtered.to_numpy()
-        df_test = df_test.to_numpy()
-        len_train_filtered = len(train_filtered)
-        len_df_test = len(df_test)
-        print(f"FILTER: len_train_filtered + len_df_test = {len_train_filtered} + {len_df_test} = {len_train_filtered + len_df_test}")
-        return train_filtered, df_test
-
-    @staticmethod
-    def filter_as_train_split_for_outliers(df: pd.DataFrame, b: Behavior, mtd: MTDTechnique, split):
-        df = df[(df["attack"] == b) & (df["state"] == mtd)].drop(["attack", "state"], axis=1)
-        df_test = df.sample(frac=1 - split)  # .reset_index(drop=True)
-        df_train = pd.concat([df, df_test]).drop_duplicates(keep=False)
-        train_filtered = df_train[(np.nan_to_num(np.abs(stats.zscore(df_train))) < 3).all(axis=1)]
-        train_filtered["attack"], train_filtered["state"] = b, mtd
-        df_test["attack"], df_test["state"] = b, mtd
-        train_filtered = train_filtered.to_numpy()
-        df_test = df_test.to_numpy()
-        return train_filtered, df_test
-
-    @staticmethod
-    def get_scaled_train_test_split(split=0.8, scaling_minmax=True, scale_normal_only=True, filter_outliers=False, decision=False, pi=3):
+    def get_scaled_train_test_split_one(split=0.8, scaling_minmax=True, scale_normal_only=True, decision=False, pi=3):
         """
         Method returns dictionaries mapping behaviors to scaled train and test data, as well as the scaler used
         Either decision states or raw behaviors can be utilized (decision flag) as no combinations
         with mtd need to be considered
         """
-        #print(os.getcwd())
-        rdf = DataProvider.parse_no_mtd_behavior_data(decision=decision, pi=pi, filter_outliers=filter_outliers)
-        print(f"len(rdf): {len(rdf)}")
-        print(f"type(rdf): {type(rdf)}")
-        print(f"rdf.columns: {rdf.columns}; {len(rdf.columns)}")
-        # take split of all behaviors, concat, calc scaling, scale both train and test split
-        train_filtered, df_test = DataProvider.filter_train_split_for_outliers(rdf, Behavior.NORMAL, split)
-        print(f"type(train_filtered): {type(train_filtered)}")
-        print(f"type(df_test): {type(df_test)}")
+        #rdf = DataProvider.parse_no_mtd_behavior_data(filter_outliers=False)
+        rdf = DataProvider.parse_no_mtd_behavior_data()
         
+        # take split of all behaviors, concat, calc scaling, scale both train and test split
+        train_filtered, df_test = DataProvider.__filter_train_split_for_outliers(rdf, Behavior.NORMAL, split)
+
         # get behavior dicts for train and test
         train_bdata = {}
         test_bdata = {}
         for b in rdf["attack"].unique():
-            dtrain_filtered, df_test = DataProvider.filter_train_split_for_outliers(rdf, b, split)
+            dtrain_filtered, df_test = DataProvider.__filter_train_split_for_outliers(rdf, b, split)
             train_bdata[b] = dtrain_filtered
             test_bdata[b] = df_test
             if b != Behavior.NORMAL and not scale_normal_only:
@@ -515,7 +327,6 @@ class DataProvider:
 
         # fit scaler on either just normal data (if scale_normal_only), or all training data combined
         scaler = StandardScaler() if not scaling_minmax else MinMaxScaler()
-        print(f"Using scaler {scaler}")
         scaler.fit(train_filtered[:, :-1])
 
         # get behavior dicts for scaled train and test data
@@ -530,19 +341,80 @@ class DataProvider:
         return scaled_train, scaled_test, scaler
     
     @staticmethod
-    def get_flat_train_test_split(split=0.8, scale_normal_only=True, decision=False, pi=3):
+    def __filter_train_split_for_outliers(df: pd.DataFrame, b: Behavior, split=0.8):
+        df = df[df["attack"] == b].drop(["attack"], axis=1)
+        df_test = df.sample(frac=1 - split)  # .reset_index(drop=True)
+        df_train = pd.concat([df, df_test]).drop_duplicates(keep=False)
+        train_filtered = df_train[(np.nan_to_num(np.abs(stats.zscore(df_train))) < 3).all(axis=1)]
+        train_filtered["attack"] = b
+        df_test["attack"] = b
+        train_filtered = train_filtered.to_numpy()
+        df_test = df_test.to_numpy()
+        return train_filtered, df_test
+    
+    @staticmethod
+    def get_scaled_train_test_split(split=0.8, scaling_minmax=True, scale_normal_only=True, decision=False):
         """
         Method returns dictionaries mapping behaviors to scaled train and test data, as well as the scaler used
         Either decision states or raw behaviors can be utilized (decision flag) as no combinations
         with mtd need to be considered
         """
         #print(os.getcwd())
-        dataset = DataProvider.parse_no_mtd_behavior_data(decision=decision, pi=pi, filter_outliers=False)
+        rdf = DataProvider.parse_no_mtd_behavior_data(decision=decision)
+        print(f"len(rdf): {len(rdf)}")
+        print(f"type(rdf): {type(rdf)}")
+        print(f"rdf.columns: {rdf.columns}; {len(rdf.columns)}")
+        # take split of all behaviors, concat, calc scaling, scale both train and test split
+        train_filtered, df_test = train_test_split(rdf, train_size=split)
+        train_filtered = train_filtered.to_numpy()
+        df_test = df_test.to_numpy()
+        print(f"type(train_filtered): {type(train_filtered)}")
+        print(f"type(df_test): {type(df_test)}")
+        
+        # get behavior dicts for train and test
+        train_bdata = {}
+        test_bdata = {}
+        for b in rdf["attack"].unique():
+            dtrain_filtered, df_test = train_test_split(rdf, train_size=split)
+            dtrain_filtered = dtrain_filtered.to_numpy()
+            df_test = df_test.to_numpy()
+            train_bdata[b] = dtrain_filtered
+            test_bdata[b] = df_test
+            if b != Behavior.NORMAL and not scale_normal_only:
+                train_filtered = np.vstack((train_filtered, train_bdata[b]))
+
+        # fit scaler on either just normal data (if scale_normal_only), or all training data combined
+        scaler = StandardScaler() if not scaling_minmax else MinMaxScaler()
+        print(f"Using scaler {scaler}")
+        print(type(train_filtered))
+        print(len(train_filtered))
+        scaler.fit(train_filtered[:, :-1])
+
+        # get behavior dicts for scaled train and test data
+        scaled_train = {}
+        scaled_test = {}
+        for b, d in train_bdata.items():
+            scaled_train[b] = np.hstack((scaler.transform(d[:, :-1]), np.expand_dims(d[:, -1], axis=1)))
+            scaled_test[b] = np.hstack(
+                (scaler.transform(test_bdata[b][:, :-1]), np.expand_dims(test_bdata[b][:, -1], axis=1)))
+
+        # return also scaler in case of using the agent for online scaling
+        return scaled_train, scaled_test, scaler
+    
+    @staticmethod
+    def get_flat_train_test_split(split=0.8, scale_normal_only=True, decision=False):
+        """
+        Method returns dictionaries mapping behaviors to scaled train and test data, as well as the scaler used
+        Either decision states or raw behaviors can be utilized (decision flag) as no combinations
+        with mtd need to be considered
+        """
+        #print(os.getcwd())
+        dataset = DataProvider.parse_no_mtd_behavior_data(decision=decision, filter_outliers=False)
         
         #print(f"rdf.columns: {rdf.columns}")
         #print(f"rdf.length: {rdf.shape[0]}")
         # take split of all behaviors, concat, calc scaling, scale both train and test split
-        filtered_training_data, filtered_test_data = DataProvider.filter_train_split_for_outliers(dataset, Behavior.NORMAL, split)
+        filtered_training_data, filtered_test_data = train_test_split(dataset, train_size=split)
         
         #print(f"train_filtered: n_samples: {len(train_filtered)}; type: {type(train_filtered)}")
         #print(f"df_test: n_samples: {len(df_test)}; type: {type(df_test)}")
@@ -553,7 +425,7 @@ class DataProvider:
         #print(rdf)
         train_filtered = np.zeros((0,47))
         for behavior in dataset["attack"].unique():
-            dtrain_filtered, df_test = DataProvider.filter_train_split_for_outliers(dataset, behavior, split)
+            dtrain_filtered, df_test = train_test_split(dataset, train_size=split)
             train_bdata[behavior] = dtrain_filtered
             test_bdata[behavior] = df_test
 
@@ -583,122 +455,6 @@ class DataProvider:
         # return also scaler in case of using the agent for online scaling
         return training_data, test_data, scaler
     
-    '''
-    @staticmethod
-    def get_reduced_dimensions_with_pca_ds_as(dim=15, dir=""):
-        ""
-        dtrain, dtest, atrain, atest, scaler = DataProvider.get_scaled_scaled_train_test_split_with_afterstates(
-            scaling_minmax=False)
-        all_strain = dtrain[Behavior.NORMAL]
-        for b in dtrain:
-            if b != Behavior.NORMAL:
-                all_strain = np.vstack((all_strain, dtrain[b]))
-        for t, d in atrain.items():
-            all_strain = np.vstack((all_strain, atrain[t][:, :-1]))
-
-        pca = PCA(n_components=dim)
-        pca.fit(all_strain[:, :-1])
-
-        pca_dtrain = {}
-        for b, d in dtrain.items():
-            pca_dtrain[b] = np.hstack((pca.transform(d[:, :-1]), np.expand_dims(d[:, -1], axis=1)))
-
-        pca_dtest = {}
-        for b, d in dtest.items():
-            pca_dtest[b] = np.hstack((pca.transform(d[:, :-1]), np.expand_dims(d[:, -1], axis=1)))
-
-        pca_atrain = {}
-        for t, d in atrain.items():
-            pca_atrain[t] = np.hstack((pca.transform(d[:, :-2]), d[:, -2:]))
-
-        pca_atest = {}
-        for t, d in atest.items():
-            pca_atest[t] = np.hstack((pca.transform(d[:, :-2]), d[:, -2:]))
-
-        # save for later use for predictions preprocessing
-        # scaler_file, pca_file = "scaler.gz", "pcafit.gz"
-        scaler_file, pca_file = f"{dir}scalerdsas.obj", f"{dir}pcafitdsas.obj"
-
-        if not os.path.isfile(scaler_file):
-            joblib.dump(scaler, scaler_file[:-3] + "gz")
-            with open(scaler_file, "wb") as sf:
-                pickle.dump(scaler, sf)
-
-        if not os.path.isfile(pca_file):
-            joblib.dump(pca, pca_file[:-3] + "gz")
-            with open(pca_file, "wb") as pf:
-                pickle.dump(pca, pf)
-
-        return pca_dtrain, pca_dtest, pca_atrain, pca_atest
-
-    @staticmethod
-    def get_reduced_dimensions_with_pca(dim=15, pi=3, normal_only=True):
-        strain, stest, scaler = DataProvider.get_scaled_train_test_split(pi=pi, scaling_minmax=False,
-                                                                         scale_normal_only=normal_only)
-        all_strain = strain[Behavior.NORMAL]
-        for b in strain:
-            if b != Behavior.NORMAL:
-                all_strain = np.vstack((all_strain, strain[b]))
-
-        # fit pca on all
-        pca = PCA(n_components=dim)
-        pca.fit(all_strain[:, :-1])
-
-        pca_train = {}
-        for b, d in strain.items():
-            pca_train[b] = np.hstack((pca.transform(d[:, :-1]), np.expand_dims(d[:, -1], axis=1)))
-
-        pca_test = {}
-        for b, d in stest.items():
-            pca_test[b] = np.hstack((pca.transform(d[:, :-1]), np.expand_dims(d[:, -1], axis=1)))
-
-        # save for later use for predictions preprocessing
-        # scaler_file, pca_file = "scaler.gz", "pcafit.gz"
-        scaler_file, pca_file = "scaler.obj", "pcafit.obj"
-
-        if not os.path.isfile(scaler_file):
-            # joblib.dump(scaler, scaler_file)
-            with open(scaler_file, "wb") as sf:
-                pickle.dump(scaler, sf)
-
-        if not os.path.isfile(pca_file):
-            # joblib.dump(pca, pca_file)
-            with open(pca_file, "wb") as pf:
-                pickle.dump(pca, pf)
-
-        return pca_train, pca_test
-
-    @staticmethod
-    def fit_pca(n=15, pi=3):
-        strain, stest, scaler = DataProvider.get_scaled_train_test_split(pi=pi, scale_normal_only=False, scaling_minmax=False)
-        all_strain = strain[Behavior.NORMAL]
-        for b in strain:
-            if b != Behavior.NORMAL:
-                all_strain = np.vstack((all_strain, strain[b]))
-
-        pca = PCA(n_components=n)
-        pca.fit(all_strain[:, :-1])
-        return pca
-
-    @staticmethod
-    def get_pca_loading_scores_dataframe(n=15):
-        pca = DataProvider.fit_pca(n)
-        loadings = pd.DataFrame(pca.components_,
-                                columns=pd.read_csv(raw_behaviors_file_paths_rp3[Behavior.NORMAL]).drop(
-                                    time_status_columns + all_zero_columns + cols_to_exclude, axis=1).columns,
-                                index=["PC" + str(i) for i in range(1, n + 1)])
-        return loadings
-
-    @staticmethod
-    def get_highest_weight_loading_scores_for_pc(n_pcs=15, pcn="PC1"):
-        # maxCol = lambda x: max(x.min(), x.max(), key=abs)
-        df = DataProvider.get_pca_loading_scores_dataframe(n_pcs)
-        # df['max_loading_score'] = df.apply(maxCol, axis=1)
-        sorted_pc = df.loc[pcn].reindex(df.loc[pcn].abs().sort_values(ascending=False).index)
-        return sorted_pc
-
-    '''
-    
     @staticmethod
     def split_ds_data_for_ae_and_rl(dtrain, s=0.3):
         normal_data = dtrain[Behavior.NORMAL]
@@ -713,3 +469,22 @@ class DataProvider:
             train_data[(Behavior.NORMAL, mtd)] = normal_mtd_train[:int(s * len(normal_mtd_train))]
             ae_dict[mtd] = normal_mtd_train[int(s * len(normal_mtd_train)):]
         return ae_dict, train_data
+    
+    @staticmethod
+    def parse_agent_data_files_to_df(filter_constant_columns=True, exclude_cols=False) -> pd.DataFrame:
+        full_df = pd.DataFrame()
+        for behavior, path in decision_states_file_paths.items():
+            df = DataProvider.get_filtered_df(path)
+            df['attack'] = str(behavior)
+            df['state'] = decision_state
+            full_df = pd.concat([full_df, df])
+
+        for behavior, paths_dict in afterstates_file_paths.items():
+            for mtd, path in paths_dict.items():
+                df = DataProvider.get_filtered_df(path)
+                df['attack'] = str(behavior)
+                df['state'] = f"{afterstate} {mtd}"
+                full_df = pd.concat([full_df, df])
+
+        #full_df.to_csv(file_name, index_label=False)
+        return full_df

@@ -60,5 +60,18 @@ def calculate_balance_metrics(sampling_probability_1, sampling_probabiliy_2, N):
 
     sample_matrix = np.vstack([NR_SAMPLES_1, NR_SAMPLES_2])
 
-    print(f"MID: {multiclass_imbalance_degree(sample_matrix)}")
-    print(f"WCS: {weighted_cosine_similarity(sample_matrix)}")
+    print(f"Dataset Balance Metrics: MID={multiclass_imbalance_degree(sample_matrix)} & WCS={weighted_cosine_similarity(sample_matrix)}")
+    
+    
+def split_training_data(training_data, n_strides):
+    strides = []
+    for i in range(n_strides):
+        strides.append(dict())
+
+    for key, value in training_data.items():
+        #print(f"{key} => {len(value)}")
+        array_split = np.array_split(value, n_strides)
+        for i in range(n_strides):
+            strides[i][key] = array_split[i]
+        
+    return strides
