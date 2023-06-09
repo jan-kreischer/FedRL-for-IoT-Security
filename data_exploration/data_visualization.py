@@ -3,15 +3,23 @@ import os
 from custom_types import Behavior, RaspberryPi, MTDTechnique
 from data_plotting import DataPlotter
 
-plot_kde = False
+plot_kde = True
 plot_timeline = True
 
 if __name__ == "__main__":
     os.chdir("..")
     if plot_kde:
         print("kde")
-        # DataPlotter.plot_delay_and_normal_as_kde()
-        # DataPlotter.plot_behaviors_as_kde(RaspberryPi.PI4_2GB_WC)
+
+        DataPlotter.plot_decision_or_afterstates_as_kde(raw_behaviors=[(Behavior.NORMAL, "green"),
+                                                                       (Behavior.ROOTKIT_BDVL, "blue"),
+                                                                       (Behavior.ROOTKIT_BEURK, "lightblue"),
+                                                                       (Behavior.RANSOMWARE_POC, "black"),
+                                                                       (Behavior.CNC_BACKDOOR_JAKORITAR, "violet"),
+                                                                       (Behavior.CNC_THETICK, "purple"),
+                                                                       (Behavior.CNC_OPT1, "orange"),
+                                                                       (Behavior.CNC_OPT2, "red")],
+                                                        plot_name="all_raw_pi_3_1gb_kde")
 
         # DataPlotter.plot_normals_kde("compare_normals_kde")
         #
@@ -124,20 +132,20 @@ if __name__ == "__main__":
         #                                                 # raw_behaviors=[(Behavior.NORMAL, "pink")],
         #                                                 plot_name="cnc_opt_1_comparison")
 
-        DataPlotter.plot_decision_or_afterstates_as_kde(decision_states=[(Behavior.NORMAL, "green")],
-                                                   afterstates=[
-                                                       (Behavior.NORMAL, MTDTechnique.RANSOMWARE_DIRTRAP, "olive"),
-                                                       (Behavior.NORMAL, MTDTechnique.RANSOMWARE_FILE_EXT_HIDE, "lightgreen"),
-                                                       (Behavior.CNC_OPT2, MTDTechnique.RANSOMWARE_DIRTRAP, "red"),
-                                                       (Behavior.CNC_OPT2, MTDTechnique.RANSOMWARE_FILE_EXT_HIDE,
-                                                        "darkviolet"),
-                                                       # (
-                                                       #     Behavior.CNC_OPT1, MTDTechnique.CNC_IP_SHUFFLE, "darkblue"),
-                                                       # (Behavior.CNC_OPT1, MTDTechnique.ROOTKIT_SANITIZER,
-                                                       #  "lightblue")
-                                                   ],
-                                                   # raw_behaviors=[(Behavior.NORMAL, "pink")],
-                                                   plot_name="cnc_opt_2_comparison")
+        # DataPlotter.plot_decision_or_afterstates_as_kde(decision_states=[(Behavior.NORMAL, "green")],
+        #                                            afterstates=[
+        #                                                (Behavior.NORMAL, MTDTechnique.RANSOMWARE_DIRTRAP, "olive"),
+        #                                                (Behavior.NORMAL, MTDTechnique.RANSOMWARE_FILE_EXT_HIDE, "lightgreen"),
+        #                                                (Behavior.CNC_OPT2, MTDTechnique.RANSOMWARE_DIRTRAP, "red"),
+        #                                                (Behavior.CNC_OPT2, MTDTechnique.RANSOMWARE_FILE_EXT_HIDE,
+        #                                                 "darkviolet"),
+        #                                                # (
+        #                                                #     Behavior.CNC_OPT1, MTDTechnique.CNC_IP_SHUFFLE, "darkblue"),
+        #                                                # (Behavior.CNC_OPT1, MTDTechnique.ROOTKIT_SANITIZER,
+        #                                                #  "lightblue")
+        #                                            ],
+        #                                            # raw_behaviors=[(Behavior.NORMAL, "pink")],
+        #                                            plot_name="cnc_opt_2_comparison")
 
         # DataPlotter.plot_decision_or_afterstates_as_kde(
         #     decision_states=[(Behavior.NORMAL, "darkgreen")],
@@ -238,10 +246,12 @@ if __name__ == "__main__":
         DataPlotter.plot_raw_behaviors_timeline(
             [(RaspberryPi.PI3_1GB, Behavior.NORMAL, "green"),
              (RaspberryPi.PI3_1GB, Behavior.ROOTKIT_BDVL, "blue"),
-             (RaspberryPi.PI3_1GB, Behavior.RANSOMWARE_POC, "red"),
-             (RaspberryPi.PI3_1GB, Behavior.CNC_BACKDOOR_JAKORITAR, "darkviolet"),
+             (RaspberryPi.PI3_1GB, Behavior.ROOTKIT_BEURK, "lightblue"),
+             (RaspberryPi.PI3_1GB, Behavior.RANSOMWARE_POC, "black"),
+             (RaspberryPi.PI3_1GB, Behavior.CNC_BACKDOOR_JAKORITAR, "violet"),
+             (RaspberryPi.PI3_1GB, Behavior.CNC_THETICK, "purple"),
              (RaspberryPi.PI3_1GB, Behavior.CNC_OPT1, "orange"),
-             (RaspberryPi.PI3_1GB, Behavior.CNC_BACKDOOR_JAKORITAR, "pink")],
+             (RaspberryPi.PI3_1GB, Behavior.CNC_OPT2, "red")],
             plot_name="all_raw_pi_3_1gb_timeline"
         )
 

@@ -7,8 +7,8 @@ from custom_types import Behavior, MTDTechnique
 
 def show_raw_behaviors_data_availability(raw=False, pi=3, decision=False):
     all_data = DataProvider.parse_no_mtd_behavior_data(filter_outliers=not raw,
-                                                       filter_suspected_external_events=not raw, pi=pi,
-                                                       decision=decision)
+                                                       filter_suspected_external_events=not raw,
+                                                       pi=pi, decision=decision)
     all_data['attack'] = all_data['attack'].apply(lambda x: x.value)
 
     print(f'Total data points: {len(all_data)}')
@@ -91,7 +91,8 @@ def print_column_info(raw_behaviors=True, pi=3):
         row += ["x" if col in all_zero_columns else ""]
         row += ["x" if col in time_status_columns else ""]
         row += ["x" if col in cols_to_exclude else ""]
-        row += ["x" if (col not in time_status_columns and col not in all_zero_columns) else ""]
+        row += ["x" if (
+                    col not in time_status_columns and col not in all_zero_columns and col not in cols_to_exclude) else ""]
         rows.append(row)
     print(tabulate(rows[:45], headers=labels, tablefmt='latex'))
     print(tabulate(rows[45:], headers=labels, tablefmt='latex'))
@@ -100,10 +101,10 @@ def print_column_info(raw_behaviors=True, pi=3):
 if __name__ == "__main__":
     os.chdir("..")
     print("------------------Raw Data Availability------------------")
-    # show_raw_behaviors_data_availability(raw=True, pi=3)
+    show_raw_behaviors_data_availability(raw=True, pi=4)
     # show_decision_and_afterstate_data_availability(raw=True)
     print("----------------Filtered Data Availability---------------")
     # show_raw_behaviors_data_availability(raw=False, pi=3)
     # show_decision_and_afterstate_data_availability(raw=False)
 
-    print_column_info(raw_behaviors=True, pi=3)
+    #print_column_info(raw_behaviors=True, pi=3)
