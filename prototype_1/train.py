@@ -101,7 +101,7 @@ if __name__ == '__main__':
                 cnt_corr = 0
                 cnt = 0
                 for state in d:
-                    action = agent.take_action(state[:-1])
+                    action = agent.take_greedy_action(state[:-1])
                     if b in supervisor_map[action]:
                         cnt_corr += 1
                     cnt += 1
