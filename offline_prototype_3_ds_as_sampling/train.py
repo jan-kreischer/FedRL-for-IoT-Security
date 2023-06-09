@@ -24,7 +24,7 @@ LEARNING_RATE = 1e-4
 N_EPISODES = 10000
 LOG_FREQ = 100
 DIMS = 20
-SAMPLES = 1
+SAMPLES = 10
 
 if __name__ == '__main__':
     os.chdir("..")

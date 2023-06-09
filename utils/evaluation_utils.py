@@ -173,11 +173,11 @@ def check_anomalous(b: Behavior, m: MTDTechnique):
 def plot_state_samples_upper_binom_cdf():
     ns = [i + 1 for i in range(2, 100, 2)]
     ks_half = [ceil(n / 2) - 1 for n in ns]
-    for p, c in zip([0.5, 0.6, 0.7, 0.8], ["b", "g", "r", "k"]):
+    for p, c in zip([0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8], ["c", "m", "y", "b", "g", "r", "k"]):
         upper_bcdf = [1 - binom.cdf(k=ks_half[i], n=ns[i], p=p) for i in range(len(ns))]
-        plt.plot(ns, upper_bcdf, f"-{c}", label=f"n, k=n/2, p={p}")
-    plt.ylabel("probability for more than 50% successes")
-    plt.xlabel("nr of trials (n)")
-    plt.title("Upper Binomial CDF", fontsize='xx-large')
+        plt.plot(ns, upper_bcdf, f"-{c}", label=f"Accuracy p={p}")
+    plt.ylabel("Probability for more than 50% correct predictions")
+    plt.xlabel("Nr of trials (n)")
+    plt.title("Number of Samples and Anomaly Detection Success")#fontsize='xx-large')
     plt.legend()
     plt.savefig("upper_binom_cdf_tests.pdf")
