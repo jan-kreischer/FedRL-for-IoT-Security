@@ -31,8 +31,8 @@ class SimulationEngine:
 
             obs = new_obs
             if done:
-                # no need to reset agent episode_action_memory here as actions are chosen randomly
                 obs = env.reset()
+                episode_action_memory = []
 
     @staticmethod
     def learn_agent_offline(agent: Agent, env, num_episodes, t_update_freq):
