@@ -106,9 +106,9 @@ class Agent:
 
         # compute targets
         target_q_values = self.target_net(t_new_obses)
-        max_target_q_values = target_q_values.max(dim=1, keepdim=True)[0]
+        max_target_q_values = torch.max(target_q_values, dim=1)[0]
 
-        targets = t_rewards + self.gamma * (1 - t_dones) * max_target_q_values
+        targets = (t_rewards + self.gamma * (1 - t_dones) * max_target_q_values).unsqueeze(1)
 
         # compute loss
         q_values = self.online_net(t_obses)
