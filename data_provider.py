@@ -552,7 +552,7 @@ class DataProvider:
 
     @staticmethod
     def fit_pca(n=15, pi=3):
-        strain, stest, scaler = DataProvider.get_scaled_train_test_split(pi=pi)
+        strain, stest, scaler = DataProvider.get_scaled_train_test_split(pi=pi, scale_normal_only=False, scaling_minmax=False)
         all_strain = strain[Behavior.NORMAL]
         for b in strain:
             if b != Behavior.NORMAL:
