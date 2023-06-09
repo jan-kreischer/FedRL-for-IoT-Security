@@ -19,7 +19,8 @@ raw_behaviors_file_paths_rp3: Dict[Behavior, str] = {
     Behavior.ROOTKIT_BDVL: f"data/{raw_behaviors_dir_rp3}/rootkit_bdvl_online_samples_1_2022-08-19-08-45_5s",
     Behavior.ROOTKIT_BEURK: f"data/{raw_behaviors_dir_rp3}/rootkit_beurk_online_samples_1_2022-09-01-18-12_5s",
     Behavior.CNC_THETICK: f"data/{raw_behaviors_dir_rp3}/cnc_thetick_online_samples_1_2022-08-30-16-11_5s",
-    Behavior.CNC_BACKDOOR_JAKORITAR: f"data/{raw_behaviors_dir_rp3}/cnc_backdoor_jakoritar_expfs_samples_1_2022-08-21-13-33_5s"
+    #Behavior.CNC_BACKDOOR_JAKORITAR: f"data/{raw_behaviors_dir_rp3}/cnc_backdoor_jakoritar_expfs_samples_1_2022-08-21-13-33_5s"
+    Behavior.CNC_BACKDOOR_JAKORITAR: f"data/{raw_behaviors_dir_rp3}/cnc_backdoor_jakoritar_new_online_samples_1_2022-09-02-09-19_5s"
 }
 
 raw_behaviors_dir_rp4 = "raw_behaviors_no_agent_rp4"
