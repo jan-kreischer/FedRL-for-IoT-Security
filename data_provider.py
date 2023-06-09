@@ -19,7 +19,7 @@ raw_behaviors_file_paths_rp3: Dict[Behavior, str] = {
     Behavior.ROOTKIT_BDVL: f"data/{raw_behaviors_dir_rp3}/rootkit_bdvl_online_samples_1_2022-08-19-08-45_5s",
     Behavior.ROOTKIT_BEURK: f"data/{raw_behaviors_dir_rp3}/rootkit_beurk_online_samples_1_2022-09-01-18-12_5s",
     Behavior.CNC_THETICK: f"data/{raw_behaviors_dir_rp3}/cnc_thetick_online_samples_1_2022-08-30-16-11_5s",
-    #Behavior.CNC_BACKDOOR_JAKORITAR: f"data/{raw_behaviors_dir_rp3}/cnc_backdoor_jakoritar_expfs_samples_1_2022-08-21-13-33_5s"
+    # Behavior.CNC_BACKDOOR_JAKORITAR: f"data/{raw_behaviors_dir_rp3}/cnc_backdoor_jakoritar_expfs_samples_1_2022-08-21-13-33_5s"
     Behavior.CNC_BACKDOOR_JAKORITAR: f"data/{raw_behaviors_dir_rp3}/cnc_backdoor_jakoritar_new_online_samples_1_2022-09-02-09-19_5s"
 }
 
@@ -32,12 +32,6 @@ raw_behaviors_file_paths_rp4: Dict[Behavior, str] = {
     Behavior.CNC_THETICK: f"data/{raw_behaviors_dir_rp4}/cnc_backdoor_jakoritar_samples_2022-06-18-09-35_50s",
     Behavior.CNC_BACKDOOR_JAKORITAR: f"data/{raw_behaviors_dir_rp4}/cnc_thetick_samples_2022-06-19-16-54_50s"
 }
-# TODO: These columns are derived from data_availability.py -> check data
-time_status_columns = ["time", "timestamp", "seconds", "connectivity"]
-all_zero_columns = ['cpuNice', 'cpuHardIrq', 'alarmtimer:alarmtimer_fired', 'tasksStopped',
-                    'alarmtimer:alarmtimer_start', 'cachefiles:cachefiles_create',
-                    'cachefiles:cachefiles_lookup', 'cachefiles:cachefiles_mark_active',
-                    'dma_fence:dma_fence_init', 'udp:udp_fail_queue_rcv_skb']
 
 # behaviors with MTD framework/Agent Components running as per directory "online_prototype_monitoring"
 decision_state = "decision"
@@ -78,6 +72,20 @@ afterstates_file_paths: Dict[Behavior, Dict[MTDTechnique, str]] = {
         MTDTechnique.ROOTKIT_SANITIZER: f"data/{afterstates_dir}/cnc_jakoritar_as_removerk_expfs_online_samples_2_2022-08-13-10-52_5s",
     }
 }
+
+# TODO: These columns are derived from data_availability.py -> check data
+time_status_columns = ["time", "timestamp", "seconds", "connectivity"]
+all_zero_columns = ['cpuNice', 'cpuHardIrq', 'alarmtimer:alarmtimer_fired', 'tasksStopped',
+                    'alarmtimer:alarmtimer_start', 'cachefiles:cachefiles_create',
+                    'cachefiles:cachefiles_lookup', 'cachefiles:cachefiles_mark_active',
+                    'dma_fence:dma_fence_init', 'udp:udp_fail_queue_rcv_skb']
+cols_to_exclude = ['tasks', 'tasksSleeping', 'tasksZombie',
+                   'ramFree', 'ramUsed', 'ramCache', 'memAvail', 'numEncrypted',
+                   'iface0RX', 'iface0TX', 'iface1RX', 'iface1TX'
+                   ]
+
+
+# 'tasksRunning', 'tasksStopped' - included in zero cols
 
 
 class DataProvider:
@@ -254,7 +262,7 @@ class DataProvider:
     def __get_filtered_df(path, filter_suspected_external_events=True, startidx=10, endidx=-1,
                           filter_constant_columns=True, const_cols=all_zero_columns,
                           filter_outliers=True,
-                          keep_status_columns=False, stat_cols=time_status_columns):
+                          keep_status_columns=False, stat_cols=time_status_columns, cols_to_exclude=cols_to_exclude):
 
         df = pd.read_csv(path)
         assert df.isnull().values.any() == False, "behavior data should not contain NaN values"
@@ -277,6 +285,9 @@ class DataProvider:
 
         if filter_constant_columns:
             df = df.drop(const_cols, axis=1)
+
+        if len(cols_to_exclude) > 0:
+            df = df.drop(cols_to_exclude, axis=1)
 
         return df
 

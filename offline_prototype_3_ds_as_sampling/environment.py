@@ -126,7 +126,6 @@ class SensorEnvironment:
                 attack_data = self.dtrain_data[self.reset_to_behavior]
                 self.current_state = attack_data[np.random.randint(attack_data.shape[0], size=self.num_state_samples),
                                      :]
-                self.reset_to_behavior = None
                 # WARNING:
                 # if the behavior to reset to is never detected as an anomaly,
                 # it could get stuck in an endless loop here
@@ -138,6 +137,8 @@ class SensorEnvironment:
             if (torch.sum(self.interpreter.predict(self.current_state[:, :-1].astype(np.float32))) / len(
                     self.current_state) > 0.5):
                 # FP/TP - start training
+                # below must be here, otherwise it's possible that there is a false negative and the next episode starts with a different behavior
+                self.reset_to_behavior = None
                 break
 
         return np.expand_dims(self.current_state[0, :], axis=0)

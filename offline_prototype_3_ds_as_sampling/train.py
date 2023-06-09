@@ -6,7 +6,8 @@ from simulation_engine import SimulationEngine
 from utils.evaluation_utils import plot_learning, seed_random, evaluate_agent, \
     evaluate_agent_on_afterstates, get_pretrained_agent
 from utils.autoencoder_utils import get_pretrained_ae, split_as_data_for_ae_and_rl, \
-    split_ds_data_for_ae_and_rl, evaluate_ae_on_afterstates, evaluate_ae_on_no_mtd_behavior
+    split_ds_data_for_ae_and_rl, evaluate_ae_on_afterstates, evaluate_ae_on_no_mtd_behavior, pretrain_ae_model, \
+    pretrain_all_afterstate_ae_models, evaluate_all_as_ae_models, pretrain_all_ds_as_ae_models
 from time import time
 import numpy as np
 import os
@@ -22,7 +23,7 @@ TARGET_UPDATE_FREQ = 100
 LEARNING_RATE = 1e-5
 N_EPISODES = 5000
 LOG_FREQ = 100
-DIMS = 15
+DIMS = 20
 SAMPLES = 10
 
 if __name__ == '__main__':
@@ -53,13 +54,12 @@ if __name__ == '__main__':
     # evaluate_ae_on_afterstates(ae_interpreter, test_data=atrain)
 
     ae_train_dict, atrain_rl = split_as_data_for_ae_and_rl(atrain)
-    # SHOWN that the DIRTRAP model has the least FP on the testset
     # pretrain_all_afterstate_ae_models(ae_train_dict, dir=dir)
     # evaluate_all_as_ae_models(dtrain_rl, atrain_rl, dims=DIMS, dir=dir)
 
     # MODEL trained on all ds and as normal data assumes the least -> MOST REALISTIC
-    # pretrain_all_ds_as_ae_models(ae_ds_train, ae_train_dict)
-    # print("Evaluating AE trained on all decision and afterstates normal")
+    pretrain_all_ds_as_ae_models(ae_ds_train, ae_train_dict)
+    print("Evaluating AE trained on all decision and afterstates normal")
     path = dir + "ae_model_all_ds_as.pth"
     ae_interpreter = get_pretrained_ae(path=path, dims=DIMS)
     # print("---Evaluation on decision behaviors train---")
