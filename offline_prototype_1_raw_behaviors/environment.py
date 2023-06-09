@@ -14,13 +14,13 @@ from data_provider import DataProvider
 actions = (MTDTechnique.CNC_IP_SHUFFLE, MTDTechnique.ROOTKIT_SANITIZER,
            MTDTechnique.RANSOMWARE_DIRTRAP, MTDTechnique.RANSOMWARE_FILE_EXT_HIDE)
 
-supervisor_map: Dict[int, Tuple[Behavior]] = defaultdict(lambda: -1, {
+supervisor_map: Dict[int, Tuple[Behavior]] = {
     # MTDTechnique.NO_MTD: (Behavior.NORMAL,),
     0: (Behavior.CNC_BACKDOOR_JAKORITAR, Behavior.CNC_THETICK),
     1: (Behavior.ROOTKIT_BDVL, Behavior.ROOTKIT_BEURK),
     2: (Behavior.RANSOMWARE_POC,),
     3: (Behavior.RANSOMWARE_POC,)
-})
+}
 
 
 # handles the supervised, online-simulation of episodes

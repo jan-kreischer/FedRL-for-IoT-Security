@@ -130,7 +130,7 @@ class DataProvider:
         if os.path.isfile(file_name):
             full_df = pd.read_csv(file_name)
         full_df = pd.DataFrame()
-        bdata = {}
+        #bdata = {}
 
         for attack in b_file_paths:
             df = DataProvider.__get_filtered_df(b_file_paths[attack],
@@ -140,12 +140,12 @@ class DataProvider:
                                                 filter_outliers=filter_outliers,
                                                 keep_status_columns=keep_status_columns)
             df['attack'] = attack
-            bdata[attack] = df.to_numpy()
+            #bdata[attack] = df.to_numpy()
             if not os.path.isfile(file_name):
                 full_df = pd.concat([full_df, df])
 
         # full_df.to_csv(file_name, index_label=False)
-        return bdata, full_df
+        return full_df#, bdata
 
     @staticmethod
     def parse_mtd_behavior_data(filter_suspected_external_events=True,
@@ -329,7 +329,7 @@ class DataProvider:
     @staticmethod
     def get_scaled_scaled_train_test_split_with_afterstates(split=0.8, scaling_minmax=True):
         #  1 get both dicts for decision and afterstates
-        ddata, ddf = DataProvider.parse_no_mtd_behavior_data(decision=True)
+        ddf = DataProvider.parse_no_mtd_behavior_data(decision=True)
         adata = DataProvider.parse_mtd_behavior_data()
 
         # take split of all behaviors, concat, calc scaling, scale both train and test split
@@ -387,55 +387,38 @@ class DataProvider:
         return scaled_dtrain, scaled_dtest, scaled_atrain, scaled_atest, scaler
 
     @staticmethod
+    def __filter_train_split_for_outliers(df: pd.DataFrame, b: Behavior, split=0.8):
+        df = df[df["attack"] == b].drop(["attack"], axis=1)
+        df_test = df.sample(frac=1-split)#.reset_index(drop=True)
+        df_train = pd.concat([df, df_test]).drop_duplicates(keep=False)
+        train_filtered = df_train[(np.nan_to_num(np.abs(stats.zscore(df_train))) < 3).all(axis=1)]
+        train_filtered["attack"] = b
+        df_test["attack"] = b
+        train_filtered = train_filtered.to_numpy()
+        df_test = df_test.to_numpy()
+        return train_filtered, df_test
+
+    @staticmethod
     def get_scaled_train_test_split(split=0.8, scaling_minmax=True, decision=False, pi=3):
         """
         Method returns dictionaries mapping behaviors to scaled train and test data, as well as the scaler used
         Either decision states or raw behaviors can be utilized (decision flag) as no combinations
         with mtd need to be considered
         """
-
-        bdata, rdf = DataProvider.parse_no_mtd_behavior_data(decision=decision, pi=pi, filter_outliers=False)
+        rdf = DataProvider.parse_no_mtd_behavior_data(decision=decision, pi=pi, filter_outliers=False)
 
         # take split of all behaviors, concat, calc scaling, scale both train and test split
-        # first_b = bdata[Behavior.NORMAL]
-        # np.random.shuffle(first_b)
-        # train = first_b[:int(split * first_b.shape[0]), :]
-        # test = first_b[int(split * first_b.shape[0]):, :]
+        train_filtered, df_test = DataProvider.__filter_train_split_for_outliers(rdf, Behavior.NORMAL, split)
 
-        normal_df = rdf[rdf["attack"] == Behavior.NORMAL].drop(["attack"], axis=1)
-        normal_df_train = normal_df.sample(frac=split).reset_index(drop=True)
-        #normal_df_test = normal_df.sample(frac=1 - split).reset_index(drop=True)
-        train_filtered = normal_df_train[(np.nan_to_num(np.abs(stats.zscore(normal_df_train))) < 3).all(axis=1)]
-        train_filtered.loc[:, "attack"] = Behavior.NORMAL
-        train_filtered = train_filtered.to_numpy()
-
+        # get behavior dicts for train and test
         train_bdata = {}
         test_bdata = {}
         for b in rdf["attack"].unique():
-            df = rdf[rdf["attack"] == b].drop(["attack"], axis=1)
-            df_train = df.sample(frac=split).reset_index(drop=True)
-            df_test = df.sample(frac=1 - split).reset_index(drop=True)
-            dtrain_filtered = df_train[(np.nan_to_num(np.abs(stats.zscore(df_train))) < 3).all(axis=1)]
-            df_test.loc[:, "attack"] = b
-            dtrain_filtered.loc[:, "attack"] = b
-            train_bdata[b] = dtrain_filtered.to_numpy()
-            test_bdata[b] = df_test.to_numpy()
+            dtrain_filtered, df_test = DataProvider.__filter_train_split_for_outliers(rdf, b, split)
+            train_bdata[b] = dtrain_filtered
+            test_bdata[b] = df_test
             if b != Behavior.NORMAL:
                 train_filtered = np.vstack((train_filtered, train_bdata[b]))
-
-        # # get behavior dicts for train and test
-        # train_bdata = {}
-        # test_bdata = {}
-        # for b, d in bdata.items():
-        #     np.random.shuffle(d)
-        #     d_train = d[:int(split * d.shape[0]), :]
-        #     d_test = d[int(split * d.shape[0]):, :]
-        #
-        #     train_bdata[b] = d_train
-        #     test_bdata[b] = d_test
-        #     if b != Behavior.NORMAL:
-        #         train = np.vstack((train, d_train))
-        #         # test = np.vstack((test, d_test))
 
         # fit scaler on all training data combined -> MinMaxScaler ideally, StandardScaler only for testing
         scaler = StandardScaler() if not scaling_minmax else MinMaxScaler()
