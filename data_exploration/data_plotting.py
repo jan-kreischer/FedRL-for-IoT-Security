@@ -87,7 +87,7 @@ class DataPlotter:
         fig.set_figheight(len(cols_to_plot))
         fig.set_figwidth(50)
         for i in range(len(cols_to_plot)):
-            axs[i].set_ylim([1e-6, 2 * 1e-1])  # adapt limitations specifically for features
+            axs[i].set_ylim([1e-6, 3 * 1e-1])  # adapt limitations specifically for features
             axs[i].set_xlabel("feature range")
             axs[i].set_ylabel("density")
             for b, color in decision_states:

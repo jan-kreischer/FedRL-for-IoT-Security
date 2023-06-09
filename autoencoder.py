@@ -75,14 +75,14 @@ class AutoEncoder():
                 loss = loss_function(model_out, x)
                 mses.append(loss.item())
         mses = np.array(mses)
-        self.threshold = mses.mean() + 2 * mses.std()
+        self.threshold = mses.mean() + 1 * mses.std()
         return self.threshold
 
-    def save_model(self, dir=""):
+    def save_model(self, dir="", num=0):
         torch.save({
             'model_state_dict': self.model.state_dict(),
             'threshold': self.threshold
-        }, f"{dir}trained_models/autoencoder_model.pth")
+        }, f"{dir}trained_models/autoencoder_model_{str(num)}.pth")
 
 
 class AutoEncoderInterpreter():

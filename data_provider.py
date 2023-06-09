@@ -12,14 +12,22 @@ import os
 import pickle
 
 # raw behaviors without any MTD framework/Agent Components running
-raw_behaviors_dir = "raw_behaviors_no_agent_rp4"
-raw_behaviors_file_paths: Dict[Behavior, str] = {
-    Behavior.NORMAL: f"data/{raw_behaviors_dir}/normal_samples_2022-06-13-11-25_50s",
-    Behavior.RANSOMWARE_POC: f"data/{raw_behaviors_dir}/ransomware_samples_2022-06-20-08-49_50s",
-    Behavior.ROOTKIT_BEURK: f"data/{raw_behaviors_dir}/rootkit_beurk_samples_2022-06-17-09-08_50s",
-    Behavior.ROOTKIT_BDVL: f"data/{raw_behaviors_dir}/rootkit_bdvl_samples_2022-06-16-19-16_50s",
-    Behavior.CNC_THETICK: f"data/{raw_behaviors_dir}/cnc_backdoor_jakoritar_samples_2022-06-18-09-35_50s",
-    Behavior.CNC_BACKDOOR_JAKORITAR: f"data/{raw_behaviors_dir}/cnc_thetick_samples_2022-06-19-16-54_50s"
+raw_behaviors_dir_rp3 = "raw_behaviors_no_agent_rp4"
+raw_behaviors_file_paths_rp3: Dict[Behavior, str] = {
+    Behavior.NORMAL: f"data/{raw_behaviors_dir_rp3}/normal_expfs_online_samples_1_2022-08-20-09-16_5s",
+    Behavior.RANSOMWARE_POC: f"data/{raw_behaviors_dir_rp3}/ransom_expfs_online_samples_1_2022-08-22-14-04_5s",
+    Behavior.ROOTKIT_BDVL: f"data/{raw_behaviors_dir_rp3}/bdvl_online_samples_1_2022-08-19-08-45_5s",
+    Behavior.CNC_BACKDOOR_JAKORITAR: f"data/{raw_behaviors_dir_rp3}/cnc_backdoor_jakoritar_expfs_samples_1_2022-08-21-13-33_5s"
+}
+
+raw_behaviors_dir_rp4 = "raw_behaviors_no_agent_rp4"
+raw_behaviors_file_paths_rp4: Dict[Behavior, str] = {
+    Behavior.NORMAL: f"data/{raw_behaviors_dir_rp4}/normal_samples_2022-06-13-11-25_50s",
+    Behavior.RANSOMWARE_POC: f"data/{raw_behaviors_dir_rp4}/ransomware_samples_2022-06-20-08-49_50s",
+    Behavior.ROOTKIT_BEURK: f"data/{raw_behaviors_dir_rp4}/rootkit_beurk_samples_2022-06-17-09-08_50s",
+    Behavior.ROOTKIT_BDVL: f"data/{raw_behaviors_dir_rp4}/rootkit_bdvl_samples_2022-06-16-19-16_50s",
+    Behavior.CNC_THETICK: f"data/{raw_behaviors_dir_rp4}/cnc_backdoor_jakoritar_samples_2022-06-18-09-35_50s",
+    Behavior.CNC_BACKDOOR_JAKORITAR: f"data/{raw_behaviors_dir_rp4}/cnc_thetick_samples_2022-06-19-16-54_50s"
 }
 # TODO: These columns are derived from data_availability.py -> check data
 time_status_columns = ["time", "timestamp", "seconds", "connectivity"]
@@ -75,10 +83,11 @@ class DataProvider:
     def parse_no_mtd_behavior_data(filter_suspected_external_events=True,
                                    filter_constant_columns=True,
                                    filter_outliers=True,
-                                   keep_status_columns=False, decision=False) -> Dict[Behavior, np.ndarray]:
+                                   keep_status_columns=False, decision=False, pi=3) -> Dict[Behavior, np.ndarray]:
         # print(os.getcwd())
         b_directory, b_file_paths = (decision_states_dir, decision_states_file_paths) if decision else \
-            (raw_behaviors_dir, raw_behaviors_file_paths)
+            (raw_behaviors_dir_rp3, raw_behaviors_file_paths_rp3) if pi == 3 else\
+                (raw_behaviors_dir_rp4, raw_behaviors_file_paths_rp4)
         file_name = f'../data/{b_directory}/all_data_filtered_external{"_decision" if decision else ""}' \
                     f'_{str(filter_suspected_external_events)}' \
                     f'_constant_{str(filter_constant_columns)}_outliers_{str(filter_outliers)}'
@@ -143,10 +152,15 @@ class DataProvider:
     def parse_raw_behavior_files_to_df(filter_suspected_external_events=True,
                                        filter_constant_columns=True,
                                        filter_outliers=True,
-                                       keep_status_columns=False) -> pd.DataFrame:
+                                       keep_status_columns=False, pi=3) -> pd.DataFrame:
+
+        if pi == 3:
+            rb_dir, rb_fpaths = raw_behaviors_dir_rp3, raw_behaviors_file_paths_rp3
+        else:
+            rb_dir, rb_fpaths = raw_behaviors_dir_rp4, raw_behaviors_file_paths_rp4
 
         print(os.getcwd())
-        file_name = f'data/{raw_behaviors_dir}/all_data_filtered_external_{str(filter_suspected_external_events)}' \
+        file_name = f'data/{rb_dir}/all_data_filtered_external_{str(filter_suspected_external_events)}' \
                     f'_constant_{str(filter_constant_columns)}_outliers_{str(filter_outliers)}'
 
         if keep_status_columns:
@@ -157,8 +171,8 @@ class DataProvider:
             return pd.read_csv(file_name)
         full_df = pd.DataFrame()
 
-        for attack in raw_behaviors_file_paths:
-            df = DataProvider.__get_filtered_df(raw_behaviors_file_paths[attack],
+        for attack in rb_fpaths:
+            df = DataProvider.__get_filtered_df(rb_fpaths[attack],
                                                 filter_suspected_external_events=filter_suspected_external_events,
                                                 startidx=72,
                                                 filter_constant_columns=filter_constant_columns,
@@ -478,7 +492,7 @@ class DataProvider:
     def get_pca_loading_scores_dataframe(n=15):
         pca = DataProvider.fit_pca(n)
         loadings = pd.DataFrame(pca.components_,
-                                columns=pd.read_csv(raw_behaviors_file_paths[Behavior.CNC_BACKDOOR_JAKORITAR]).drop(
+                                columns=pd.read_csv(raw_behaviors_file_paths_rp4[Behavior.CNC_BACKDOOR_JAKORITAR]).drop(
                                     time_status_columns, axis=1).drop(all_zero_columns, axis=1).columns,
                                 index=["PC" + str(i) for i in range(1, n + 1)])
         return loadings
