@@ -1,5 +1,5 @@
 from data_provider import DataProvider
-from offline_prototype_2_raw_behaviors.environment import SensorEnvironment, supervisor_map
+from offline_prototype_3_ds_as_sampling.environment import SensorEnvironment, supervisor_map
 from agent import Agent
 from custom_types import Behavior
 from autoencoder import AutoEncoder, AutoEncoderInterpreter
@@ -32,8 +32,9 @@ if __name__ == '__main__':
     # read in all preprocessed data for a simulated, supervised environment to sample from
     # train_data, test_data, scaler = DataProvider.get_scaled_train_test_split()
     # train_data, test_data = DataProvider.get_reduced_dimensions_with_pca(DIMS)
-    #dtrain, dtest, atrain, atest, scaler = DataProvider.get_scaled_scaled_train_test_split_with_afterstates()
-    dtrain, dtest, atrain, atest = DataProvider.get_reduced_dimensions_with_pca_ds_as(DIMS)
+    # dtrain, dtest, atrain, atest, scaler = DataProvider.get_scaled_scaled_train_test_split_with_afterstates()
+    dtrain, dtest, atrain, atest = DataProvider.get_reduced_dimensions_with_pca_ds_as(DIMS,
+                                                                                      dir="offline_prototype_3_ds_as_sampling/")
 
     # get splits for RL & AD of normal data
     n = 100
@@ -51,8 +52,8 @@ if __name__ == '__main__':
     # print(f"size train: {train_ae_x.shape}, size valid: {valid_ae_x.shape}")
     # # AD training
     # ae = AutoEncoder(train_x=train_ae_x, train_y=train_ae_y, valid_x=valid_ae_x,
-    #                              valid_y=valid_ae_y)
-    # ae.train(optimizer=torch.optim.SGD(ae.get_model().parameters(), lr=0.0001, momentum=0.8), num_epochs=100)
+    #                  valid_y=valid_ae_y)
+    # ae.train(optimizer=torch.optim.SGD(ae.get_model().parameters(), lr=0.0001, momentum=0.8), num_epochs=1000)
     # ae.determine_threshold()
     # print(f"ae threshold: {ae.threshold}")
     # ae.save_model(dir="offline_prototype_3_ds_as_sampling/")
@@ -64,7 +65,6 @@ if __name__ == '__main__':
     print(f"ae_interpreter threshold: {ae_interpreter.threshold}")
 
     # AE can directly be tested on the data that will be used for RL: pass train_data to testing
-
     res_dict = {}
     for b, d in dtrain.items():
         y_test = np.array([0 if b == Behavior.NORMAL else 1] * len(d))
@@ -79,10 +79,9 @@ if __name__ == '__main__':
         results.append([b.value, res_dict[b]])
     print(tabulate(results, headers=labels, tablefmt="pretty"))
 
-    exit(0)
-
     # Reinforcement Learning
-    env = SensorEnvironment(train_data, test_data, interpreter=ae_interpreter)
+    env = SensorEnvironment(decision_train_data=dtrain, decision_test_data=dtest,
+                            after_train_data=atrain, after_test_data=atest, interpreter=ae_interpreter)
 
     agent = Agent(input_dims=env.observation_space_size, n_actions=len(env.actions), buffer_size=BUFFER_SIZE,
                   batch_size=BATCH_SIZE, lr=LEARNING_RATE, gamma=GAMMA, epsilon=EPSILON_START, eps_end=EPSILON_END)
