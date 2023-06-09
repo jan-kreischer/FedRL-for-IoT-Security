@@ -111,18 +111,33 @@ if __name__ == "__main__":
         #                                                 #raw_behaviors=[(Behavior.NORMAL, "pink")],
         #                                                 plot_name="ds_comparison_pi_3_1gb_kde")
 
-        DataPlotter.plot_decision_or_afterstates_as_kde(decision_states=[(Behavior.NORMAL, "green"),
-                                                                         (Behavior.CNC_OPT1, "orange")],
-                                                        afterstates=[
-                                                            (Behavior.CNC_OPT1, MTDTechnique.RANSOMWARE_DIRTRAP, "red"),
-                                                            (Behavior.CNC_OPT1, MTDTechnique.RANSOMWARE_FILE_EXT_HIDE,
-                                                             "darkviolet"),
-                                                            (
-                                                            Behavior.CNC_OPT1, MTDTechnique.CNC_IP_SHUFFLE, "darkblue"),
-                                                            (Behavior.CNC_OPT1, MTDTechnique.ROOTKIT_SANITIZER,
-                                                             "lightblue")],
-                                                        # raw_behaviors=[(Behavior.NORMAL, "pink")],
-                                                        plot_name="cnc_opt_1_comparison")
+        # DataPlotter.plot_decision_or_afterstates_as_kde(decision_states=[(Behavior.NORMAL, "green"),
+        #                                                                  (Behavior.CNC_OPT1, "orange")],
+        #                                                 afterstates=[
+        #                                                     (Behavior.CNC_OPT1, MTDTechnique.RANSOMWARE_DIRTRAP, "red"),
+        #                                                     (Behavior.CNC_OPT1, MTDTechnique.RANSOMWARE_FILE_EXT_HIDE,
+        #                                                      "darkviolet"),
+        #                                                     (
+        #                                                     Behavior.CNC_OPT1, MTDTechnique.CNC_IP_SHUFFLE, "darkblue"),
+        #                                                     (Behavior.CNC_OPT1, MTDTechnique.ROOTKIT_SANITIZER,
+        #                                                      "lightblue")],
+        #                                                 # raw_behaviors=[(Behavior.NORMAL, "pink")],
+        #                                                 plot_name="cnc_opt_1_comparison")
+
+        DataPlotter.plot_decision_or_afterstates_as_kde(decision_states=[(Behavior.NORMAL, "green")],
+                                                   afterstates=[
+                                                       (Behavior.NORMAL, MTDTechnique.RANSOMWARE_DIRTRAP, "olive"),
+                                                       (Behavior.NORMAL, MTDTechnique.RANSOMWARE_FILE_EXT_HIDE, "lightgreen"),
+                                                       (Behavior.CNC_OPT2, MTDTechnique.RANSOMWARE_DIRTRAP, "red"),
+                                                       (Behavior.CNC_OPT2, MTDTechnique.RANSOMWARE_FILE_EXT_HIDE,
+                                                        "darkviolet"),
+                                                       # (
+                                                       #     Behavior.CNC_OPT1, MTDTechnique.CNC_IP_SHUFFLE, "darkblue"),
+                                                       # (Behavior.CNC_OPT1, MTDTechnique.ROOTKIT_SANITIZER,
+                                                       #  "lightblue")
+                                                   ],
+                                                   # raw_behaviors=[(Behavior.NORMAL, "pink")],
+                                                   plot_name="cnc_opt_2_comparison")
 
         # DataPlotter.plot_decision_or_afterstates_as_kde(
         #     decision_states=[(Behavior.NORMAL, "darkgreen")],

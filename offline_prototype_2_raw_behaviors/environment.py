@@ -1,6 +1,6 @@
 from typing import Dict, Tuple, List
 from collections import defaultdict
-from custom_types import Behavior, MTDTechnique
+from custom_types import Behavior, MTDTechnique, actions, supervisor_map
 from autoencoder import AutoEncoderInterpreter
 from scipy import stats
 from tabulate import tabulate
@@ -10,22 +10,8 @@ import pandas as pd
 import os
 import random
 
-# define MTD - (target Attack) Mapping
-# indices corresponding to sequence
-actions = (MTDTechnique.CNC_IP_SHUFFLE, MTDTechnique.ROOTKIT_SANITIZER,
-           MTDTechnique.RANSOMWARE_DIRTRAP, MTDTechnique.RANSOMWARE_FILE_EXT_HIDE)
-
-supervisor_map: Dict[int, Tuple[Behavior]] = {
-    # MTDTechnique.NO_MTD: (Behavior.NORMAL,),
-    0: (Behavior.CNC_BACKDOOR_JAKORITAR, Behavior.CNC_THETICK, Behavior.CNC_OPT1, Behavior.CNC_OPT2, Behavior.NORMAL),
-    1: (Behavior.ROOTKIT_BDVL, Behavior.ROOTKIT_BEURK, Behavior.NORMAL),
-    2: (Behavior.RANSOMWARE_POC, Behavior.NORMAL),
-    3: (Behavior.RANSOMWARE_POC, Behavior.NORMAL)
-}
 
 
-# TODO remove test_data, factor out environment core func
-# handles the unsupervised, online-simulation of episodes
 class SensorEnvironment:
 
     def __init__(self, train_data: Dict[Behavior, np.ndarray] = None,

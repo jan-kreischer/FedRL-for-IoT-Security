@@ -1,6 +1,8 @@
 from typing import Tuple, Any
 from sklearn.metrics import f1_score, confusion_matrix, classification_report
 from tabulate import tabulate
+from math import ceil
+from scipy.stats import binom
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
@@ -164,3 +166,16 @@ def check_anomalous(b: Behavior, m: MTDTechnique):
         b == Behavior.CNC_OPT1 or b == Behavior.CNC_OPT2) and m == MTDTechnique.CNC_IP_SHUFFLE:
         return 0
     return 1
+
+
+def plot_state_samples_upper_binom_cdf():
+    ns = [i + 1 for i in range(2, 100, 2)]
+    ks_half = [ceil(n / 2) - 1 for n in ns]
+    for p, c in zip([0.5, 0.6, 0.7, 0.8], ["b", "g", "r", "k"]):
+        upper_bcdf = [1 - binom.cdf(k=ks_half[i], n=ns[i], p=p) for i in range(len(ns))]
+        plt.plot(ns, upper_bcdf, f"-{c}", label=f"n, k=n/2, p={p}")
+    plt.ylabel("probability for more than 50% successes")
+    plt.xlabel("nr of trials (n)")
+    plt.title("Upper Binomial CDF", fontsize='xx-large')
+    plt.legend()
+    plt.savefig("upper_binom_cdf_tests.pdf")

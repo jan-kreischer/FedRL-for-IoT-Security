@@ -1,6 +1,6 @@
 from typing import Dict, Tuple, List
 from collections import defaultdict
-from custom_types import Behavior, MTDTechnique
+from custom_types import Behavior, MTDTechnique, actions, supervisor_map
 from scipy import stats
 from tabulate import tabulate
 import numpy as np
@@ -8,19 +8,6 @@ import pandas as pd
 import os
 import random
 from data_provider import DataProvider
-
-# define MTD - (target Attack) Mapping
-# indices corresponding to sequence
-actions = (MTDTechnique.CNC_IP_SHUFFLE, MTDTechnique.ROOTKIT_SANITIZER,
-           MTDTechnique.RANSOMWARE_DIRTRAP, MTDTechnique.RANSOMWARE_FILE_EXT_HIDE)
-
-supervisor_map: Dict[int, Tuple[Behavior]] = {
-    # MTDTechnique.NO_MTD: (Behavior.NORMAL,),
-    0: (Behavior.CNC_BACKDOOR_JAKORITAR, Behavior.CNC_THETICK, Behavior.CNC_OPT1, Behavior.CNC_OPT2),
-    1: (Behavior.ROOTKIT_BDVL, Behavior.ROOTKIT_BEURK),
-    2: (Behavior.RANSOMWARE_POC,),
-    3: (Behavior.RANSOMWARE_POC,)
-}
 
 
 # handles the supervised, online-simulation of episodes
@@ -35,7 +22,7 @@ class SensorEnvironment:
     def sample_random_attack_state(self):
         """i.e. for starting state of an episode,
         (with replacement; it is possible that the same sample is chosen multiple times)"""
-        rb = random.choice([b for b in Behavior if b != Behavior.NORMAL])
+        rb = random.choice([b for b in Behavior if b != Behavior.NORMAL and b != Behavior.CNC_OPT1 and b != Behavior.CNC_OPT2])
         attack_data = self.train_data[rb]
         return attack_data[np.random.randint(attack_data.shape[0], size=1), :]
 
