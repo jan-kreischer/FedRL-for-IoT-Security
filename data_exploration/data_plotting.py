@@ -70,6 +70,90 @@ class DataPlotter:
             print(f'Saved {plot_name}')
 
     @staticmethod
+    def plot_decision_or_afterstates_as_kde(decision_states: List[Tuple[Behavior, str]] = [],
+                                            afterstates: List[Tuple[Behavior, MTDTechnique, str]] = [],
+                                            plot_name: Union[str, None] = None):
+
+        all_data = DataProvider.parse_agent_data_files_to_df(filter_outliers=False,
+                                                             filter_suspected_external_events=False)
+
+        cols_to_plot = [col for col in all_data if col not in ['attack', 'state']]
+        all_data = all_data.reset_index()
+        all_decision = all_data[all_data['state'] == decision_state]
+        all_after = all_data[all_data['state'] != decision_state]
+        fig, axs = plt.subplots(nrows=ceil(len(cols_to_plot) / 4), ncols=4)
+        axs = axs.ravel().tolist()
+        fig.suptitle(plot_name)
+        fig.set_figheight(len(cols_to_plot))
+        fig.set_figwidth(50)
+        for i in range(len(cols_to_plot)):
+            axs[i].set_ylim([1e-6, 2 * 1e-4])  # adapt limitations specifically for features
+            axs[i].set_xlabel("feature range")
+            axs[i].set_ylabel("density")
+            for b, color in decision_states:
+                series = all_decision[all_decision.attack == b.value][cols_to_plot[i]]
+                if series.unique().size == 1:
+                    axs[i].axvline(series.iloc[0], ymin=1e-4, ymax=2, color=color)  # palette[f'{dv} {b.value}'])
+                    continue
+                series = series[(np.isnan(series) == False) & (np.isinf(series) == False)]
+                sns.kdeplot(data=all_decision[all_decision.attack == b.value], x=cols_to_plot[i],
+                            color=color, common_norm=True, common_grid=True, ax=axs[i], cut=2,
+                            label=f"{decision_state} {b.value}", log_scale=(False, True))  # False, True
+            for b, mtd, color in afterstates:
+                series = all_after[(all_after['attack'] == b.value) & (all_after['state'].str.contains(mtd.value))][
+                    cols_to_plot[i]]
+                if series.unique().size == 1:
+                    axs[i].axvline(series.iloc[0], ymin=1e-4, ymax=2, color=color)  # palette[f'{dv} {b.value}'])
+                    continue
+                series = series[(np.isnan(series) == False) & (np.isinf(series) == False)]
+                sns.kdeplot(data=all_after[
+                    (all_after['attack'] == b.value) & (all_after['state'].str.contains(mtd.value))],
+                            x=cols_to_plot[i], color=color, common_norm=True, common_grid=True, ax=axs[i], cut=2,
+                            label=f"{mtd.value} {b.value}", log_scale=(False, True))  # False, True
+
+            axs[i].legend(title="State & Behavior/MTD")
+            axs[i].set_title(cols_to_plot[i], fontsize='xx-large')
+            # axs[i].set(xlabel=None)
+
+        fig.tight_layout()
+        if plot_name is not None:
+            fig.savefig(f'data_exploration/data_plot_{plot_name}.png', dpi=100)
+
+    @staticmethod
+    def plot_normals_kde(plot_name):
+        ndata = DataProvider.parse_normals(filter_outliers=False,
+                                           filter_suspected_external_events=False)
+        print(len(ndata))
+        cols_to_plot = [col for col in ndata if col not in ['attack', 'state']]
+        all_data = ndata.reset_index()
+        fig, axs = plt.subplots(nrows=ceil(len(cols_to_plot) / 4), ncols=4)
+        axs = axs.ravel().tolist()
+        fig.suptitle(plot_name)
+        fig.set_figheight(len(cols_to_plot))
+        fig.set_figwidth(50)
+        for i in range(len(cols_to_plot)):
+            axs[i].set_ylim([1e-6, 2])  # adapt limitations specifically for features
+            axs[i].set_xlabel("feature range")
+            axs[i].set_ylabel("density")
+            for j, color in zip(range(2), ["green", "red"]):
+                series = all_data[all_data['state'].str.contains(str(j))][cols_to_plot[i]]
+                if series.unique().size == 1:
+                    print("unique")
+                    axs[i].axvline(series.iloc[0], ymin=1e-4, ymax=2, color=color)  # palette[f'{dv} {b.value}'])
+                    continue
+                series = series[(np.isnan(series) == False) & (np.isinf(series) == False)]
+                sns.kdeplot(data=all_data[all_data['state'].str.contains(str(j))], x=cols_to_plot[i],
+                            color=color, common_norm=True, common_grid=True, ax=axs[i], cut=2,
+                            label=f"{str(j)} normal", log_scale=(False, True))  # False, True
+            axs[i].legend(title="Normal Behaviors")
+            axs[i].set_title(cols_to_plot[i], fontsize='xx-large')
+            # axs[i].set(xlabel=None)
+
+        #fig.tight_layout()
+        if plot_name is not None:
+            fig.savefig(f'data_exploration/data_plot_{plot_name}.png', dpi=100)
+
+    @staticmethod
     def plot_behaviors(behaviors: List[Tuple[RaspberryPi, Behavior, str]], raw_behaviors: bool = True,
                        plot_name: Union[str, None] = None):
 
@@ -110,66 +194,6 @@ class DataPlotter:
         if plot_name is not None:
             fig.savefig(f'data_exploration/data_plot_{plot_name}.png', dpi=100)
             print(f'Saved {plot_name}')
-
-    @staticmethod
-    def plot_decision_or_afterstates_as_kde(decision_states: List[Tuple[Behavior, str]] = [],
-                                            afterstates: List[Tuple[Behavior, MTDTechnique, str]] = [],
-                                            plot_name: Union[str, None] = None):
-
-        all_data = DataProvider.parse_agent_data_files_to_df(filter_outliers=False,
-                                                             filter_suspected_external_events=False)
-
-        cols_to_plot = [col for col in all_data if col not in ['attack', 'state']]
-        # dv = "RP3" if device == RaspberryPi.PI3_1GB else "RP4"
-        # all_data_parsed['Device & Behavior'] = all_data_parsed.apply(lambda row: f'{dv} {row.attack}', axis=1)
-        # all_data_parsed['Monitoring'] = all_data_parsed.apply(lambda row: f'{device.value} {row.attack}', axis=1)
-        # all_data_parsed = all_data_parsed.drop(['device'], axis=1)
-        all_data = all_data.reset_index()
-        all_decision = all_data[all_data['state'] == decision_state]
-        all_after = all_data[all_data['state'] != decision_state]
-        fig, axs = plt.subplots(nrows=ceil(len(cols_to_plot) / 4), ncols=4)
-        axs = axs.ravel().tolist()
-        fig.suptitle(plot_name)
-        fig.set_figheight(len(cols_to_plot))
-        fig.set_figwidth(50)
-        # palette = {f'{dv} {Behavior.NORMAL.value}': "green",
-        #            f'{dv} {Behavior.ROOTKIT_BDVL.value}': "black",
-        #            f'{dv} {Behavior.ROOTKIT_BEURK.value}': "darkblue",
-        #            f'{dv} {Behavior.RANSOMWARE_POC.value}': "orange",
-        #            f'{dv} {Behavior.CNC_THETICK.value}': "grey",
-        #            f'{dv} {Behavior.CNC_BACKDOOR_JAKORITAR.value}': "red"}
-        for i in range(len(cols_to_plot)):
-            axs[i].set_ylim([1e-6, 2 * 1e-4])  # adapt limitations specifically for features
-            axs[i].set_xlabel("feature range")
-            axs[i].set_ylabel("density")
-            for b, color in decision_states:
-                series = all_decision[all_decision.attack == b.value][cols_to_plot[i]]
-                if series.unique().size == 1:
-                    axs[i].axvline(series.iloc[0], ymin=1e-4, ymax=2, color=color)  # palette[f'{dv} {b.value}'])
-                    continue
-                series = series[(np.isnan(series) == False) & (np.isinf(series) == False)]
-                sns.kdeplot(data=all_decision[all_decision.attack == b.value], x=cols_to_plot[i],
-                            color=color, common_norm=True, common_grid=True, ax=axs[i], cut=2,
-                            label=f"{decision_state} {b.value}", log_scale=(False, True))  # False, True
-            for b, mtd, color in afterstates:
-                series = all_after[(all_after['attack'] == b.value) & (all_after['state'].str.contains(mtd.value))][
-                    cols_to_plot[i]]
-                if series.unique().size == 1:
-                    axs[i].axvline(series.iloc[0], ymin=1e-4, ymax=2, color=color)  # palette[f'{dv} {b.value}'])
-                    continue
-                series = series[(np.isnan(series) == False) & (np.isinf(series) == False)]
-                sns.kdeplot(data=all_after[
-                    (all_after['attack'] == b.value) & (all_after['state'].str.contains(mtd.value))],
-                            x=cols_to_plot[i], color=color, common_norm=True, common_grid=True, ax=axs[i], cut=2,
-                            label=f"{mtd.value} {b.value}", log_scale=(False, True))  # False, True
-
-            axs[i].legend(title="State & Behavior/MTD")
-            axs[i].set_title(cols_to_plot[i], fontsize='xx-large')
-            # axs[i].set(xlabel=None)
-
-        fig.tight_layout()
-        if plot_name is not None:
-            fig.savefig(f'data_exploration/data_plot_{plot_name}.png', dpi=100)
 
     @staticmethod
     def plot_devices_as_kde(device: RaspberryPi):
