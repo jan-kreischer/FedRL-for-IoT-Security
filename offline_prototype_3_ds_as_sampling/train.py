@@ -4,6 +4,7 @@ from agent import Agent
 from custom_types import Behavior, MTDTechnique
 from autoencoder import AutoEncoder, AutoEncoderInterpreter
 from utils.evaluation_utils import plot_learning, seed_random, calculate_metrics
+from utils.autoencoder_utils import pretrain_ae_model, get_pretrained_ae, evaluate_ae_on_no_mtd_behavior
 from tabulate import tabulate
 from time import time
 import torch
@@ -35,52 +36,26 @@ if __name__ == '__main__':
     # dtrain, dtest, atrain, atest, scaler = DataProvider.get_scaled_scaled_train_test_split_with_afterstates()
     dtrain, dtest, atrain, atest = DataProvider.get_reduced_dimensions_with_pca_ds_as(DIMS,
                                                                                       dir="offline_prototype_3_ds_as_sampling/")
-
     # get splits for RL & AD of normal data
     n = 300
     s = 0.8
     b = Behavior.NORMAL
     normal_data = dtrain[b]
-    dtrain[b] = normal_data[:n]  # use fixed number of samples for Reinforcement Agent training
-    # COMMENT/UNCOMMENT BELOW for retraining of autoencoder
-    ae_data = normal_data[n:]  # use remaining samples for autoencoder
-    idx = int(len(ae_data) * s)
-    # TODO: clean up placeholder
-    train_ae_x = ae_data[:idx, :-1].astype(np.float32)#, np.arange(idx)  # just a placeholder for the torch dataloader
-    valid_ae_x = ae_data[idx:, :-1].astype(np.float32)#, np.arange(len(ae_data) - idx)
+    dtrain[b] = normal_data[:n]  # use fixed number of samples for Reinforcement Agent training, rest for AE
 
-    print(f"size train: {train_ae_x.shape}, size valid: {valid_ae_x.shape}")
-    # AD training
-    ae = AutoEncoder(train_x=train_ae_x, valid_x=valid_ae_x)
-    ae.train(optimizer=torch.optim.SGD(ae.get_model().parameters(), lr=0.0001, momentum=0.8), num_epochs=1000)
-    ae.determine_threshold()
-    print(f"ae threshold: {ae.threshold}")
-    ae.save_model(dir="offline_prototype_3_ds_as_sampling/")
-    exit(0)
+    dir="offline_prototype_3_ds_as_sampling/"
+    pretrain_ae_model(normal_data[n:], dir=dir, model_name="ae_model_ds.pth")
 
     # AE evaluation of pretrained model
-    pretrained_model = torch.load("offline_prototype_3_ds_as_sampling/trained_models/autoencoder_model.pth")
-    ae_interpreter = AutoEncoderInterpreter(pretrained_model['model_state_dict'],
-                                            pretrained_model['threshold'], in_features=DIMS)
-    print(f"ae_interpreter threshold: {ae_interpreter.threshold}")
-
+    ae_interpreter = get_pretrained_ae(path=f"{dir}trained_models/ae_model_ds.pth", dims=DIMS)
 
     # AE can directly be tested on the data that will be used for RL: pass train_data to testing
-    # print("---AE trained on decision state normal data---")
-    # print("---Evaluation on decision behaviors train---")
-    # res_dict = {}
-    # for b, d in dtrain.items():
-    #     y_test = np.array([0 if b == Behavior.NORMAL else 1] * len(d))
-    #     y_predicted = ae_interpreter.predict(d[:, :-1].astype(np.float32))
-    #
-    #     acc, f1, conf_mat = calculate_metrics(y_test.flatten(), y_predicted.flatten().numpy())
-    #     res_dict[b] = f'{(100 * acc):.2f}%'
-    #
-    # labels = ["Behavior"] + ["Accuracy"]
-    # results = []
-    # for b, a in res_dict.items():
-    #     results.append([b.value, res_dict[b]])
-    # print(tabulate(results, headers=labels, tablefmt="pretty"))
+    print("---AE trained on decision state normal data---")
+    print("---Evaluation on decision behaviors train---")
+    evaluate_ae_on_no_mtd_behavior(ae_interpreter, test_data=dtrain)
+
+
+
     # print("---Evaluation on afterstate behaviors train---")
     # res_dict = {}
     # for t in atrain:

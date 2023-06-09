@@ -78,11 +78,15 @@ class AutoEncoder():
         self.threshold = mses.mean() + 1 * mses.std()
         return self.threshold
 
-    def save_model(self, dir="", num=0):
+    def save_model(self, dir="", model_name="ae_model.pth"):
+        path = f"{dir}trained_models/{model_name}"
+        print("save model to: " + path)
         torch.save({
             'model_state_dict': self.model.state_dict(),
             'threshold': self.threshold
-        }, f"{dir}trained_models/autoencoder_model_{str(num)}.pth")
+        }, path)
+
+
 
 
 class AutoEncoderInterpreter():
