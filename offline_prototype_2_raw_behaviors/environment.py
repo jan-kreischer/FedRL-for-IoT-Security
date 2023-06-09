@@ -17,7 +17,7 @@ actions = (MTDTechnique.CNC_IP_SHUFFLE, MTDTechnique.ROOTKIT_SANITIZER,
 
 supervisor_map: Dict[int, Tuple[Behavior]] = {
     # MTDTechnique.NO_MTD: (Behavior.NORMAL,),
-    0: (Behavior.CNC_BACKDOOR_JAKORITAR, Behavior.CNC_THETICK, Behavior.NORMAL),
+    0: (Behavior.CNC_BACKDOOR_JAKORITAR, Behavior.CNC_THETICK, Behavior.CNC_OPT1, Behavior.CNC_OPT2, Behavior.NORMAL),
     1: (Behavior.ROOTKIT_BDVL, Behavior.ROOTKIT_BEURK, Behavior.NORMAL),
     2: (Behavior.RANSOMWARE_POC, Behavior.NORMAL),
     3: (Behavior.RANSOMWARE_POC, Behavior.NORMAL)
