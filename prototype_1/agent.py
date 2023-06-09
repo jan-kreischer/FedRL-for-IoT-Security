@@ -47,7 +47,7 @@ class DeepQNetwork(nn.Module):
 
 class Agent:
     def __init__(self, input_dims, n_actions, batch_size,
-                 lr, gamma, epsilon, eps_end=0.02, eps_dec=5e-4, buffer_size=100000):
+                 lr, gamma, epsilon, eps_end=0.02, eps_dec=5e-5, buffer_size=100000):
         self.gamma = gamma
         self.epsilon = epsilon
         self.eps_min = eps_end
@@ -160,6 +160,7 @@ class Agent:
 
     def update_target_network(self):
         self.target_net.load_state_dict(self.online_net.state_dict())
+
 
     def derive_reward_from_new_state(self, new_state):
         """method only needed in unsupervised setting"""
