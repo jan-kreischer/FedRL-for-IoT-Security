@@ -53,15 +53,18 @@ class OnlineRL():
         prefixed = [filename for filename in os.listdir('.') if
                     filename.startswith(OnlineRL.start_str_datafile + str(OnlineRL.monitor_counter))]
 
+        print(prefixed)
         assert len(prefixed) == 1, "Only one file with counter number should exist"
 
         # read file and apply preprocessing
-        fname = "." + prefixed[0]
-        df = DataManager.parse_all_files_to_df()
+        fname = prefixed[0]
+        print(fname)
+        print(os.getcwd())
+        df = DataManager.parse_file_to_df(fname)
         print(df.shape)
         # TODO: apply scaling and pca as offline
-
         return df
+
 
 
 
@@ -100,6 +103,8 @@ if __name__ == '__main__':
     #  provide feedback according to afterstate being flagged normal to agent
 
     controller = OnlineRL()
+
     # testing
-    # controller.monitor(15)
+    #controller.monitor(180)
+    OnlineRL.monitor_counter += 1
     controller.read_data()
