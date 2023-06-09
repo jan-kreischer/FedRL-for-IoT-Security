@@ -12,7 +12,7 @@ class DataPlotter:
     @staticmethod
     def plot_behaviors(behaviors: List[Tuple[RaspberryPi, Behavior, str]], plot_name: Union[str, None] = None):
         # first find max number of samples
-        all_data_parsed = DataHandler.parse_all_files_to_df(filter_outliers=False,
+        all_data_parsed = DataProvider.parse_all_files_to_df(filter_outliers=False,
                                                             filter_suspected_external_events=False)
         max_number_of_samples = 0
         for behavior in behaviors:

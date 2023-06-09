@@ -48,7 +48,7 @@ class OnlineDataProvider:
 
     @staticmethod
     def get_scale_and_pca_transformed_data(file_name):
-        data = OnlineDataProvider.__parse_file_to_df(file_name).to_numpy()
+        data = OnlineDataProvider.__parse_file_to_df(file_name).values # version conflicts.. check venv to_numpy()
         scaler = joblib.load('data_transforms/scaler.gz')
         pca = joblib.load('data_transforms/pcafit.gz')
         return pca.transform(scaler.transform(data))

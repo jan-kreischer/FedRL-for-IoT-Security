@@ -6,7 +6,7 @@ import json
 import jsonschema
 from abc import ABC, abstractmethod
 from collections import deque
-from online_data_manager import DataManager
+from online_data_provider import OnlineDataProvider
 # from anomaly_detector import AutoEncoderInterpreter
 # from agent import Agent
 # import torch
@@ -47,7 +47,7 @@ class OnlineRL():
                 action = self.choose_action(decision_data)
                 self.launch_mtd(action)
                 time.sleep(180)  # wait for 3 mins -> make dependent on pid of mtd script?
-                self.monitor(duration)
+                self.monitor(50000)
                 after_data = self.read_data()
                 isAnomaly = self.interprete_data(after_data)
                 r += self.provide_feedback_and_update(decision_data, action, after_data, isAnomaly)
@@ -86,26 +86,27 @@ class OnlineRL():
         fname = prefixed[0]
         print(fname)
         print(os.getcwd())
-        data = DataManager.get_scale_and_pca_transformed_data(fname)
+        data = OnlineDataProvider.get_scale_and_pca_transformed_data(fname)
         print(data.shape)
         return data
 
     def interprete_data(self, data):
         # print("ae_interpreter threshold: " + str(ae_interpreter.threshold))
-        flagged_anomalies = self.ae_interpreter.predict(data)
-        print(flagged_anomalies)
+        # flagged_anomalies = self.ae_interpreter.predict(data)
+        # print(flagged_anomalies)
         return True
         # return (torch.sum(flagged_anomalies) / len(flagged_anomalies) > 0.5).item()
 
     def choose_action(self, data):
-        actions = []
-        if np.random.random() > self.agent.epsilon:
-            for state in data:
-                actions.append(self.agent.take_greedy_action(state))
-            print(actions)
-            return max(set(actions), key=actions.count) # take action that the dqn predicts the most frequently
-        else:
-            return np.random.choice(self.agent.action_space)
+        return 0 # ransom
+        #actions = []
+        # if np.random.random() > self.agent.epsilon:
+        #     for state in data:
+        #         actions.append(self.agent.take_greedy_action(state))
+        #     print(actions)
+        #     return max(set(actions), key=actions.count) # take action that the dqn predicts the most frequently
+        # else:
+        #     return np.random.choice(self.agent.action_space)
 
     def launch_mtd(self, n: int):
         print("Launching MTD " + ACTIONS[n])
@@ -222,7 +223,7 @@ if __name__ == '__main__':
 
 
     controller = OnlineRL()
-    controller.activate_learning(interval=90000, monitor_duration=50000)
+    controller.activate_learning(interval=90000, monitor_duration=120)
 
     # remove before moving online
     # # controller.monitor(180)
