@@ -29,10 +29,24 @@ if __name__ == '__main__':
     # TODO: autoencoder training
 
     # read in all preprocessed data for a simulated, supervised environment to sample from
-    #train_data, test_data, scaler = DataManager.get_scaled_train_test_split()
+    # train_data, test_data, scaler = DataManager.get_scaled_train_test_split()
     train_data, test_data = DataManager.get_reduced_dimensions_with_pca(DIMS)
 
+    # get splits for RL & AD of normal data
+    n = 500
+    s = 0.8
+    normal_data = train_data[Behavior.NORMAL]
+    train_data[Behavior.NORMAL] = normal_data[:n]  # use fixed number of samples for Reinforcement Agent training
+    ae_data = normal_data[n:]  # use remaining samples for autoencoder
+    idx = int(len(ae_data) * s)
+    train_ae_x, train_ae_y = ae_data[:idx, :-1].astype(np.float32), np.arange(idx)  # just a placeholder for the torch dataloader
+    valid_ae_x, valid_ae_y = ae_data[idx:, :-1].astype(np.float32), np.arange(len(ae_data) - idx)
 
+    # AD training
+    ae_interpreter = AutoEncoderInterpreter(train_x=train_ae_x, train_y=train_ae_y, valid_x=valid_ae_x,
+                                            valid_y=valid_ae_y)
+
+    exit()
 
     env = SensorEnvironment(train_data, test_data)
 
@@ -98,7 +112,6 @@ if __name__ == '__main__':
     filename = 'mtd_agent.pdf'
     plot_learning(x, episode_returns, eps_history, filename)
 
-
     # check predictions with learnt dqn
     agent.online_net.eval()
     results = {}
@@ -115,9 +128,3 @@ if __name__ == '__main__':
                 results[b] = (cnt_corr, cnt)
 
     print(results)
-
-
-
-
-
-

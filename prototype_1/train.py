@@ -2,7 +2,6 @@ from data_manager import DataManager
 from prototype_1.environment import SensorEnvironment, supervisor_map
 from prototype_1.agent import Agent, DeepQNetwork
 from custom_types import Behavior
-from autoencoder import AutoEncoderInterpreter
 from utils.utils import plot_learning, seed_random
 from time import time
 import torch
