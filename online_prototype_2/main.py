@@ -222,9 +222,9 @@ if __name__ == '__main__':
 
 
     controller = OnlineRL()
-    controller.activate_learning(interval=90000, monitor_duration=18000)
+    controller.activate_learning(interval=90000, monitor_duration=50000)
 
-    # uncomment before moving online
+    # remove before moving online
     # # controller.monitor(180)
     # OnlineRL.monitor_counter += 3
     # # read the monitored data from file and apply all preset scalings and transforms
