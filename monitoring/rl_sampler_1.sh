@@ -15,7 +15,7 @@ resourceMonitor=true
 ransomwareMonitor=true
 
 #	Time window per sample
-timeWindowSeconds=50
+timeWindowSeconds=5
 #	Number of samples to take (Monitored time will be: timeWindowSeconds*desiredSamples)
 desiredSamples=99999
 #	Total time monitored (NOT TAKING IN CONSIDERATION TIME BETWEEN SCREENSHOTS)

@@ -1,7 +1,12 @@
 import time
+import subprocess
 from abc import ABC, abstractmethod
 
+# TODO: make abstract (template method pattern) in case of multiple online methods
 class OnlineRL():
+
+    def __init__(self):
+        pass
 
     # TODO adapt to monitor every hour
     def learn_online(self):
@@ -18,10 +23,21 @@ class OnlineRL():
                 self.provide_feedback_and_update(data, isAnomaly)
 
 
-
-
     def monitor(self, time: int):
-        pass
+
+        # call monitoring shell script from python
+        print("running rl_sampler subprocess")
+        subprocess.run(["./rl_sampler_1.sh"])
+
+        time.sleep(time)
+        # get pid and kill sampler process
+        print("run ps aux and pipe")
+        proc = subprocess.Popen(["ps", "aux"], stdout=subprocess.PIPE)
+        print(f"run grep rl_sample - process: {proc}")
+        out = subprocess.check_output(["grep", "rl_sample"], stdin=proc.stdout)
+        print(f"output of piped command {out}")
+        proc.wait()
+
 
     def interprete_data(self, data):
         pass
@@ -50,6 +66,7 @@ if __name__ == '__main__':
     #  provide feedback according to afterstate being flagged normal to agent
     #
 
-    pass
+    orchestrator = OnlineRL()
+    orchestrator.monitor(60)
 
 
