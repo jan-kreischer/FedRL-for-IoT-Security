@@ -7,9 +7,9 @@ import jsonschema
 from abc import ABC, abstractmethod
 from collections import deque
 from online_data_manager import DataManager
-from anomaly_detector import AutoEncoderInterpreter
-from agent import Agent
-import torch
+#from anomaly_detector import AutoEncoderInterpreter
+#from agent import Agent
+#import torch
 import numpy as np
 
 # TODO: add storage of agent networks after some episodes
@@ -21,7 +21,7 @@ class OnlineRL():
 
     # start_str_datafile = "normal_samples_"
 
-    def __init__(self, ae: AutoEncoderInterpreter, agent: Agent):
+    def __init__(self, ae=None, agent=None):#AutoEncoderInterpreter=None, agent: Agent=None):
         self.ae_interpreter = ae
         self.agent = agent
 
@@ -32,7 +32,6 @@ class OnlineRL():
         while True:
             episode_reward, steps = self.start_monitoring_episode(steps)
             if episode_reward:
-
                 episode_rewards.append(episode_reward)
             time.sleep(interval)
 
@@ -91,9 +90,10 @@ class OnlineRL():
 
     def interprete_data(self, data):
         # print(f"ae_interpreter threshold: {ae_interpreter.threshold}")
-        flagged_anomalies = ae_interpreter.predict(data)
+        flagged_anomalies = self.ae_interpreter.predict(data)
         print(flagged_anomalies)
-        return (torch.sum(flagged_anomalies) / len(flagged_anomalies) > 0.5).item()
+        return False
+        #return (torch.sum(flagged_anomalies) / len(flagged_anomalies) > 0.5).item()
 
     def choose_action(self, data):
         actions = []
@@ -196,28 +196,22 @@ LOG_FREQ = 100
 
 if __name__ == '__main__':
 
-    # TODO:
-    #  call DQN if anomaly is flagged, else wait till next monitoring (every hour?)
-    #  wait until MTD execution has finished, e.g. 2 mins
-    #  call monitoring -> last 10 samples
-    #  call AD on afterstate
-    #  provide feedback according to afterstate being flagged normal to agent
-
-    pretrained_model = torch.load("autoencoder_model.pth")
-    ae_interpreter = AutoEncoderInterpreter(pretrained_model['model_state_dict'],
-                                            pretrained_model['threshold'], in_features=DIMS)
-
-    # agent has no buffer yet
-    agent = Agent(input_dims=DIMS, n_actions=len(ACTIONS), buffer_size=BUFFER_SIZE,
-                  batch_size=BATCH_SIZE, lr=LEARNING_RATE, gamma=GAMMA, epsilon=EPSILON_START, eps_end=EPSILON_END)
-    # get pretrained online and target dqn
-    pretrained_online_net = torch.load("online_net_0.pth")
-    pretrained_target_net = torch.load("target_net_0.pth")
-    agent.online_net.load_state_dict(pretrained_online_net)
-    agent.target_net.load_state_dict(pretrained_online_net)
-
-    controller = OnlineRL(ae=ae_interpreter, agent=agent)
-    controller.launch_mtd(0)
+    # pretrained_model = torch.load("autoencoder_model.pth")
+    # ae_interpreter = AutoEncoderInterpreter(pretrained_model['model_state_dict'],
+    #                                         pretrained_model['threshold'], in_features=DIMS)
+    #
+    # # agent has no buffer yet
+    # agent = Agent(input_dims=DIMS, n_actions=len(ACTIONS), buffer_size=BUFFER_SIZE,
+    #               batch_size=BATCH_SIZE, lr=LEARNING_RATE, gamma=GAMMA, epsilon=EPSILON_START, eps_end=EPSILON_END)
+    # # get pretrained online and target dqn
+    # pretrained_online_net = torch.load("online_net_0.pth")
+    # pretrained_target_net = torch.load("target_net_0.pth")
+    # agent.online_net.load_state_dict(pretrained_online_net)
+    # agent.target_net.load_state_dict(pretrained_online_net)
+    #
+    # controller = OnlineRL(ae=ae_interpreter, agent=agent)
+    controller = OnlineRL()
+    controller.launch_mtd(1)
     exit(0)
 
     # uncomment before moving online
@@ -233,6 +227,10 @@ if __name__ == '__main__':
         action = controller.choose_action(data)
         print("chosen action: " + str(action))
         controller.launch_mtd(action)
+
+
+
+
 
     # TODO: options for improving the accuracy of the anomaly detector/dqn
     # -> 1. change testdata: closing shh session in normal monitor -> python script call with nohup
