@@ -2,8 +2,9 @@ from data_provider import DataProvider
 from offline_prototype_2_raw_behaviors.environment import SensorEnvironment, supervisor_map
 from agent import Agent
 from custom_types import Behavior
-from autoencoder import AutoEncoderInterpreter
-from utils.utils import plot_learning, seed_random
+from autoencoder import AutoEncoder, AutoEncoderInterpreter
+from utils.utils import plot_learning, seed_random, calculate_metrics
+from tabulate import tabulate
 from time import time
 import torch
 import numpy as np
@@ -33,16 +34,17 @@ if __name__ == '__main__':
     # train_data, test_data = DataProvider.get_reduced_dimensions_with_pca(DIMS)
     #dtrain, dtest, atrain, atest, scaler = DataProvider.get_scaled_scaled_train_test_split_with_afterstates()
     dtrain, dtest, atrain, atest = DataProvider.get_reduced_dimensions_with_pca_ds_as(DIMS)
-    exit(0)
+
     # get splits for RL & AD of normal data
     n = 100
     s = 0.8
     b = Behavior.NORMAL
-    normal_data = train_data[b]
-    train_data[b] = normal_data[:n]  # use fixed number of samples for Reinforcement Agent training
+    normal_data = dtrain[b]
+    dtrain[b] = normal_data[:n]  # use fixed number of samples for Reinforcement Agent training
     # COMMENT/UNCOMMENT BELOW for retraining of autoencoder
     # ae_data = normal_data[n:]  # use remaining samples for autoencoder
     # idx = int(len(ae_data) * s)
+    # # TODO: clean up placeholder
     # train_ae_x, train_ae_y = ae_data[:idx, :-1].astype(np.float32), np.arange(
     #     idx)  # just a placeholder for the torch dataloader
     # valid_ae_x, valid_ae_y = ae_data[idx:, :-1].astype(np.float32), np.arange(len(ae_data) - idx)
@@ -53,31 +55,31 @@ if __name__ == '__main__':
     # ae.train(optimizer=torch.optim.SGD(ae.get_model().parameters(), lr=0.0001, momentum=0.8), num_epochs=100)
     # ae.determine_threshold()
     # print(f"ae threshold: {ae.threshold}")
-    # ae.save_model()
+    # ae.save_model(dir="offline_prototype_3_ds_as_sampling/")
 
     # AE evaluation of pretrained model
-    pretrained_model = torch.load("offline_prototype_2_raw_behaviors/trained_models/autoencoder_model.pth")
+    pretrained_model = torch.load("offline_prototype_3_ds_as_sampling/trained_models/autoencoder_model.pth")
     ae_interpreter = AutoEncoderInterpreter(pretrained_model['model_state_dict'],
                                             pretrained_model['threshold'], in_features=DIMS)
     print(f"ae_interpreter threshold: {ae_interpreter.threshold}")
 
     # AE can directly be tested on the data that will be used for RL: pass train_data to testing
 
-    # res_dict = {}
-    # for b, d in train_data.items():
-    #     y_test = np.array([0 if b == Behavior.NORMAL else 1] * len(d))
-    #     y_predicted = ae_interpreter.predict(d[:, :-1].astype(np.float32))
-    #
-    #     acc, f1, conf_mat = calculate_metrics(y_test.flatten(), y_predicted.flatten().numpy())
-    #     res_dict[b] = f'{(100 * acc):.2f}%'
-    #
-    # labels = ["Behavior"] + ["Accuracy"]
-    # results = []
-    # for b, a in res_dict.items():
-    #     results.append([b.value, res_dict[b]])
-    # print(tabulate(results, headers=labels, tablefmt="pretty"))
+    res_dict = {}
+    for b, d in dtrain.items():
+        y_test = np.array([0 if b == Behavior.NORMAL else 1] * len(d))
+        y_predicted = ae_interpreter.predict(d[:, :-1].astype(np.float32))
 
+        acc, f1, conf_mat = calculate_metrics(y_test.flatten(), y_predicted.flatten().numpy())
+        res_dict[b] = f'{(100 * acc):.2f}%'
 
+    labels = ["Behavior"] + ["Accuracy"]
+    results = []
+    for b, a in res_dict.items():
+        results.append([b.value, res_dict[b]])
+    print(tabulate(results, headers=labels, tablefmt="pretty"))
+
+    exit(0)
 
     # Reinforcement Learning
     env = SensorEnvironment(train_data, test_data, interpreter=ae_interpreter)
