@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 import os
 import random
-from data_manager import DataManager
+from data_provider import DataProvider
 
 # define MTD - (target Attack) Mapping
 # indices corresponding to sequence

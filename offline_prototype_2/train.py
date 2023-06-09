@@ -1,4 +1,4 @@
-from data_manager import DataManager
+from data_provider import DataProvider
 from offline_prototype_2.environment import SensorEnvironment, supervisor_map
 from offline_prototype_2.agent import Agent, DeepQNetwork
 from custom_types import Behavior
@@ -30,8 +30,8 @@ if __name__ == '__main__':
 
 
     # read in all preprocessed data for a simulated, supervised environment to sample from
-    # train_data, test_data, scaler = DataManager.get_scaled_train_test_split()
-    train_data, test_data = DataManager.get_reduced_dimensions_with_pca(DIMS)
+    # train_data, test_data, scaler = DataProvider.get_scaled_train_test_split()
+    train_data, test_data = DataProvider.get_reduced_dimensions_with_pca(DIMS)
     # get splits for RL & AD of normal data
     n = 100
     s = 0.8

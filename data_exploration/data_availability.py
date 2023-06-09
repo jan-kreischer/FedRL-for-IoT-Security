@@ -1,16 +1,42 @@
 import os
 from tabulate import tabulate
-from data_manager import DataManager, time_status_columns, all_zero_columns
+from data_provider import DataProvider, time_status_columns, all_zero_columns
+from custom_types import Behavior
+
+
+
+
+def show_data_availability(raw=False):
+    print(os.getcwd())
+    all_data = DataProvider.parse_all_files_to_df(filter_outliers=not raw,
+                                                  filter_suspected_external_events=not raw)
+
+    print(f'Total data points: {len(all_data)}')
+    drop_cols = [col for col in list(all_data) if col not in ['attack', 'block:block_bio_backmerge']]
+    grouped = all_data.drop(drop_cols, axis=1).rename(columns={'block:block_bio_backmerge': 'count'}).groupby(
+        ['attack'], as_index=False).count()
+    labels = ['Behavior', 'Count']
+    rows = []
+    for behavior in Behavior:
+        row = [behavior.value]
+        cnt_row = grouped.loc[(grouped['attack'] == behavior.value)]
+        row += [cnt_row['count'].iloc[0]]
+        rows.append(row)
+    print(tabulate(
+        rows, headers=labels, tablefmt="pretty"))
+
+
+
 
 if __name__ == "__main__":
     #os.chdir("..")
     print("------------------Raw Data Availability------------------")
-    DataManager.show_data_availability(raw=True)
+    show_data_availability(raw=True)
     print("----------------Filtered Data Availability---------------")
-    DataManager.show_data_availability(raw=False)
+    show_data_availability(raw=False)
     print("------------------Constant Columns-----------------------")
-    df = DataManager.parse_all_files_to_df(filter_suspected_external_events=False, filter_constant_columns=False,
-                                           filter_outliers=False, keep_status_columns=True)
+    df = DataProvider.parse_all_files_to_df(filter_suspected_external_events=False, filter_constant_columns=False,
+                                            filter_outliers=False, keep_status_columns=True)
     df = df.drop(['attack'], axis=1)
     constant_columns = df.columns[df.nunique() <= 1].values
     print(constant_columns)
