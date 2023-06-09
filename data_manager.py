@@ -22,11 +22,12 @@ data_file_paths: Dict[Behavior, str] = {
     Behavior.CNC_BACKDOOR_JAKORITAR: f"../data/{path}/cnc_thetick_samples_2022-06-19-16-54_50s"
 }
 
+# TODO: These columns are derived from data_availability.py -> check data
 time_status_columns = ["time", "timestamp", "seconds", "connectivity"]
-all_zero_columns = ["alarmtimer:alarmtimer_fired", "alarmtimer:alarmtimer_start", "cachefiles:cachefiles_create",
-                    "cachefiles:cachefiles_lookup", "cachefiles:cachefiles_mark_active", "dma_fence:dma_fence_init",
-                    "udp:udp_fail_queue_rcv_skb"]
-
+all_zero_columns = ['cpuNice', 'cpuHardIrq', 'alarmtimer:alarmtimer_fired',
+       'alarmtimer:alarmtimer_start', 'cachefiles:cachefiles_create',
+       'cachefiles:cachefiles_lookup', 'cachefiles:cachefiles_mark_active',
+       'dma_fence:dma_fence_init', 'udp:udp_fail_queue_rcv_skb']
 
 class DataManager:
 
@@ -244,6 +245,8 @@ class DataManager:
         # df['max_loading_score'] = df.apply(maxCol, axis=1)
         sorted_pc = df.loc[pcn].reindex(df.loc[pcn].abs().sort_values(ascending=False).index)
         return sorted_pc
+
+
 
     @staticmethod
     def show_data_availability(raw=False):
