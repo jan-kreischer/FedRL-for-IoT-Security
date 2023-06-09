@@ -148,7 +148,7 @@ if __name__ == '__main__':
 
     # check predictions with dqn from trained and stored agent
     pretrained_state = torch.load(f"offline_prototype_3_ds_as_sampling/trained_models/agent_{num}.pth")
-    pretrained_agent = Agent(input_dims=15, n_actions=4, buffer_size=BUFFER_SIZE,
+    pretrained_agent = Agent(input_dims=DIMS, n_actions=4, buffer_size=BUFFER_SIZE,
                              batch_size=pretrained_state['batch_size'], lr=pretrained_state['lr'],
                              gamma=pretrained_state['gamma'], epsilon=pretrained_state['eps'],
                              eps_end=pretrained_state['eps_min'], eps_dec=pretrained_state['eps_dec'])

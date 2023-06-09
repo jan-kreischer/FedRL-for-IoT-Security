@@ -17,18 +17,20 @@ actions = (MTDTechnique.CNC_IP_SHUFFLE, MTDTechnique.ROOTKIT_SANITIZER,
 
 supervisor_map: Dict[int, Tuple[Behavior]] = defaultdict(lambda: -1, {
     # MTDTechnique.NO_MTD: (Behavior.NORMAL,),
-    0: (Behavior.CNC_BACKDOOR_JAKORITAR, Behavior.CNC_THETICK),
-    1: (Behavior.ROOTKIT_BDVL, Behavior.ROOTKIT_BEURK),
-    2: (Behavior.RANSOMWARE_POC,),
-    3: (Behavior.RANSOMWARE_POC,)
+    0: (Behavior.CNC_BACKDOOR_JAKORITAR, Behavior.CNC_THETICK, Behavior.NORMAL),
+    1: (Behavior.ROOTKIT_BDVL, Behavior.ROOTKIT_BEURK, Behavior.NORMAL),
+    2: (Behavior.RANSOMWARE_POC, Behavior.NORMAL),
+    3: (Behavior.RANSOMWARE_POC, Behavior.NORMAL)
 })
 
 
-# handles the supervised, online-simulation of episodes
+# TODO remove test_data, factor out environment core func
+# handles the unsupervised, online-simulation of episodes
 class SensorEnvironment:
 
     def __init__(self, train_data: Dict[Behavior, np.ndarray] = None, test_data: Dict[Behavior, np.ndarray] = None,
-                 monitor=None, interpreter: AutoEncoderInterpreter = None):
+                 monitor=None, interpreter: AutoEncoderInterpreter = None, state_samples=1):
+        self.state_samples_ae = state_samples
         self.train_data = train_data
         self.test_data = test_data
         self.current_state: np.array = None
@@ -42,7 +44,8 @@ class SensorEnvironment:
     def sample_random_attack_state(self):
         """i.e. for starting state of an episode,
         (with replacement; it is possible that the same sample is chosen multiple times)"""
-        rb = random.choice([b for b in Behavior if b != Behavior.NORMAL])
+        rb = random.choice(
+            [b for b in Behavior if b != Behavior.NORMAL and b != Behavior.ROOTKIT_BEURK and b != Behavior.CNC_THETICK])
         attack_data = self.train_data[rb]
         return attack_data[np.random.randint(attack_data.shape[0], size=1), :]
 
@@ -54,42 +57,37 @@ class SensorEnvironment:
 
         current_behavior = self.current_state.squeeze()[-1]
 
-        if self.monitor is None:
-            if current_behavior in supervisor_map[action]:
-                # print("correct mtd chosen according to supervisor")
-                new_state = self.sample_behavior(Behavior.NORMAL)
-
-                # ae predicts too many false positives: episode should not end, but behavior is normal (because MTD was correct)
-                # note that this should not happen, as ae should learn to recognize normal behavior with near perfect accuracy
-                if self.interpreter:
-                    for i in range(9): # real world simulation with 10 samples
+        if current_behavior in supervisor_map[action]:
+            # print("correct mtd chosen according to supervisor")
+            new_state = self.sample_behavior(Behavior.NORMAL)
+            # ae predicts too many false positives: episode should not end, but behavior is normal (because MTD was correct)
+            # note that this should not happen, as ae should learn to recognize normal behavior with near perfect accuracy
+            if self.interpreter:
+                if self.state_samples_ae > 1:
+                    print("sample ", self.state_samples_ae)
+                    for i in range(self.state_samples_ae - 1):  # real world simulation with multiple samples monitored
                         new_state = np.vstack((new_state, self.sample_behavior(Behavior.NORMAL)))
-                    if torch.sum(self.interpreter.predict(new_state[:, :-1].astype(np.float32))) / len(new_state) > 0.5:
-                        raise UserWarning("Should not happen! AE fails to predict majority of normal samples")
-                        #reward = self.calculate_reward(False)
-                        #isTerminalState = False
-                    else:
-                        new_state = np.expand_dims(new_state[0,:], axis=0) # throw away all but one transition
-                        reward = self.calculate_reward(True)
-                        isTerminalState = True
-            else:
-                # print("incorrect mtd chosen according to supervisor")
-                new_state = self.sample_behavior(current_behavior)
-                # ae predicts a false negative: episode should end,  but behavior is not normal (because MTD was incorrect)
-                # in this case, the next episode should start again with current_behavior
-                if self.interpreter and self.interpreter.predict(new_state[:, :-1].astype(np.float32)) == 0:
-                    self.reset_to_behavior = current_behavior
-                    reward = self.calculate_reward(True)
-                    isTerminalState = True
-                else:
+                if torch.sum(self.interpreter.predict(new_state[:, :-1].astype(np.float32))) / len(new_state) > 0.5:
+                    # raise UserWarning("Should not happen! AE fails to predict majority of normal samples")
                     reward = self.calculate_reward(False)
                     isTerminalState = False
-
+                else:
+                    reward = self.calculate_reward(True)
+                    isTerminalState = True
+                if self.state_samples_ae > 1:
+                    new_state = np.expand_dims(new_state[0, :], axis=0)  # throw away all but one transition for better decorrelation
         else:
-            # would integrate a monitoring component here for a live system
-            # new_state = self.monitor.get_current_behavior(),
-            # but reward would need to be calculated by autoencoder
-            reward = None
+            # print("incorrect mtd chosen according to supervisor")
+            new_state = self.sample_behavior(current_behavior)
+            # ae predicts a false negative: episode should end,  but behavior is not normal (because MTD was incorrect)
+            # in this case, the next episode should start again with current_behavior
+            if self.interpreter and self.interpreter.predict(new_state[:, :-1].astype(np.float32)) == 0:
+                self.reset_to_behavior = current_behavior
+                reward = self.calculate_reward(True)
+                isTerminalState = True
+            else:
+                reward = self.calculate_reward(False)
+                isTerminalState = False
 
         self.current_state = new_state
 

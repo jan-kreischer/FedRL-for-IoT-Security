@@ -2,8 +2,9 @@ from data_provider import DataProvider
 from offline_prototype_2_raw_behaviors.environment import SensorEnvironment, supervisor_map
 from agent import Agent
 from custom_types import Behavior
-from autoencoder import AutoEncoderInterpreter
-from utils.evaluation_utils import plot_learning, seed_random, calculate_metrics
+from autoencoder import AutoEncoder, AutoEncoderInterpreter
+from utils.evaluation_utils import plot_learning, seed_random, calculate_metrics, get_pretrained_agent, evaluate_agent
+from utils.autoencoder_utils import evaluate_ae_on_no_mtd_behavior, pretrain_ae_model, get_pretrained_ae
 from tabulate import tabulate
 from time import time
 import torch
@@ -22,7 +23,8 @@ TARGET_UPDATE_FREQ = 100
 LEARNING_RATE = 1e-5
 N_EPISODES = 5000
 LOG_FREQ = 100
-DIMS = 15
+DIMS = 30  # TODO check
+SAMPLES = 20
 
 if __name__ == '__main__':
     os.chdir("..")
@@ -31,53 +33,26 @@ if __name__ == '__main__':
 
     # read in all preprocessed data for a simulated, supervised environment to sample from
     # train_data, test_data, scaler = DataProvider.get_scaled_train_test_split()
-    train_data, test_data = DataProvider.get_reduced_dimensions_with_pca(DIMS)
+    train_data, test_data = DataProvider.get_reduced_dimensions_with_pca(DIMS, pi=4)
     # get splits for RL & AD of normal data
     n = 100
     s = 0.8
     b = Behavior.NORMAL
     normal_data = train_data[b]
     train_data[b] = normal_data[:n]  # use fixed number of samples for Reinforcement Agent training
-    # COMMENT/UNCOMMENT BELOW for retraining of autoencoder
-    # ae_data = normal_data[n:]  # use remaining samples for autoencoder
-    # idx = int(len(ae_data) * s)
-    # train_ae_x, train_ae_y = ae_data[:idx, :-1].astype(np.float32), np.arange(
-    #     idx)  # just a placeholder for the torch dataloader
-    # valid_ae_x, valid_ae_y = ae_data[idx:, :-1].astype(np.float32), np.arange(len(ae_data) - idx)
-    # print(f"size train: {train_ae_x.shape}, size valid: {valid_ae_x.shape}")
-    # # AD training
-    # ae = AutoEncoder(train_x=train_ae_x, train_y=train_ae_y, valid_x=valid_ae_x,
-    #                              valid_y=valid_ae_y)
-    # ae.train(optimizer=torch.optim.SGD(ae.get_model().parameters(), lr=0.0001, momentum=0.8), num_epochs=100)
-    # ae.determine_threshold()
-    # print(f"ae threshold: {ae.threshold}")
-    # ae.save_model()
+    # COMMENT/UNCOMMENT BELOW for pretraining of autoencoder
+    ae_path = "offline_prototype_2_raw_behaviors/trained_models/ae_model.pth"
+    ae_data = normal_data[n:]  # use remaining samples for autoencoder
+    #train_ae_x, valid_ae_x = pretrain_ae_model(ae_data=ae_data, path=ae_path)
+
 
     # AE evaluation of pretrained model
-    pretrained_model = torch.load("offline_prototype_2_raw_behaviors/trained_models/autoencoder_model.pth")
-    ae_interpreter = AutoEncoderInterpreter(pretrained_model['model_state_dict'],
-                                            pretrained_model['threshold'], in_features=DIMS)
-    print(f"ae_interpreter threshold: {ae_interpreter.threshold}")
-
+    ae_interpreter = get_pretrained_ae(path=ae_path, dims=DIMS)
     # AE can directly be tested on the data that will be used for RL: pass train_data to testing
-
-    res_dict = {}
-    for b, d in train_data.items():
-        y_test = np.array([0 if b == Behavior.NORMAL else 1] * len(d))
-        y_predicted = ae_interpreter.predict(d[:, :-1].astype(np.float32))
-
-        acc, f1, conf_mat = calculate_metrics(y_test.flatten(), y_predicted.flatten().numpy())
-        res_dict[b] = f'{(100 * acc):.2f}%'
-
-    labels = ["Behavior"] + ["Accuracy"]
-    results = []
-    for b, a in res_dict.items():
-        results.append([b.value, res_dict[b]])
-    print(tabulate(results, headers=labels, tablefmt="pretty"))
-    exit(0)
+    evaluate_ae_on_no_mtd_behavior(ae_interpreter=ae_interpreter, test_data=train_data)
 
     # Reinforcement Learning
-    env = SensorEnvironment(train_data, test_data, interpreter=ae_interpreter)
+    env = SensorEnvironment(train_data, test_data, interpreter=ae_interpreter, state_samples=SAMPLES)
 
     agent = Agent(input_dims=env.observation_space_size, n_actions=len(env.actions), buffer_size=BUFFER_SIZE,
                   batch_size=BATCH_SIZE, lr=LEARNING_RATE, gamma=GAMMA, epsilon=EPSILON_START, eps_end=EPSILON_END)
@@ -138,34 +113,16 @@ if __name__ == '__main__':
     end = time()
     print("Total training time: ", end - start)
 
-    agent.save_agent_state(0, "offline_prototype_2_raw_behaviors")
+    num = 0
+    agent.save_agent_state(num, "offline_prototype_2_raw_behaviors")
 
     x = [i + 1 for i in range(N_EPISODES)]
-    filename = 'offline_prototype_3_ds_as_sampling/mtd_agent.pdf'
+    filename = f'offline_prototype_2_raw_behaviors/mtd_agent_p2_{SAMPLES}_sample.pdf'
     plot_learning(x, episode_returns, eps_history, filename)
 
     # check predictions with dqn from trained and stored agent
-    pretrained_state = torch.load("offline_prototype_2_raw_behaviors/trained_models/agent_0.pth")
-    pretrained_agent = Agent(input_dims=15, n_actions=4, buffer_size=BUFFER_SIZE,
-                             batch_size=pretrained_state['batch_size'], lr=pretrained_state['lr'],
-                             gamma=pretrained_state['gamma'], epsilon=pretrained_state['eps'],
-                             eps_end=pretrained_state['eps_min'], eps_dec=pretrained_state['eps_dec'])
-    pretrained_agent.online_net.load_state_dict(pretrained_state['online_net_state_dict'])
-    pretrained_agent.target_net.load_state_dict(pretrained_state['target_net_state_dict'])
-    pretrained_agent.replay_buffer = pretrained_state['replay_buffer']
+    pretrained_agent = get_pretrained_agent(path=f"offline_prototype_2_raw_behaviors/trained_models/agent_{num}.pth",
+                                            input_dims=env.observation_space_size, n_actions=len(env.actions),
+                                            buffer_size=BUFFER_SIZE)
 
-    pretrained_agent.online_net.eval()
-    results = {}
-    with torch.no_grad():
-        for b, d in test_data.items():
-            if b != Behavior.NORMAL:
-                cnt_corr = 0
-                cnt = 0
-                for state in d:
-                    action = pretrained_agent.take_greedy_action(state[:-1])
-                    if b in supervisor_map[action]:
-                        cnt_corr += 1
-                    cnt += 1
-                results[b] = (cnt_corr, cnt)
-
-    print(results)
+    evaluate_agent(agent, test_data=test_data)

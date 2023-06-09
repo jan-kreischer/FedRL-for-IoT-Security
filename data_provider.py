@@ -86,7 +86,7 @@ class DataProvider:
                                    keep_status_columns=False, decision=False, pi=3) -> Dict[Behavior, np.ndarray]:
         # print(os.getcwd())
         b_directory, b_file_paths = (decision_states_dir, decision_states_file_paths) if decision else \
-            (raw_behaviors_dir_rp3, raw_behaviors_file_paths_rp3) if pi == 3 else\
+            (raw_behaviors_dir_rp3, raw_behaviors_file_paths_rp3) if pi == 3 else \
                 (raw_behaviors_dir_rp4, raw_behaviors_file_paths_rp4)
         file_name = f'../data/{b_directory}/all_data_filtered_external{"_decision" if decision else ""}' \
                     f'_{str(filter_suspected_external_events)}' \
@@ -352,14 +352,14 @@ class DataProvider:
         return scaled_dtrain, scaled_dtest, scaled_atrain, scaled_atest, scaler
 
     @staticmethod
-    def get_scaled_train_test_split(split=0.8, scaling_minmax=True, decision=False):
+    def get_scaled_train_test_split(split=0.8, scaling_minmax=True, decision=False, pi=3):
         """
         Method returns dictionaries mapping behaviors to scaled train and test data, as well as the scaler used
         Either decision states or raw behaviors can be utilized (decision flag) as no combinations
         with mtd need to be considered
         """
 
-        bdata = DataProvider.parse_no_mtd_behavior_data(decision=decision)
+        bdata = DataProvider.parse_no_mtd_behavior_data(decision=decision, pi=pi)
 
         # take split of all behaviors, concat, calc scaling, scale both train and test split
         first_b = bdata[Behavior.NORMAL]
@@ -442,8 +442,8 @@ class DataProvider:
         return pca_dtrain, pca_dtest, pca_atrain, pca_atest
 
     @staticmethod
-    def get_reduced_dimensions_with_pca(dim=15):
-        strain, stest, scaler = DataProvider.get_scaled_train_test_split()
+    def get_reduced_dimensions_with_pca(dim=15, pi=3):
+        strain, stest, scaler = DataProvider.get_scaled_train_test_split(pi=pi)
         all_strain = strain[Behavior.NORMAL]
         for b in strain:
             if b != Behavior.NORMAL:
@@ -478,7 +478,7 @@ class DataProvider:
 
     @staticmethod
     def fit_pca(n=15):
-        strain, stest, scaler = DataProvider.get_scaled_train_test_split()
+        strain, stest, scaler = DataProvider.get_scaled_train_test_split(pi=3)
         all_strain = strain[Behavior.NORMAL]
         for b in strain:
             if b != Behavior.NORMAL:
