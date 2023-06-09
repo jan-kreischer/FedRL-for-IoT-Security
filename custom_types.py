@@ -11,8 +11,8 @@ class Behavior(Enum):
 
 
 class MTDTechnique(Enum):
-    ROOTKIT_SANITIZER: "rootkit_sanitizer"
-    RANSOMWARE_DIRTRAP: "ransomware_directory_trap"
-    RANSOMWARE_FILE_EXT_HIDE: "ransomware_file_extension_hide"
-    CNC_IP_SHUFFLE: "cnc_ip_shuffle"
-    NO_MTD: "no_mtd"
+    ROOTKIT_SANITIZER = "rootkit_sanitizer"
+    RANSOMWARE_DIRTRAP = "ransomware_directory_trap"
+    RANSOMWARE_FILE_EXT_HIDE = "ransomware_file_extension_hide"
+    CNC_IP_SHUFFLE = "cnc_ip_shuffle"
+    NO_MTD = "no_mtd"
