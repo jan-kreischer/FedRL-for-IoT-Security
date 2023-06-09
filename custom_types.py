@@ -11,7 +11,10 @@ class Behavior(Enum):
     ROOTKIT_BEURK = "beurk"
     CNC_BACKDOOR_JAKORITAR = "backdoor_jakoritar"
     CNC_THETICK = "the_tick"
+    CNC_OPT1 = "data_leak_1"
+    CNC_OPT2 = "data_leak_2"
     RANSOMWARE_POC = "ransomware_poc"
+
 
 
 class MTDTechnique(Enum):

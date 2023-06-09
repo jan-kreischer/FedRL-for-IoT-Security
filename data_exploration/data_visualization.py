@@ -101,22 +101,24 @@ if __name__ == "__main__":
         #      (Behavior.ROOTKIT_BDVL, MTDTechnique.CNC_IP_SHUFFLE, "orange")],
         #     plot_name="dac_rootkit_behavior_to_incorrect_MTDs_afterstate_kde")
         #
-        # DataPlotter.plot_decision_or_afterstates_as_kde(decision_states=[(Behavior.NORMAL, "green"),
-        #                                                                 (Behavior.ROOTKIT_BDVL, "black"),
-        #                                                                 (Behavior.ROOTKIT_BEURK, "darkviolet"),
-        #                                                                 (Behavior.CNC_BACKDOOR_JAKORITAR, "blue"),
-        #                                                                 (Behavior.RANSOMWARE_POC, "red"),
-        #                                                                  (Behavior.CNC_THETICK, "grey")],
-        #                                                 plot_name="ds_comparison_pi_3_1gb_kde")
+        DataPlotter.plot_decision_or_afterstates_as_kde(decision_states=[(Behavior.NORMAL, "green"),
+                                                                         (Behavior.ROOTKIT_BDVL, "black"),
+                                                                         (Behavior.ROOTKIT_BEURK, "darkviolet"),
+                                                                         (Behavior.CNC_BACKDOOR_JAKORITAR, "blue"),
+                                                                         (Behavior.RANSOMWARE_POC, "red"),
+                                                                         (Behavior.CNC_OPT1, "orange"),
+                                                                         (Behavior.CNC_THETICK, "grey")],
+                                                        #raw_behaviors=[(Behavior.NORMAL, "pink")],
+                                                        plot_name="ds_comparison_pi_3_1gb_kde")
 
-        DataPlotter.plot_decision_or_afterstates_as_kde(
-            decision_states=[(Behavior.NORMAL, "darkgreen")],
-            afterstates=[(Behavior.NORMAL, MTDTechnique.RANSOMWARE_DIRTRAP, "blue"),
-                         (Behavior.NORMAL, MTDTechnique.RANSOMWARE_FILE_EXT_HIDE, "lightblue"),
-                         (Behavior.NORMAL, MTDTechnique.CNC_IP_SHUFFLE, "orange"),
-                         (Behavior.NORMAL, MTDTechnique.ROOTKIT_SANITIZER, "red")],
-            #raw_behaviors=[(Behavior.NORMAL, "lightgreen")],
-            plot_name="dac_normal_decision_and_afterstates_kde")
+        # DataPlotter.plot_decision_or_afterstates_as_kde(
+        #     decision_states=[(Behavior.NORMAL, "darkgreen")],
+        #     afterstates=[(Behavior.NORMAL, MTDTechnique.RANSOMWARE_DIRTRAP, "blue"),
+        #                  (Behavior.NORMAL, MTDTechnique.RANSOMWARE_FILE_EXT_HIDE, "lightblue"),
+        #                  (Behavior.NORMAL, MTDTechnique.CNC_IP_SHUFFLE, "orange"),
+        #                  (Behavior.NORMAL, MTDTechnique.ROOTKIT_SANITIZER, "red")],
+        #     #raw_behaviors=[(Behavior.NORMAL, "lightgreen")],
+        #     plot_name="dac_normal_decision_and_afterstates_kde")
 
         # DataPlotter.plot_raw_behaviors_kde(RaspberryPi.PI4_2GB_WC)
         # DataPlotter.plot_raw_behaviors_kde(RaspberryPi.PI3_1GB)

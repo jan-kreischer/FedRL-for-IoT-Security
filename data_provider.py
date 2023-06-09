@@ -47,7 +47,8 @@ decision_states_file_paths: Dict[Behavior, str] = {
     # Behavior.CNC_BACKDOOR_JAKORITAR: f"data/{decision_states_dir}/cnc_backdoor_jakoritar_good_noexpfs_online_samples_1_2022-08-22-09-09_5s",
     Behavior.CNC_BACKDOOR_JAKORITAR: f"data/{decision_states_dir}/cnc_backdoor_jakoritar_new_online_samples_1_2022-09-06-15-29_5s",
     Behavior.ROOTKIT_BEURK: f"data/{decision_states_dir}/rootkit_beurk_online_samples_1_2022-09-08-08-55_5s",
-    Behavior.CNC_THETICK: f"data/{decision_states_dir}/cnc_thetick_online_samples_1_2022-09-12-10-27_5s"
+    Behavior.CNC_THETICK: f"data/{decision_states_dir}/cnc_thetick_online_samples_1_2022-09-12-10-27_5s",
+    Behavior.CNC_OPT1: f"data/{decision_states_dir}/cnc_opt_1_file_extr_online_samples_1_2022-09-20-17-30_5s",
 }
 afterstate = "after"
 afterstates_dir = "afterstates_online_agent"
@@ -198,42 +199,6 @@ class DataProvider:
                 # adata[(asb, mtd)] = df.to_numpy()
         # full_df.to_csv(file_name, index_label=False)
         return full_df  # ,adata
-
-    @staticmethod
-    def parse_raw_behavior_files_to_df(filter_suspected_external_events=True,
-                                       filter_constant_columns=True,
-                                       filter_outliers=True,
-                                       keep_status_columns=False, pi=3) -> pd.DataFrame:
-
-        if pi == 3:
-            rb_dir, rb_fpaths = raw_behaviors_dir_rp3, raw_behaviors_file_paths_rp3
-        else:
-            rb_dir, rb_fpaths = raw_behaviors_dir_rp4, raw_behaviors_file_paths_rp4
-
-        print(os.getcwd())
-        file_name = f'data/{rb_dir}/all_data_filtered_external_{str(filter_suspected_external_events)}' \
-                    f'_constant_{str(filter_constant_columns)}_outliers_{str(filter_outliers)}'
-
-        if keep_status_columns:
-            file_name += "_keepstatus"
-        file_name += ".csv"
-
-        if os.path.isfile(file_name):
-            return pd.read_csv(file_name)
-        full_df = pd.DataFrame()
-
-        for attack in rb_fpaths:
-            df = DataProvider.__get_filtered_df(rb_fpaths[attack],
-                                                filter_suspected_external_events=filter_suspected_external_events,
-                                                startidx=72,
-                                                filter_constant_columns=filter_constant_columns,
-                                                filter_outliers=filter_outliers,
-                                                keep_status_columns=keep_status_columns)
-            df['attack'] = attack.value
-            full_df = pd.concat([full_df, df])
-
-        full_df.to_csv(file_name, index_label=False)
-        return full_df
 
     @staticmethod
     def parse_agent_data_files_to_df(filter_suspected_external_events=True,

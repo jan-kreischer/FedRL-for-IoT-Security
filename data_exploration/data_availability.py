@@ -4,12 +4,15 @@ from data_provider import DataProvider, time_status_columns, all_zero_columns, d
 from custom_types import Behavior, MTDTechnique
 
 
-def show_raw_behaviors_data_availability(raw=False, pi=3):
-    all_data = DataProvider.parse_raw_behavior_files_to_df(filter_outliers=not raw,
-                                                           filter_suspected_external_events=not raw, pi=pi)
+def show_raw_behaviors_data_availability(raw=False, pi=3, decision=False):
+    all_data = DataProvider.parse_no_mtd_behavior_data(filter_outliers=not raw,
+                                                       filter_suspected_external_events=not raw, pi=pi,
+                                                       decision=decision)
+    all_data['attack'] = all_data['attack'].apply(lambda x: x.value)
+
     print(f'Total data points: {len(all_data)}')
-    drop_cols = [col for col in list(all_data) if col not in ['attack', 'block:block_bio_backmerge']]
-    grouped = all_data.drop(drop_cols, axis=1).rename(columns={'block:block_bio_backmerge': 'count'}).groupby(
+    drop_cols = [col for col in list(all_data) if col not in ['attack', 'kmem:kmalloc']]
+    grouped = all_data.drop(drop_cols, axis=1).rename(columns={'kmem:kmalloc': 'count'}).groupby(
         ['attack'], as_index=False).count()
     labels = ['Behavior', 'Count']
     rows = []
@@ -38,7 +41,7 @@ def show_decision_and_afterstate_data_availability(raw=False):
     labels = ['Behavior', 'State', 'Count']
     print("decision states data availability")
     rows = []
-    for behavior in [b for b in Behavior if b != Behavior.ROOTKIT_BEURK and b != Behavior.CNC_THETICK]:
+    for behavior in [b for b in Behavior]:
         line = decision_grouped.loc[(decision_grouped['attack'] == behavior.value), :]
         rows.append(line.values.tolist()[0])
     print(tabulate(
@@ -46,7 +49,7 @@ def show_decision_and_afterstate_data_availability(raw=False):
 
     print("afterstates data availability")
     rows = []
-    for behavior in [b for b in Behavior if b != Behavior.ROOTKIT_BEURK and b != Behavior.CNC_THETICK]:
+    for behavior in [b for b in Behavior]:
         lines = after_grouped.loc[(after_grouped['attack'] == behavior.value), :]
         for line in lines.values.tolist():
             rows.append(line)
@@ -56,9 +59,9 @@ def show_decision_and_afterstate_data_availability(raw=False):
 
 def print_column_info(raw_behaviors=True, pi=3):
     if raw_behaviors:
-        df = DataProvider.parse_raw_behavior_files_to_df(filter_suspected_external_events=False,
+        df = DataProvider.parse_no_mtd_behavior_data(filter_suspected_external_events=False,
                                                          filter_constant_columns=False,
-                                                         filter_outliers=False, keep_status_columns=True, pi=pi)
+                                                         filter_outliers=False, keep_status_columns=True, pi=pi, decision=False)
     else:
         df = DataProvider.parse_agent_data_files_to_df(filter_suspected_external_events=False,
                                                        filter_constant_columns=False,
@@ -93,9 +96,9 @@ if __name__ == "__main__":
     os.chdir("..")
     print("------------------Raw Data Availability------------------")
     #show_raw_behaviors_data_availability(raw=True, pi=3)
-    #show_decision_and_afterstate_data_availability(raw=True)
+    # show_decision_and_afterstate_data_availability(raw=True)
     print("----------------Filtered Data Availability---------------")
-    #show_raw_behaviors_data_availability(raw=False, pi=3)
-    show_decision_and_afterstate_data_availability(raw=False)
+    # show_raw_behaviors_data_availability(raw=False, pi=3)
+    #show_decision_and_afterstate_data_availability(raw=False)
 
     print_column_info(raw_behaviors=True, pi=3)
