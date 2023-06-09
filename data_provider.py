@@ -29,15 +29,17 @@ all_zero_columns = ['cpuNice', 'cpuHardIrq', 'alarmtimer:alarmtimer_fired',
                     'dma_fence:dma_fence_init', 'udp:udp_fail_queue_rcv_skb']
 
 # behaviors with MTD framework/Agent Components running as per directory "online_prototype_monitoring"
+decision_state = "decision"
 decision_states_dir = "decision_states_online_agent"
-decision_states_file_paths = Dict[Behavior, str] = {
+decision_states_file_paths: Dict[Behavior, str] = {
     Behavior.NORMAL: f"data/{decision_states_dir}/normal_noexpfs_online_samples_1_2022-08-15-14-07_5s",
     Behavior.RANSOMWARE_POC: f"data/{decision_states_dir}/ransom_noexpfs_online_samples_1_2022-08-16-08-43_5s",
     Behavior.ROOTKIT_BDVL: f"data/{decision_states_dir}/rootkit_bdvl_online_samples_1_2022-08-12-16-40_5s",
     Behavior.CNC_BACKDOOR_JAKORITAR: f"data/{decision_states_dir}/cnc_jakoritar_online_samples_1_2022-08-13-06-50_5s"
 }
+afterstate = "after"
 afterstates_dir = "afterstates_online_agent"
-afterstates_file_paths = Dict[Behavior, Dict[MTDTechnique, str]] = {
+afterstates_file_paths: Dict[Behavior, Dict[MTDTechnique, str]] = {
     Behavior.NORMAL: {  # to be monitored
 
     },
@@ -54,7 +56,10 @@ afterstates_file_paths = Dict[Behavior, Dict[MTDTechnique, str]] = {
         MTDTechnique.ROOTKIT_SANITIZER: f"data/{afterstates_dir}/rootkit_bdvl_as_removerk_noexpfs_online_samples_2_2022-08-13-06-02_5s"
     },
     Behavior.CNC_BACKDOOR_JAKORITAR: {
-        f"data/{decision_states_dir}/cnc_jakoritar_online_samples_1_2022-08-13-06-50_5s"
+        MTDTechnique.RANSOMWARE_DIRTRAP: f"data/{afterstates_dir}/cnc_jakoritar_as_dirtrap_expfs_online_samples_2_2022-08-15-08-59_5s",
+        MTDTechnique.RANSOMWARE_FILE_EXT_HIDE: f"data/{afterstates_dir}/cnc_jakoritar_as_filetypes_noexpfs_online_samples_2_2022-08-15-09-23_5s",
+        MTDTechnique.CNC_IP_SHUFFLE: f"data/{afterstates_dir}/cnc_jakoritar_as_changeip_expfs_online_samples_2_2022-08-15-14-08_5s",
+        MTDTechnique.ROOTKIT_SANITIZER: f"data/{afterstates_dir}/cnc_jakoritar_as_removerk_expfs_online_samples_2_2022-08-13-10-52_5s",
     }
 }
 
@@ -76,29 +81,16 @@ class DataProvider:
 
         # if os.path.isfile(file_name):
         #   full_df = pd.read_csv(file_name)
-
+        # full_df = pd.DataFrame()
         bdata = {}
 
         for attack in raw_behaviors_file_paths:
-            df = pd.read_csv(raw_behaviors_file_paths[attack])
-
-            if filter_suspected_external_events:
-                # filter first hour of samples: 3600s / 50s = 72
-                # and drop last measurement due to the influence of logging in, respectively out of the server
-                df = df.iloc[72:-1]
-            # filter for measurements where the device was connected
-            df = df[df['connectivity'] == 1]
-
-            # remove model-irrelevant columns
-            if not keep_status_columns:
-                df = df.drop(time_status_columns, axis=1)
-            if filter_outliers:
-                # drop outliers per measurement, indicated by (absolute z score) > 3
-                df = df[(np.nan_to_num(np.abs(stats.zscore(df))) < 3).all(axis=1)]
-
-            if filter_constant_columns:
-                df = df.drop(all_zero_columns, axis=1)
-
+            df = DataProvider.__get_filtered_df(raw_behaviors_file_paths[attack],
+                                                filter_suspected_external_events=filter_suspected_external_events,
+                                                startidx=72,
+                                                filter_constant_columns=filter_constant_columns,
+                                                filter_outliers=filter_outliers,
+                                                keep_status_columns=keep_status_columns)
             df['attack'] = attack
             bdata[attack] = df.to_numpy()
             # if not os.path.isfile(file_name): full_df = pd.concat([full_df, df])
@@ -125,77 +117,87 @@ class DataProvider:
         full_df = pd.DataFrame()
 
         for attack in raw_behaviors_file_paths:
-            df = pd.read_csv(raw_behaviors_file_paths[attack])
-            assert df.isnull().values.any() == False, "behavior data should not contain NaN values"
-
-            if filter_suspected_external_events:
-                # filter first hour of samples: 3600s / 50s = 72
-                # and drop last measurement due to the influence of logging in, respectively out of the server
-                df = df.iloc[72:-1]
-            # filter for measurements where the device was connected
-            df = df[df['connectivity'] == 1]
-
-            # remove model-irrelevant columns
-            if not keep_status_columns:
-                df = df.drop(time_status_columns, axis=1)
-
-            if filter_outliers:
-                # drop outliers per measurement, indicated by (absolute z score) > 3
-                df = df[(np.nan_to_num(np.abs(stats.zscore(df))) < 3).all(axis=1)]
-
-            if filter_constant_columns:
-                df = df.drop(all_zero_columns, axis=1)
-
+            df = DataProvider.__get_filtered_df(raw_behaviors_file_paths[attack],
+                                                filter_suspected_external_events=filter_suspected_external_events,
+                                                startidx=72,
+                                                filter_constant_columns=filter_constant_columns,
+                                                filter_outliers=filter_outliers,
+                                                keep_status_columns=keep_status_columns)
             df['attack'] = attack.value
             full_df = pd.concat([full_df, df])
 
         full_df.to_csv(file_name, index_label=False)
         return full_df
 
+    @staticmethod
     def parse_agent_data_files_to_df(filter_suspected_external_events=True,
                                      filter_constant_columns=True,
                                      filter_outliers=True,
                                      keep_status_columns=False) -> pd.DataFrame:
 
         print(os.getcwd())
-        file_name = f'../data/{path}/all_data_filtered_external_{str(filter_suspected_external_events)}' \
+        file_name = f'../data/all_agent_data_filtered_external_{str(filter_suspected_external_events)}' \
                     f'_constant_{str(filter_constant_columns)}_outliers_{str(filter_outliers)}'
-
         if keep_status_columns:
             file_name += "_keepstatus"
         file_name += ".csv"
-
         if os.path.isfile(file_name):
             return pd.read_csv(file_name)
+
         full_df = pd.DataFrame()
-
-        for attack in raw_behaviors_file_paths:
-            df = pd.read_csv(raw_behaviors_file_paths[attack])
-            assert df.isnull().values.any() == False, "behavior data should not contain NaN values"
-
-            if filter_suspected_external_events:
-                # filter first hour of samples: 3600s / 50s = 72
-                # and drop last measurement due to the influence of logging in, respectively out of the server
-                df = df.iloc[72:-1]
-            # filter for measurements where the device was connected
-            df = df[df['connectivity'] == 1]
-
-            # remove model-irrelevant columns
-            if not keep_status_columns:
-                df = df.drop(time_status_columns, axis=1)
-
-            if filter_outliers:
-                # drop outliers per measurement, indicated by (absolute z score) > 3
-                df = df[(np.nan_to_num(np.abs(stats.zscore(df))) < 3).all(axis=1)]
-
-            if filter_constant_columns:
-                df = df.drop(all_zero_columns, axis=1)
-
-            df['attack'] = attack.value
+        for dsb in decision_states_file_paths:
+            df = DataProvider.__get_filtered_df(decision_states_file_paths[dsb],
+                                                filter_suspected_external_events=filter_suspected_external_events,
+                                                filter_constant_columns=filter_constant_columns,
+                                                filter_outliers=filter_outliers,
+                                                keep_status_columns=keep_status_columns)
+            df['attack'] = dsb.value
+            df['state'] = decision_state
             full_df = pd.concat([full_df, df])
+
+        for asb in afterstates_file_paths:
+            for mtd in afterstates_file_paths[asb]:
+                df = DataProvider.__get_filtered_df(afterstates_file_paths[dsb][mtd],
+                                                    filter_suspected_external_events=filter_suspected_external_events,
+                                                    filter_constant_columns=filter_constant_columns,
+                                                    filter_outliers=filter_outliers,
+                                                    keep_status_columns=keep_status_columns)
+                df['attack'] = asb.value
+                df['state'] = f"{afterstate} {mtd.value}"
+                full_df = pd.concat([full_df, df])
 
         full_df.to_csv(file_name, index_label=False)
         return full_df
+
+    @staticmethod
+    def __get_filtered_df(path, filter_suspected_external_events=True, startidx=10, endidx=-1,
+                          filter_constant_columns=True, const_cols=all_zero_columns,
+                          filter_outliers=True,
+                          keep_status_columns=False, stat_cols=time_status_columns):
+
+        df = pd.read_csv(path)
+        assert df.isnull().values.any() == False, "behavior data should not contain NaN values"
+
+        if filter_suspected_external_events:
+            # filter first hour of samples: 3600s / 50s = 72
+            # and drop last measurement due to the influence of logging in, respectively out of the server
+            df = df.iloc[startidx:endidx]
+
+        # filter for measurements where the device was connected
+        df = df[df['connectivity'] == 1]
+
+        # remove model-irrelevant columns
+        if not keep_status_columns:
+            df = df.drop(stat_cols, axis=1)
+
+        if filter_outliers:
+            # drop outliers per measurement, indicated by (absolute z score) > 3
+            df = df[(np.nan_to_num(np.abs(stats.zscore(df))) < 3).all(axis=1)]
+
+        if filter_constant_columns:
+            df = df.drop(const_cols, axis=1)
+
+        return df
 
     @staticmethod
     def get_scaled_all_data(scaling_minmax=True):
