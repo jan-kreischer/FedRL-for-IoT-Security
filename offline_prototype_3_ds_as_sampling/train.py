@@ -48,11 +48,11 @@ if __name__ == '__main__':
     # AE evaluation of pretrained model
     ae_interpreter = get_pretrained_ae(path=path, dims=DIMS)
     # AE can directly be tested on the data that will be used for RL: pass train_data to testing
-    # print("---AE trained on decision state normal data---")
+    print("---AE trained on decision state normal data---")
     # print("---Evaluation on decision behaviors train---")
     # evaluate_ae_on_no_mtd_behavior(ae_interpreter, test_data=dtrain_rl)
-    # print("---Evaluation on afterstate behaviors train---")
-    # evaluate_ae_on_afterstates(ae_interpreter, test_data=atrain)
+    print("---Evaluation on afterstate behaviors train---")
+    evaluate_ae_on_afterstates(ae_interpreter, test_data=atrain)
 
 
     ae_train_dict, atrain_rl = split_as_data_for_ae_and_rl(atrain)
