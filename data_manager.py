@@ -11,7 +11,7 @@ import joblib
 import os
 
 # paths to data
-path = "behaviors_no_mtd"
+path = "raw_behaviors_no_agent"
 
 data_file_paths: Dict[Behavior, str] = {
     Behavior.NORMAL: f"../data/{path}/normal_samples_2022-06-13-11-25_50s",
