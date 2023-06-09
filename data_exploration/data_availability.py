@@ -92,10 +92,10 @@ def print_column_info(raw_behaviors=True, pi=3):
 if __name__ == "__main__":
     os.chdir("..")
     print("------------------Raw Data Availability------------------")
-    show_raw_behaviors_data_availability(raw=True, pi=3)
-    # show_decision_and_afterstate_data_availability(raw=True)
+    #show_raw_behaviors_data_availability(raw=True, pi=3)
+    #show_decision_and_afterstate_data_availability(raw=True)
     print("----------------Filtered Data Availability---------------")
-    show_raw_behaviors_data_availability(raw=False, pi=3)
-    # show_decision_and_afterstate_data_availability(raw=False)
+    #show_raw_behaviors_data_availability(raw=False, pi=3)
+    show_decision_and_afterstate_data_availability(raw=False)
 
     print_column_info(raw_behaviors=True, pi=3)

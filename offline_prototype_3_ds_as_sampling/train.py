@@ -37,6 +37,7 @@ if __name__ == '__main__':
     # dtrain, dtest, atrain, atest, scaler = DataProvider.get_scaled_scaled_train_test_split_with_afterstates()
     dtrain, dtest, atrain, atest = DataProvider.get_reduced_dimensions_with_pca_ds_as(DIMS,
                                                                                       dir="offline_prototype_3_ds_as_sampling/")
+    exit(0)
     # get splits for RL & AD of normal data
     dir = "offline_prototype_3_ds_as_sampling/trained_models/"
     model_name = "ae_model_ds.pth"
@@ -53,12 +54,12 @@ if __name__ == '__main__':
     # # print("---Evaluation on afterstate behaviors train---")
     # evaluate_ae_on_afterstates(ae_interpreter, test_data=atrain)
     ae_train_dict, atrain_rl = split_as_data_for_ae_and_rl(atrain)
-    # pretrain_all_afterstate_ae_models(ae_train_dict, dir=dir)
+    # pretrain_all_afterstate_ae_models(ae_train_dict, dir=dir, num_std=2.5)
     # evaluate_all_as_ae_models(dtrain_rl, atrain_rl, dims=DIMS, dir=dir)
 
     # MODEL trained on all ds and as normal data assumes the least -> MOST REALISTIC
-    pretrain_all_ds_as_ae_models(ae_ds_train, ae_train_dict)
-    evaluate_all_as_ae_models(dtrain_rl, atrain_rl, dims=DIMS, dir=dir)
+    pretrain_all_ds_as_ae_models(ae_ds_train, ae_train_dict, num_std=0.5)
+    #evaluate_all_as_ae_models(dtrain_rl, atrain_rl, dims=DIMS, dir=dir)
     # print("Evaluating AE trained on all decision and afterstates normal")
     path = dir + "ae_model_all_ds_as.pth"
     ae_interpreter = get_pretrained_ae(path=path, dims=DIMS)

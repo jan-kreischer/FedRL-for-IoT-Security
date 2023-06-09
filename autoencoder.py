@@ -65,7 +65,7 @@ class AutoEncoder():
             epoch_losses.append(sum(current_losses) / len(current_losses))
             # print(f'Training Loss in epoch {e + 1}: {epoch_losses[e]}')
 
-    def determine_threshold(self) -> float:
+    def determine_threshold(self, num_std=1) -> float:
         mses = []
         self.model.eval()
         with torch.no_grad():
@@ -76,7 +76,7 @@ class AutoEncoder():
                 loss = loss_function(model_out, x)
                 mses.append(loss.item())
         mses = np.array(mses)
-        self.threshold = mses.mean() + 1 * mses.std()
+        self.threshold = mses.mean() + num_std * mses.std()
         return self.threshold
 
     def save_model(self, path="offline_prototype_3_ds_as_sampling/trained_models/ae_model.pth"):
