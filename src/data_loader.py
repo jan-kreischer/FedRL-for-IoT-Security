@@ -141,9 +141,7 @@ cols_to_exclude += ['cpuIdle', 'cpuIowait', 'block:block_bio_backmerge', 'block:
 
 
 class DataProvider:
-    def __init__(self):
-        print("Creating new DataProvider")
-    
+
     @staticmethod
     def parse_no_mtd_behavior_data(filter_suspected_external_events=True,
                                    filter_constant_columns=True,
