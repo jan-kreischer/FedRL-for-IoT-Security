@@ -55,7 +55,7 @@ class OnlineRL():
                 action = self.choose_action(decision_data)
                 self.launch_mtd(action)
                 print("sleep for 120s")
-                time.sleep(120)  # TODO make dependent on pid of mtd script to save time?
+                time.sleep(120)  # theoretically not needed
                 print("start monitoring afterstate")
                 self.monitor(14400)
                 after_data = self.read_data()
@@ -149,6 +149,7 @@ class OnlineRL():
             pass
 
         print("run: " + selected_mtd[RUN_PREFIX] + ' ' + str(selected_mtd[SCRIPT_NAME]) + ' ' + mtd_params)
+        # the script waits here until the new process is finished
         os.system(selected_mtd[RUN_PREFIX] + ' ' + str(selected_mtd[SCRIPT_NAME]) + ' ' + mtd_params)
         os.chdir(old_dir)
 

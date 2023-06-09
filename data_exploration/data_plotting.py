@@ -53,9 +53,7 @@ class DataPlotter:
 
         plot_name = f"all_behaviors_{device.value}_kde"
         all_data_parsed = DataProvider.parse_all_files_to_df(filter_outliers=True)
-
-        all_data_parsed = all_data_parsed[all_data_parsed.attack == Behavior.ROOTKIT_BEURK.value]
-        cols_to_plot = [col for col in all_data_parsed if col not in ['device', 'attack']]
+        cols_to_plot = [col for col in all_data_parsed if col not in ['attack']]
         all_data_parsed['Monitoring'] = all_data_parsed.apply(lambda row: f'{device.value} {row.attack}', axis=1)
         #all_data_parsed = all_data_parsed.drop(['device'], axis=1)
         all_data_parsed = all_data_parsed.reset_index()
@@ -71,14 +69,15 @@ class DataPlotter:
                    f'{device.value} {Behavior.CNC_THETICK.value}': "grey",
                    f'{device.value} {Behavior.CNC_BACKDOOR_JAKORITAR.value}': "red"}
         for i in range(len(cols_to_plot)):
-            axs[i].set_ylim([1e-4, 2])
-            for behav in Behavior:
-                if all_data_parsed[all_data_parsed.attack == behav.value][cols_to_plot[i]].unique().size == 1:
-                    axs[i].axvline(all_data_parsed[all_data_parsed.attack == behav.value][cols_to_plot[i]].iloc[0],
-                                   ymin=1e-4, ymax=2, color=palette[f'{device.value} {behav.value}'])
-            sns.kdeplot(data=all_data_parsed, x=cols_to_plot[i], #palette=palette, hue="Monitoring",
-                        common_norm=False, common_grid=True, ax=axs[i], cut=2,
-                        log_scale=(False, True))  # False, True
+            axs[i].set_ylim([1e-4, 6])
+            for b in Behavior:
+                if all_data_parsed[all_data_parsed.attack == b.value][cols_to_plot[i]].unique().size == 1:
+                    axs[i].axvline(all_data_parsed[all_data_parsed.attack == b.value][cols_to_plot[i]].iloc[0],
+                                   ymin=1e-4, ymax=2, color=palette[f'{device.value} {b.value}'])
+                    continue
+                sns.kdeplot(data=all_data_parsed[all_data_parsed.attack == b.value], x=cols_to_plot[i], palette=palette, hue="Monitoring",
+                            common_norm=False, common_grid=True, ax=axs[i], cut=2,
+                            log_scale=(False, True))  # False, True
 
         if plot_name is not None:
             fig.savefig(f'data_plot_{plot_name}.png', dpi=100)
