@@ -8,9 +8,10 @@ TheRL/DL models are built using PyTorch. Custom Environment interfaces work anal
 
 ## Code structure :book:
 - datasets
-- data exploration to check data availability, timeline and distribution of features
+- data exploration to check data availability, timeline and distribution of features, PCA dimensionality reduction tests
 - shell scripts required for monitoring, incl. data leak poc attacks
 - 3 offline/simulated environments to train/pretrain an agent
 - 1 controller for full online, on-device learning
 - 1 mock controller, excluding the ML parts that is used to monitor realistic data for pretraining
+- an evaluation of resource consumption monitored via nmon on a Raspberry Pi 3 Model B+, 1GB RAM
 - anomaly detection tests
