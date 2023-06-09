@@ -193,6 +193,18 @@ class DataManager:
         return pca_train, pca_test
 
     @staticmethod
+    def fit_pca(n=15):
+        strain, stest, scaler = DataManager.get_scaled_train_test_split()
+        all_strain = strain[Behavior.NORMAL]
+        for b in strain:
+            if b != Behavior.NORMAL:
+                all_strain = np.vstack((all_strain, strain[b]))
+
+        pca = PCA(n_components=n)
+        pca.fit(all_strain[:, :-1])
+        return pca
+
+    @staticmethod
     def print_pca_scree_plot(n=30):
         pca = DataManager.fit_pca()
         per_var = np.round(pca.explained_variance_ratio_ * 100, decimals=1)
@@ -206,24 +218,20 @@ class DataManager:
         plt.savefig(f"screeplot_n_{n}.pdf")
 
     @staticmethod
-    def fit_pca(n=15):
-        strain, stest, scaler = DataManager.get_scaled_train_test_split()
-        all_strain = strain[Behavior.NORMAL]
-        for b in strain:
-            if b != Behavior.NORMAL:
-                all_strain = np.vstack((all_strain, strain[b]))
-
-        pca = PCA(n_components=n)
-        pca.fit(all_strain[:, :-1])
-        return pca
-
-    @staticmethod
     def get_pca_loading_scores_dataframe(n=15):
         pca = DataManager.fit_pca(n)
-        loadings = pd.DataFrame(pca.components_.T, columns=["PC" + str(i) for i in range(1, n+1)],
-                                index=pd.read_csv(data_file_paths[Behavior.CNC_BACKDOOR_JAKORITAR]).drop(
-                                    time_status_columns, axis=1).drop(all_zero_columns, axis=1).columns)
+        loadings = pd.DataFrame(pca.components_, columns=pd.read_csv(data_file_paths[Behavior.CNC_BACKDOOR_JAKORITAR]).drop(
+                                    time_status_columns, axis=1).drop(all_zero_columns, axis=1).columns,
+                                index=["PC" + str(i) for i in range(1, n+1)])
         return loadings
+
+    @staticmethod
+    def get_highest_weight_loading_scores_for_pc(n_pcs=15, pcn="PC1"):
+        #maxCol = lambda x: max(x.min(), x.max(), key=abs)
+        df = DataManager.get_pca_loading_scores_dataframe(n_pcs)
+        # df['max_loading_score'] = df.apply(maxCol, axis=1)
+        sorted_pc = df.loc[pcn].reindex(df.loc[pcn].abs().sort_values(ascending=False).index)
+        return sorted_pc
 
     @staticmethod
     def show_data_availability(raw=False):
