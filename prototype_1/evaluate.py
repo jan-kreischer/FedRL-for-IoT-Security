@@ -9,4 +9,10 @@ if __name__ == "__main__":
 
     # flow: exe train.py -> save models -> load models
 
+
+    # TODO: options to evaluate goodness of agent
+    # for each behavior get prediction of online_net and take accuracy
+    # exactly corresponds to supervised prediction
+
+
     pass

@@ -23,7 +23,7 @@ if __name__ == '__main__':
     start = time()
 
     # read in all preprocessed data for a simulated, supervised environment to sample from
-    env = SensorEnvironment(DataManager.get_scaled_all_data())
+    env = SensorEnvironment(DataManager.get_scaled_train_test_split()[0])
 
     agent = Agent(input_dims=env.observation_space_size, n_actions=len(env.actions), buffer_size=BUFFER_SIZE,
                   batch_size=BATCH_SIZE, lr=LEARNING_RATE, gamma=GAMMA, epsilon=EPSILON_START, eps_end=EPSILON_END)
