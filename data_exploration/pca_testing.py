@@ -2,7 +2,7 @@ import os
 
 from data_plotting import DataPlotter
 from data_provider import DataProvider
-from utils.utils import seed_random
+from utils.evaluation_utils import seed_random
 import numpy as np
 
 

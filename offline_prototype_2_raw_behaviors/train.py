@@ -3,7 +3,7 @@ from offline_prototype_2_raw_behaviors.environment import SensorEnvironment, sup
 from agent import Agent
 from custom_types import Behavior
 from autoencoder import AutoEncoderInterpreter
-from utils.utils import plot_learning, seed_random, calculate_metrics
+from utils.evaluation_utils import plot_learning, seed_random, calculate_metrics
 from tabulate import tabulate
 from time import time
 import torch
