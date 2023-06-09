@@ -9,6 +9,7 @@ import numpy as np
 import pandas as pd
 import joblib
 import os
+import pickle
 
 # data to use
 path = "raw_behaviors_no_agent_rp4"
@@ -195,12 +196,19 @@ class DataProvider:
         for b, d in stest.items():
             pca_test[b] = np.hstack((pca.transform(d[:, :-1]), np.expand_dims(d[:, -1], axis=1)))
 
-        scaler_file, pca_file = "scaler.gz", "pcafit.gz"
+        # save for later use for predictions preprocessing
+        #scaler_file, pca_file = "scaler.gz", "pcafit.gz"
+        scaler_file, pca_file = "scaler.obj", "pcafit.obj"
 
         if not os.path.isfile(scaler_file):
-            joblib.dump(scaler, scaler_file)
+            #joblib.dump(scaler, scaler_file)
+            with open(scaler_file, "wb") as sf:
+                pickle.dump(scaler, sf)
+
         if not os.path.isfile(pca_file):
-            joblib.dump(pca, pca_file)
+            #joblib.dump(pca, pca_file)
+            with open(pca_file, "wb") as pf:
+                pickle.dump(pca, pf)
 
         return pca_train, pca_test
 
