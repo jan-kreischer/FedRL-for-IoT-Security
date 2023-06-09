@@ -459,7 +459,8 @@ class DataProvider:
 
     @staticmethod
     def get_reduced_dimensions_with_pca_ds_as(dim=15, dir=""):
-        dtrain, dtest, atrain, atest, scaler = DataProvider.get_scaled_scaled_train_test_split_with_afterstates()
+        ""
+        dtrain, dtest, atrain, atest, scaler = DataProvider.get_scaled_scaled_train_test_split_with_afterstates(scaling_minmax=False)
         all_strain = dtrain[Behavior.NORMAL]
         for b in dtrain:
             if b != Behavior.NORMAL:
@@ -504,7 +505,7 @@ class DataProvider:
 
     @staticmethod
     def get_reduced_dimensions_with_pca(dim=15, pi=3):
-        strain, stest, scaler = DataProvider.get_scaled_train_test_split(pi=pi)
+        strain, stest, scaler = DataProvider.get_scaled_train_test_split(pi=pi, scaling_minmax=False)
         all_strain = strain[Behavior.NORMAL]
         for b in strain:
             if b != Behavior.NORMAL:
@@ -538,8 +539,8 @@ class DataProvider:
         return pca_train, pca_test
 
     @staticmethod
-    def fit_pca(n=15):
-        strain, stest, scaler = DataProvider.get_scaled_train_test_split(pi=3)
+    def fit_pca(n=15, pi=3):
+        strain, stest, scaler = DataProvider.get_scaled_train_test_split(pi=pi)
         all_strain = strain[Behavior.NORMAL]
         for b in strain:
             if b != Behavior.NORMAL:
@@ -548,6 +549,7 @@ class DataProvider:
         pca = PCA(n_components=n)
         pca.fit(all_strain[:, :-1])
         return pca
+
 
     @staticmethod
     def get_pca_loading_scores_dataframe(n=15):

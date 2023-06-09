@@ -31,8 +31,8 @@ if __name__ == '__main__':
     start = time()
 
     # read in all preprocessed data for a simulated, supervised environment to sample from
-    # train_data, test_data, scaler = DataProvider.get_scaled_train_test_split()
-    train_data, test_data = DataProvider.get_reduced_dimensions_with_pca(DIMS, pi=PI)
+    # train_data, test_data = DataProvider.get_reduced_dimensions_with_pca(DIMS, pi=PI)
+    train_data, test_data, scaler = DataProvider.get_scaled_train_test_split(pi=PI, scaling_minmax=True)
     # get splits for RL & AD of normal data
     n = 100
     s = 0.8
@@ -46,7 +46,7 @@ if __name__ == '__main__':
                                               num_epochs=300, num_std=2.5)
 
     # AE evaluation of pretrained model
-    ae_interpreter = get_pretrained_ae(path=ae_path, dims=DIMS)
+    ae_interpreter = get_pretrained_ae(path=ae_path, dims=len(train_ae_x[0,:]))
     # AE can directly be tested on the data that will be used for RL: pass train_data to testing
     evaluate_ae_on_no_mtd_behavior(ae_interpreter=ae_interpreter, test_data=train_data)
 
