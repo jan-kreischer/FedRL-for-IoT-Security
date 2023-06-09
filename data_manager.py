@@ -11,12 +11,12 @@ prototype = "prototype_1"
 
 
 data_file_paths: Dict[Behavior, str] = {
-    Behavior.NORMAL: f"/data/{prototype}/normal_samples_2022-06-13-11-25_50s",
-    Behavior.RANSOMWARE_POC: f"/data/{prototype}/ransomware_samples_2022-06-20-08-49_50s",
-    Behavior.ROOTKIT_BEURK: f"/data/{prototype}/rootkit_beurk_samples_2022-06-17-09-08_50s",
-    Behavior.ROOTKIT_BDVL: f"/data/{prototype}/rootkit_bdvl_samples_2022-06-16-19-16_50s",
-    Behavior.CNC_THETICK: f"/data/{prototype}/cnc_backdoor_jakoritar_samples_2022-06-18-09-35_50s",
-    Behavior.CNC_BACKDOOR_JAKORITAR: f"/data/{prototype}/cnc_thetick_samples_2022-06-19-16-54_50s"
+    Behavior.NORMAL: f"../data/{prototype}/normal_samples_2022-06-13-11-25_50s",
+    Behavior.RANSOMWARE_POC: f"../data/{prototype}/ransomware_samples_2022-06-20-08-49_50s",
+    Behavior.ROOTKIT_BEURK: f"../data/{prototype}/rootkit_beurk_samples_2022-06-17-09-08_50s",
+    Behavior.ROOTKIT_BDVL: f"../data/{prototype}/rootkit_bdvl_samples_2022-06-16-19-16_50s",
+    Behavior.CNC_THETICK: f"../data/{prototype}/cnc_backdoor_jakoritar_samples_2022-06-18-09-35_50s",
+    Behavior.CNC_BACKDOOR_JAKORITAR: f"../data/{prototype}/cnc_thetick_samples_2022-06-19-16-54_50s"
 }
 
 time_status_columns = ["time", "timestamp", "seconds", "connectivity"]
@@ -31,7 +31,8 @@ class DataManager:
     def parse_all_files_to_df(filter_suspected_external_events=True,
                               filter_constant_columns=True,
                               filter_outliers=True,
-                              keep_status_columns=False) -> pd.DataFrame:
+                              keep_status_columns=False) -> Dict[Behavior, pd.DataFrame]:
+        print(os.getcwd())
         file_name = f'../data/{prototype}/all_data_filtered_external_{str(filter_suspected_external_events)}' \
                     f'_constant_{str(filter_constant_columns)}_outliers_{str(filter_outliers)}'
 
@@ -39,9 +40,10 @@ class DataManager:
             file_name += "_keepstatus"
         file_name += ".csv"
 
-        if os.path.isfile(file_name):
-            return pd.read_csv(file_name)
-        full_df = pd.DataFrame()
+        # if os.path.isfile(file_name):
+        #     full_df = pd.read_csv(file_name)
+
+        bdata = {}
 
         for attack in data_file_paths:
             df = pd.read_csv(data_file_paths[attack])
@@ -63,11 +65,12 @@ class DataManager:
             if filter_constant_columns:
                 df = df.drop(all_zero_columns, axis=1)
 
-            df['attack'] = attack.value
-            full_df = pd.concat([full_df, df])
+            df['attack'] = attack
+            bdata[attack] = df
+            #if not os.path.isfile(file_name): full_df = pd.concat([full_df, df])
 
-        full_df.to_csv(file_name, index_label=False)
-        return full_df
+        #full_df.to_csv(file_name, index_label=False)
+        return bdata
 
     @staticmethod
     def show_data_availability(raw=False):
