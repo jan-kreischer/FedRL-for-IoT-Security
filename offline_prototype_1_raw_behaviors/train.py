@@ -30,7 +30,7 @@ if __name__ == '__main__':
 
     # read in all preprocessed data for a simulated, supervised environment to sample from
     train_data, test_data, scaler = DataProvider.get_scaled_train_test_split(scaling_minmax=True, scale_normal_only=True)
-    #train_data, test_data = DataProvider.get_reduced_dimensions_with_pca(DIMS, pi=PI, normal_only=True)
+    # train_data, test_data = DataProvider.get_reduced_dimensions_with_pca(DIMS, pi=PI, normal_only=True)
     env = SensorEnvironment(train_data)
 
     print("state size: ", env.observation_space_size)

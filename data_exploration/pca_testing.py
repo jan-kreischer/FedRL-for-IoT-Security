@@ -10,9 +10,9 @@ import numpy as np
 if __name__ == "__main__":
     os.chdir("..")
     seed_random()
-    #rtrain, rtest = DataProvider.get_reduced_dimensions_with_pca()
+    #rtrain, rtest = DataProvider.get_reduced_dimensions_with_pca(dim=15)
     #print(rtrain.shape)
-    DataPlotter.print_pca_scree_plot(15)
+    DataPlotter.print_pca_scree_plot(30)
 
     d = DataProvider.get_highest_weight_loading_scores_for_pc(pcn="PC1").head(5)** 2
     print(d)

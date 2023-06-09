@@ -38,18 +38,26 @@ if __name__ == '__main__':
         scaling_minmax=True, scale_normal_only=True)
 
     # get splits for RL & AD of normal data
-    dir = "offline_prototype_3_ds_as_sampling/trained_models/"
-    model_name = "ae_model_ds.pth"
-    path = dir + model_name
     ae_ds_train, dtrain_rl = DataProvider.split_ds_data_for_ae_and_rl(dtrain)
     ae_ds_train = np.vstack((ae_ds_train, ae_ds_train)) # upsampling to have equal contribution with afterstates
     dims = len(ae_ds_train[0, :-1])
     ae_as_train, atrain_rl = DataProvider.split_as_data_for_ae_and_rl(atrain)
 
     # MODEL trained on all ds and as normal data assumes the least -> MOST REALISTIC
-    pretrain_all_ds_as_ae_models(ae_ds_train, ae_as_train, num_std=2.5)
-    evaluate_all_ds_as_ae_models(dtrain_rl, atrain_rl, dims=dims, dir=dir)
-    exit(0)
+    #pretrain_all_ds_as_ae_models(ae_ds_train, ae_as_train, num_std=2.5)
+    #evaluate_all_ds_as_ae_models(dtrain_rl, atrain_rl, dims=dims, dir=dir)
+    #exit(0)
+
+    # choose best of the previously trained autoencoders
+    dir = "offline_prototype_3_ds_as_sampling/trained_models/"
+    model_name = "ae_model_all_ds_as.pth"
+    path = dir + model_name
+    ae_interpreter = get_pretrained_ae(path=path, dims=dims)
+    print("Evaluating AE trained on all decision and afterstates normal")
+    print("---Evaluation on decision behaviors train---")
+    evaluate_ae_on_no_mtd_behavior(ae_interpreter, test_data=dtrain)
+    print("---Evaluation on afterstate behaviors train---")
+    evaluate_ae_on_afterstates(ae_interpreter, test_data=atrain)
 
     # Reinforcement Learning
     env = SensorEnvironment(decision_train_data=dtrain_rl,
