@@ -8,16 +8,17 @@ plot_timeline = True
 
 if __name__ == "__main__":
     os.chdir("..")
-    if plot_kde:
+    if plot_kde:pass
         # DataPlotter.plot_delay_and_normal_as_kde()
         # DataPlotter.plot_behaviors_as_kde(RaspberryPi.PI4_2GB_WC)
-        DataPlotter.plot_decision_or_afterstates_as_kde(
-            [(Behavior.NORMAL, "green")],
-            [(Behavior.NORMAL, MTDTechnique.RANSOMWARE_DIRTRAP, "blue"),
-             (Behavior.NORMAL, MTDTechnique.RANSOMWARE_FILE_EXT_HIDE, "lightblue"),
-             (Behavior.NORMAL, MTDTechnique.CNC_IP_SHUFFLE, "orange"),
-             (Behavior.NORMAL, MTDTechnique.ROOTKIT_SANITIZER, "red")],
-            plot_name="dac_normal_decision_to_normal_afterstates_for_mtd_kde")
+
+        # DataPlotter.plot_decision_or_afterstates_as_kde(
+        #     [(Behavior.NORMAL, "green")],
+        #     [(Behavior.NORMAL, MTDTechnique.RANSOMWARE_DIRTRAP, "blue"),
+        #      (Behavior.NORMAL, MTDTechnique.RANSOMWARE_FILE_EXT_HIDE, "lightblue"),
+        #      (Behavior.NORMAL, MTDTechnique.CNC_IP_SHUFFLE, "orange"),
+        #      (Behavior.NORMAL, MTDTechnique.ROOTKIT_SANITIZER, "red")],
+        #     plot_name="dac_normal_decision_to_normal_afterstates_for_mtd_kde")
 
         # DataPlotter.plot_decision_or_afterstates_as_kde(
         #     [(Behavior.NORMAL, "green")],
@@ -57,13 +58,51 @@ if __name__ == "__main__":
         # UserWarning: Logscale warning can be ignored (some samples have negative values for feature iface0TX)
     if plot_timeline:
         DataPlotter.plot_decision_or_afterstate_behaviors_timeline(
-            [(Behavior.NORMAL, "green")],
-            [(Behavior.NORMAL, MTDTechnique.RANSOMWARE_DIRTRAP, "blue"),
-             (Behavior.NORMAL, MTDTechnique.RANSOMWARE_FILE_EXT_HIDE, "lightblue"),
-             (Behavior.NORMAL, MTDTechnique.CNC_IP_SHUFFLE, "orange"),
-             (Behavior.NORMAL, MTDTechnique.ROOTKIT_SANITIZER, "red")],
-            plot_name="dac_normal_decision_to_normal_afterstates_for_mtd_timeline")
+            afterstates=[
+                (Behavior.NORMAL, MTDTechnique.RANSOMWARE_DIRTRAP, "green"),
+                (Behavior.RANSOMWARE_POC, MTDTechnique.RANSOMWARE_DIRTRAP, "blue"),
+                 (Behavior.ROOTKIT_BDVL, MTDTechnique.RANSOMWARE_DIRTRAP, "lightblue"),
+                 (Behavior.CNC_BACKDOOR_JAKORITAR, MTDTechnique.RANSOMWARE_DIRTRAP, "red"),
+                 ],
+                plot_name = "compare_dirtrap_afterstates_timeline")
+
+        DataPlotter.plot_decision_or_afterstate_behaviors_timeline(
+            afterstates=[
+                (Behavior.NORMAL, MTDTechnique.RANSOMWARE_FILE_EXT_HIDE, "green"),
+                (Behavior.RANSOMWARE_POC, MTDTechnique.RANSOMWARE_FILE_EXT_HIDE, "blue"),
+                (Behavior.ROOTKIT_BDVL, MTDTechnique.RANSOMWARE_FILE_EXT_HIDE, "lightblue"),
+                (Behavior.CNC_BACKDOOR_JAKORITAR, MTDTechnique.RANSOMWARE_FILE_EXT_HIDE, "red"),
+            ],
+            plot_name="compare_fileextension_afterstates_timeline")
+
+        DataPlotter.plot_decision_or_afterstate_behaviors_timeline(
+            afterstates=[
+                (Behavior.NORMAL, MTDTechnique.CNC_IP_SHUFFLE, "green"),
+                (Behavior.RANSOMWARE_POC, MTDTechnique.CNC_IP_SHUFFLE, "blue"),
+                (Behavior.ROOTKIT_BDVL, MTDTechnique.CNC_IP_SHUFFLE, "lightblue"),
+                (Behavior.CNC_BACKDOOR_JAKORITAR, MTDTechnique.CNC_IP_SHUFFLE, "red"),
+            ],
+            plot_name="compare_changeip_afterstates_timeline")
+
+        DataPlotter.plot_decision_or_afterstate_behaviors_timeline(
+            afterstates=[
+                (Behavior.NORMAL, MTDTechnique.ROOTKIT_SANITIZER, "green"),
+                (Behavior.RANSOMWARE_POC, MTDTechnique.ROOTKIT_SANITIZER, "blue"),
+                (Behavior.ROOTKIT_BDVL, MTDTechnique.ROOTKIT_SANITIZER, "lightblue"),
+                (Behavior.CNC_BACKDOOR_JAKORITAR, MTDTechnique.ROOTKIT_SANITIZER, "red"),
+            ],
+            plot_name="compare_removerk_afterstates_timeline")
+
+
         pass
+        # DataPlotter.plot_decision_or_afterstate_behaviors_timeline(
+        #     [(Behavior.NORMAL, "green")],
+        #     [(Behavior.NORMAL, MTDTechnique.RANSOMWARE_DIRTRAP, "blue"),
+        #      (Behavior.NORMAL, MTDTechnique.RANSOMWARE_FILE_EXT_HIDE, "lightblue"),
+        #      (Behavior.NORMAL, MTDTechnique.CNC_IP_SHUFFLE, "orange"),
+        #      (Behavior.NORMAL, MTDTechnique.ROOTKIT_SANITIZER, "red")],
+        #     plot_name="dac_normal_decision_to_normal_afterstates_for_mtd_timeline")
+
         # DataPlotter.plot_decision_or_afterstate_behaviors_timeline(
         #     [(Behavior.NORMAL, "green")],
         #     [(Behavior.RANSOMWARE_POC, MTDTechnique.RANSOMWARE_DIRTRAP, "blue"),
