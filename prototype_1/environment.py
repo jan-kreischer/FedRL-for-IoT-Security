@@ -32,7 +32,7 @@ class SensorEnvironment:
         self.data = all_data
         self.monitor = monitor
         self.current_state: pd.DataFrame = None
-        self.observation_space_size: int = len(self.data[Behavior.RANSOMWARE_POC][0])
+        self.observation_space_size: int = len(self.data[Behavior.RANSOMWARE_POC][0][:-1])
         self.actions: int = [i for i in range(len(actions))]
 
     def sample_random_attack_state(self):
