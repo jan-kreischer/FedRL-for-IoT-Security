@@ -18,6 +18,7 @@ def auto_encoder_model(in_features: int, hidden_size: int = 8):
         nn.GELU()
     )
 
+
 class AutoEncoder():
 
     def __init__(self, train_x: np.ndarray, train_y: np.ndarray,
@@ -48,7 +49,7 @@ class AutoEncoder():
             raise ValueError("No model set!")
 
         epoch_losses = []
-        #for e in tqdm(range(num_epochs), unit="epoch", leave=False):
+        # for e in tqdm(range(num_epochs), unit="epoch", leave=False):
         for e in range(num_epochs):
             self.model.train()
             current_losses = []
@@ -84,7 +85,6 @@ class AutoEncoder():
         }, "trained_models/autoencoder_model.pth")
 
 
-
 class AutoEncoderInterpreter():
     def __init__(self, state_dict, threshold, in_features=15, hidden_size=8):
         self.model = auto_encoder_model(in_features=in_features, hidden_size=hidden_size)
@@ -109,6 +109,6 @@ class AutoEncoderInterpreter():
                 model_predictions = ae_loss(model_predictions, batch_x).unsqueeze(0)  # unsqueeze as batch_size set to 1
                 all_predictions = torch.cat((all_predictions, model_predictions))
 
-        #all_predictions = all_predictions.tolist()
+        # all_predictions = all_predictions.tolist()
         all_predictions = (all_predictions > self.threshold).type(torch.long)
         return all_predictions.flatten()

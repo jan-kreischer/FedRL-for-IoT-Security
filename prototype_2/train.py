@@ -21,13 +21,11 @@ TARGET_UPDATE_FREQ = 100
 LEARNING_RATE = 1e-5
 N_EPISODES = 5000
 LOG_FREQ = 100
-DIMS = 20
+DIMS = 15
 
 if __name__ == '__main__':
     seed_random()
     start = time()
-
-    # TODO: autoencoder training
 
     # read in all preprocessed data for a simulated, supervised environment to sample from
     #train_data, test_data, scaler = DataManager.get_scaled_train_test_split()
@@ -40,19 +38,19 @@ if __name__ == '__main__':
     normal_data = train_data[b]
     train_data[b] = normal_data[:n]  # use fixed number of samples for Reinforcement Agent training
     # COMMENT/UNCOMMENT BELOW for retraining of autoencoder
-    ae_data = normal_data[n:]  # use remaining samples for autoencoder
-    idx = int(len(ae_data) * s)
-    train_ae_x, train_ae_y = ae_data[:idx, :-1].astype(np.float32), np.arange(
-        idx)  # just a placeholder for the torch dataloader
-    valid_ae_x, valid_ae_y = ae_data[idx:, :-1].astype(np.float32), np.arange(len(ae_data) - idx)
-    print(f"size train: {train_ae_x.shape}, size valid: {valid_ae_x.shape}")
-    # AD training
-    ae = AutoEncoder(train_x=train_ae_x, train_y=train_ae_y, valid_x=valid_ae_x,
-                                 valid_y=valid_ae_y)
-    ae.train(optimizer=torch.optim.SGD(ae.get_model().parameters(), lr=0.0001, momentum=0.9), num_epochs=100)
-    ae.determine_threshold()
-    print(f"ae threshold: {ae.threshold}")
-    ae.save_model()
+    # ae_data = normal_data[n:]  # use remaining samples for autoencoder
+    # idx = int(len(ae_data) * s)
+    # train_ae_x, train_ae_y = ae_data[:idx, :-1].astype(np.float32), np.arange(
+    #     idx)  # just a placeholder for the torch dataloader
+    # valid_ae_x, valid_ae_y = ae_data[idx:, :-1].astype(np.float32), np.arange(len(ae_data) - idx)
+    # print(f"size train: {train_ae_x.shape}, size valid: {valid_ae_x.shape}")
+    # # AD training
+    # ae = AutoEncoder(train_x=train_ae_x, train_y=train_ae_y, valid_x=valid_ae_x,
+    #                              valid_y=valid_ae_y)
+    # ae.train(optimizer=torch.optim.SGD(ae.get_model().parameters(), lr=0.0001, momentum=0.8), num_epochs=100)
+    # ae.determine_threshold()
+    # print(f"ae threshold: {ae.threshold}")
+    # ae.save_model()
 
     # AE evaluation of pretrained model
     pretrained_model = torch.load("trained_models/autoencoder_model.pth")
@@ -62,27 +60,23 @@ if __name__ == '__main__':
 
     # AE can directly be tested on the data that will be used for RL: pass train_data to testing
 
-    res_dict = {}
-    for b, d in train_data.items():
-        y_test = np.array([0 if b == Behavior.NORMAL else 1] * len(d))
-        y_predicted = ae_interpreter.predict(d[:, :-1].astype(np.float32))
-
-        acc, f1, conf_mat = calculate_metrics(y_test.flatten(), y_predicted.flatten().numpy())
-        res_dict[b] = f'{(100 * acc):.2f}%'
-
-    labels = ["Behavior"] + ["Accuracy"]
-    results = []
-    for b, a in res_dict.items():
-        results.append([b.value, res_dict[b]])
-    print(tabulate(results, headers=labels, tablefmt="pretty"))
-
-
+    # res_dict = {}
+    # for b, d in train_data.items():
+    #     y_test = np.array([0 if b == Behavior.NORMAL else 1] * len(d))
+    #     y_predicted = ae_interpreter.predict(d[:, :-1].astype(np.float32))
+    #
+    #     acc, f1, conf_mat = calculate_metrics(y_test.flatten(), y_predicted.flatten().numpy())
+    #     res_dict[b] = f'{(100 * acc):.2f}%'
+    #
+    # labels = ["Behavior"] + ["Accuracy"]
+    # results = []
+    # for b, a in res_dict.items():
+    #     results.append([b.value, res_dict[b]])
+    # print(tabulate(results, headers=labels, tablefmt="pretty"))
 
 
-
-    exit()
-
-    env = SensorEnvironment(train_data, test_data)
+    # Reinforcement Learning
+    env = SensorEnvironment(train_data, test_data, interpreter=ae_interpreter)
 
     agent = Agent(input_dims=env.observation_space_size, n_actions=len(env.actions), buffer_size=BUFFER_SIZE,
                   batch_size=BATCH_SIZE, lr=LEARNING_RATE, gamma=GAMMA, epsilon=EPSILON_START, eps_end=EPSILON_END)
