@@ -17,6 +17,9 @@ supervisor_map: Dict[MTDTechnique, Tuple[Behavior]] = defaultdict(lambda: (Behav
     MTDTechnique.RANSOMWARE_DIRTRAP: (Behavior.RANSOMWARE_POC,),
     MTDTechnique.RANSOMWARE_FILE_EXT_HIDE: (Behavior.RANSOMWARE_POC,)
 })
+actions = (MTDTechnique.CNC_IP_SHUFFLE, MTDTechnique.ROOTKIT_SANITIZER,
+           MTDTechnique.RANSOMWARE_DIRTRAP, MTDTechnique.RANSOMWARE_FILE_EXT_HIDE)
+
 
 
 # handles the supervised, online-simulation of episodes
@@ -26,8 +29,8 @@ class SensorEnvironment:
         self.data = all_data
         self.monitor = monitor
         self.current_state: pd.DataFrame = None
-        self.observation_space: int = len(self.data[Behavior.RANSOMWARE_POC].iloc[0])
-        self.action_space: int = len(supervisor_map) - 1
+        self.observation_space_size: int = len(self.data[Behavior.RANSOMWARE_POC].iloc[0])
+        self.actions: int = [i for i in range(len(actions))]
 
     def sample_random_attack_state(self):
         """i.e. for starting state of an episode"""
@@ -70,6 +73,9 @@ class SensorEnvironment:
         self.current_state = self.sample_random_attack_state()
         self.reward = 0
         self.done = False
+
+
+
 
     # TODO: possibly adapt to distinguish between MTDs that are particularly wasteful in case of wrong deployment
     def calculate_reward(self, success):

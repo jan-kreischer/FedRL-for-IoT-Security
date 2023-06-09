@@ -3,6 +3,7 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 import numpy as np
+from collections import deque
 
 # TODO: main script for prototype one
 #  define MTDs & attacks mapping
@@ -39,29 +40,36 @@ class DeepQNetwork(nn.Module):
         x = F.relu(self.fc1(state))
         x = F.relu(self.fc2(x))
         actions = self.fc3(x)
-
         return actions
 
 
 
 class Agent:
-    def __init__(self, gamma, epsilon, lr, input_dims, batch_size, n_actions,
-                 max_mem_size=100000, eps_end=0.05, eps_dec=5e-4):
+    def __init__(self, input_dims, n_actions, batch_size,
+                 lr, gamma, epsilon, eps_end=0.02, eps_dec=5e-4, buffer_size=100000):
         self.gamma = gamma
         self.epsilon = epsilon
         self.eps_min = eps_end
         self.eps_dec = eps_dec
         self.lr = lr
         self.action_space = [i for i in range(n_actions)]
-        self.mem_size = max_mem_size
-        self.batch_size = batch_size
-        self.mem_cntr = 0
-        self.iter_cntr = 0
-        self.replace_target = 100
 
-        self.Q_eval = DeepQNetwork(lr, n_actions=n_actions,
+        self.buffer_size = buffer_size
+        self.replay_buffer = deque(maxlen=buffer_size)
+        self.reward_buffer = deque([0.0], maxlen=100) # for printing progress
+
+        self.batch_size = batch_size
+        #self.mem_cntr = 0
+        #self.iter_cntr = 0
+        #self.replace_target = 100
+
+        self.online_net = DeepQNetwork(lr, n_actions=n_actions,
                                    input_dims=input_dims,
                                    fc1_dims=256, fc2_dims=256)
+        self.target_net = DeepQNetwork(lr, n_actions=n_actions,
+                                   input_dims=input_dims,
+                                   fc1_dims=256, fc2_dims=256)
+        self.target_net.load_state_dict(self.online_net.state_dict())
 
 
         #
@@ -75,20 +83,6 @@ class Agent:
 
 
 
-    def store_transition(self, state, action, reward, state_, terminal):
-
-
-        pass
-
-
-        # index = self.mem_cntr % self.mem_size
-        # self.state_memory[index] = state
-        # self.new_state_memory[index] = state_
-        # self.reward_memory[index] = reward
-        # self.action_memory[index] = action
-        # self.terminal_memory[index] = terminal
-        #
-        # self.mem_cntr += 1
 
 
 
@@ -101,8 +95,7 @@ class Agent:
             action = np.random.choice(self.action_space)
         return action
 
-    def init_replay_buffer(self):
-        pass
+
 
     def learn(self):
         if self.mem_cntr < self.batch_size:
