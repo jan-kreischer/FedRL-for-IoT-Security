@@ -72,7 +72,9 @@ class Server:
         
         evaluations = list(map(lambda x: x.name, evaluations))
         
-        print(f"Training each of the {len(self.clients)} clients for a total of {nr_rounds*nr_episodes_per_round} episodes distributed over {nr_rounds} rounds with {nr_episodes_per_round} episodes per round.")
+        print(f"Training each of the {len(self.clients)} clients for a total of {nr_rounds*nr_episodes_per_round} episodes distributed over {nr_rounds} rounds with {nr_episodes_per_round} episodes per round.\n")
+        # Performance evaluation for the randomly initialized agent
+        self.performance_evaluation(self.global_agent, self.test_data, 0)
         
         for nr_round in range(1, nr_rounds+1):
 
@@ -166,11 +168,11 @@ class Server:
                             #print(state[:-1].shape)
                             #print(state.shape)
                             #print(type(state))
-                            is_normal = (torch.sum(self.state_interpreter.predict(state[:-1].astype(np.float32).reshape(1,-1), n_std=20)) / len(state)) <= 0.5
+                            is_normal = (torch.sum(self.state_interpreter.predict(state[:-1].astype(np.float32).reshape(1,-1), n_std=5)) / len(state)) <= 0.5
                             if is_normal:
                                  cnt_corr+=1
                         else:
-                            is_abnormal = (torch.sum(self.state_interpreter.predict(state[:-1].astype(np.float32).reshape(1,-1), n_std=20)) / len(state)) <= 0.5
+                            is_abnormal = (torch.sum(self.state_interpreter.predict(state[:-1].astype(np.float32).reshape(1,-1), n_std=5)) / len(state)) <= 0.5
                             if is_abnormal:
                                 action = agent.take_greedy_action(state[:-1])
                                 if b in mitigated_by[action]:
@@ -224,7 +226,7 @@ class Server:
         results.append(("GLOBAL MICRO ACCURACY", round(total_accuracy*100, 2), "MISCELLANEOUS", total_number_samples))
         
         if agent.agent_id == 0:
-            print(f"{agent.get_name()} > Performance Evaluation")
+            print(f"{agent.get_name()} > Performance Evaluation after Round {nr_round}")
             print(tabulate(results, headers=labels, tablefmt="pipe"))
             print("")
         
@@ -281,7 +283,7 @@ class Server:
             
     def plot_learning_curves(self):
         for client in self.clients:
-            client.plot_learning_curve(None, self.nr_rounds)
+            client.plot_learning_curve(self.nr_rounds)
             
             
             

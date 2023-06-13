@@ -5,6 +5,7 @@ import numpy as np
 from torch import nn, optim
 import matplotlib.pyplot as plt
 from tabulate import tabulate
+import traceback
 
 from src.custom_types import MTDTechnique, Behavior, actions
 
@@ -37,9 +38,12 @@ class Client:
         while i < min_size:
             try:
                 all_actions = set(range(len(actions)))
-                action = np.random.choice(all_actions.difference(episode_action_memory))
+                action = np.random.choice(list(all_actions.difference(episode_action_memory)))
                 episode_action_memory.append(action)
-            except ValueError:
+            except ValueError as e:
+                print(e)
+                tb = traceback.format_exc()
+                #print(tb)
                 obs = self.environment.reset()
                 episode_action_memory = []
                 # results in slightly less entries than min_size
@@ -145,6 +149,23 @@ class Client:
         ax2.set_ylim([0, 1])
         ax2.yaxis.set_label_position('right')
         ax2.tick_params(axis='y', colors=color_2)
+        plt.show()
+        
+    def plot_training_data_split(self):
+        D = {}
+        for key, value in self.environment.train_data.items():
+            name = str(key).split('.')[1]
+            D[name] = len(value)
+        
+        plt.bar(range(len(D)), list(D.values()), align='center', color='blue')
+        plt.xticks(range(len(D)), list(D.keys()))
+        plt.xticks(rotation=45, ha='right')
+        plt.title(f"Behavior Distribution on Client {self.client_id}")
+        plt.ylabel('n_samples')
+        
+        filename = f"behavior_sample_distribution_on_client-{self.client_id:02d}.png"
+        filepath = os.path.join(self.save_path, filename)
+        plt.savefig(filepath, bbox_inches="tight")
         plt.show()
         
 

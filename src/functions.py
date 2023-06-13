@@ -6,6 +6,16 @@ from sklearn.svm import OneClassSVM
 from sklearn.ensemble import IsolationForest
 from sklearn.neighbors import LocalOutlierFactor
 from sklearn.metrics import precision_score, recall_score, f1_score, accuracy_score
+from src.experiment import Experiment
+from src.agent import Agent
+from src.deep_q_network import DeepQNetwork
+from src.server import Server
+from src.client import Client
+from src.client import Environment
+from src.autoencoder import AutoEncoder
+from src.custom_types import Behavior, Execution, Evaluation, MTDTechnique, actions, mitigated_by
+import torch 
+import torch.nn as nn 
 
 '''
     This function computes the weighted cosine similarity 
@@ -188,12 +198,18 @@ def get_test_datasets(test_data, normal_label, abnormal_label):
     return test_data_dict, test_data_flat
 
 
-def run_sample_distribution_experiment(training_data_strides, sampling_probabilities_01, sampling_probabilities_02, state_interpreter=None, nr_rounds=30, nr_episodes_per_round=100, evaluate_local_clients=False):
+def run_sample_distribution_experiment(training_data_strides, 
+                                       test_data, 
+                                       sampling_probabilities_01, 
+                                       sampling_probabilities_02,
+                                       state_interpreter: AutoEncoder=None,
+                                       nr_rounds=30,
+                                       nr_episodes_per_round=100,
+                                       evaluate_local_clients=False):
     experiment = Experiment()
 
     # HYPERPARAMETER for State Anomaly Detector
     N_STD = 2.5
-    N_STATE_SAMPLES = 1
 
     # HYPERPARAMETER for Federated Learning
     NR_CLIENTS = len(training_data_strides)
@@ -224,7 +240,6 @@ def run_sample_distribution_experiment(training_data_strides, sampling_probabili
     # HYPERPARAMETER for Epsilon Delta Strategy
     EPSILON_START = 1.0
     EPSILON_DEC = 1/(NR_EPISODES_PER_CLIENT*0.8)
-    print(EPSILON_DEC)
     EPSILON_END = 0.01
 
 
@@ -242,7 +257,7 @@ def run_sample_distribution_experiment(training_data_strides, sampling_probabili
         else:
             SAMPLING_PROBABILITIES = sampling_probabilities_02
             
-        environment = Environment(entity_id, training_data_strides[i], state_interpreter=state_interpreter, n_state_samples=N_STATE_SAMPLES, sampling_probabilities=SAMPLING_PROBABILITIES , verbose=False)
+        environment = Environment(entity_id, training_data_strides[i], state_interpreter=state_interpreter, sampling_probabilities=SAMPLING_PROBABILITIES , verbose=False)
         deep_q_network = DeepQNetwork(n_features=N_FEATURES, n_hidden_1=N_HIDDEN_1, n_hidden_2=N_HIDDEN_2, n_hidden_3=N_HIDDEN_3, n_actions=N_ACTIONS, loss=LOSS)
         optimizer = torch.optim.Adam(deep_q_network.parameters(), lr=LR,  weight_decay=L2, amsgrad=True)
         agent = Agent(entity_id, deep_q_network, buffer_size=BUFFER_SIZE, batch_size=BATCH_SIZE, gamma=GAMMA, optimizer=optimizer, eps=EPSILON_START, eps_min=EPSILON_END, eps_dec=EPSILON_DEC)
@@ -482,8 +497,6 @@ def run_mid_sweep_experiment(experiment_id, experiment_version, training_data_st
     experiment = Experiment(base_path=original_working_directory_path, experiment_id=experiment_id, experiment_version=experiment_version)
     experiment_path = experiment.get_experiment_path()
 
-    N_STATE_SAMPLES = 1
-    
     # HYPERPARAMETER for Federated Learning
     NR_CLIENTS = len(training_data_strides)
     NR_ROUNDS = 30
@@ -530,7 +543,7 @@ def run_mid_sweep_experiment(experiment_id, experiment_version, training_data_st
         clients = []
         for i in range(NR_CLIENTS):
             entity_id = i + 1
-            environment = Environment(entity_id, training_data_strides[i], state_interpreter=autoencoder, n_state_samples=N_STATE_SAMPLES, sampling_probabilities=sampling_probabilities, verbose=False)
+            environment = Environment(entity_id, training_data_strides[i], state_interpreter=autoencoder, sampling_probabilities=sampling_probabilities, verbose=False)
             deep_q_network = DeepQNetwork(n_features=N_FEATURES, n_hidden_1=N_HIDDEN_1, n_hidden_2=N_HIDDEN_2, n_hidden_3=N_HIDDEN_3, n_actions=N_ACTIONS, loss=LOSS)
             optimizer = torch.optim.Adam(deep_q_network.parameters(), lr=LR,  weight_decay=L2, amsgrad=True)
             agent = Agent(entity_id, deep_q_network, buffer_size=BUFFER_SIZE, batch_size=BATCH_SIZE, gamma=GAMMA, optimizer=optimizer, eps=EPSILON_START, eps_min=EPSILON_END, eps_dec=EPSILON_DEC)
@@ -585,8 +598,6 @@ def run_wcs_sweep_experiment(experiment_id, experiment_version, training_data_st
     experiment = Experiment(base_path=original_working_directory_path, experiment_id=experiment_id, experiment_version=experiment_version)
     experiment_path = experiment.get_experiment_path()
 
-    N_STATE_SAMPLES = 1
-    
     # HYPERPARAMETER for Federated Learning
     NR_CLIENTS = len(training_data_strides)
     NR_ROUNDS = 30
@@ -637,7 +648,7 @@ def run_wcs_sweep_experiment(experiment_id, experiment_version, training_data_st
                 sampling_probabilities = sampling_probabilities_01
             else:
                 sampling_probabilities = sampling_probabilities_02
-            environment = Environment(entity_id, training_data_strides[i], state_interpreter=autoencoder, n_state_samples=N_STATE_SAMPLES, sampling_probabilities=sampling_probabilities, verbose=False)
+            environment = Environment(entity_id, training_data_strides[i], state_interpreter=autoencoder, sampling_probabilities=sampling_probabilities, verbose=False)
             deep_q_network = DeepQNetwork(n_features=N_FEATURES, n_hidden_1=N_HIDDEN_1, n_hidden_2=N_HIDDEN_2, n_hidden_3=N_HIDDEN_3, n_actions=N_ACTIONS, loss=LOSS)
             optimizer = torch.optim.Adam(deep_q_network.parameters(), lr=LR,  weight_decay=L2, amsgrad=True)
             agent = Agent(entity_id, deep_q_network, buffer_size=BUFFER_SIZE, batch_size=BATCH_SIZE, gamma=GAMMA, optimizer=optimizer, eps=EPSILON_START, eps_min=EPSILON_END, eps_dec=EPSILON_DEC)

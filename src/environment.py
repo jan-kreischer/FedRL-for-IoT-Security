@@ -9,6 +9,7 @@ import pandas as pd
 import os
 import random
 from functools import reduce
+import matplotlib.pyplot as plt
 
 from src.autoencoder import AutoEncoder
 
@@ -31,10 +32,10 @@ class Environment:
         self.current_state: np.array = None
         self.observation_space_size: int = len(self.training_data[list(self.training_data.keys())[0]][0][:-1])
         self.actions: List[int] = [i for i in range(len(MTDTechnique))]
-        if state_interpreter is None:
-            print("No state interpreter was given - using supervisor knowledge instead")
-        else:
-            print("Using state anomaly detection for the generation of the reward signal")
+        #if state_interpreter is None:
+        #    print("No state interpreter was given - using supervisor knowledge instead")
+        #else:
+        #    print("Using state anomaly detection for the generation of the reward signal")
             
         self.state_interpreter = state_interpreter
         self.reset_to_behavior = None
@@ -142,7 +143,7 @@ class Environment:
                 if self.state_is_classified_normal(next_state[:, :-1].astype(np.float32)):
                     # False Negative (FN)
                     # Afterstate Abnormal, Classified Normal
-                    if self.verbose and next_state != Behavior.NORMAL:
+                    if self.verbose and next_state[:,-1:] != Behavior.NORMAL:
                         self.nr_fns+=1
                         print(f"False Negative: ({current_behavior} misclassified as NORMAL) by anomaly detector")
                         self.reset_to_behavior = current_behavior
@@ -212,3 +213,25 @@ class Environment:
         
     def plot_fp_ratio(self):
         print(f"{self.nr_fps} FPs /{self.total_nr_steps} Steps ... {round(self.nr_fps/self.total_nr_steps, 4)}")    
+        
+    def plot_sampling_distribution(self):
+        x_axis = np.array(list(map(lambda x: x.name, list(self.sampling_probabilities.keys()))))
+        y_rel = np.array(list(self.sampling_probabilities.values()))*100
+        y_abs = y_rel*30
+
+        plt.figure(figsize=(15,6))
+        plt.suptitle(f"Attack Sampling Distribution on Client {self.environment_id}", fontsize=16)
+        plt.subplot(1, 2, 1)
+        plt.bar(x_axis, y_abs)
+        plt.title('Absolute Sample Count for each Attack')
+        plt.xticks(x_axis, rotation=45, ha='right', rotation_mode='anchor')
+        plt.xlabel('Attack')
+        plt.ylabel('Sample Count')
+        plt.subplot(1, 2, 2)
+        plt.bar(x_axis, y_rel)
+        plt.title('Relative Sample Frequency for each Attack')
+        plt.xticks(x_axis, rotation=45, ha='right', rotation_mode='anchor')
+        plt.xlabel('Attack')
+        plt.ylim([0, 101])
+        plt.ylabel('Sample Frequency [%]')
+        plt.show()
