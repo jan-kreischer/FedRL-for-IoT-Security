@@ -134,6 +134,21 @@ def convert_grid_search_result(grid_search_result, display_latex=True):
 def display_grid_search_result(df, n_items=10):
     print(df.head(n_items).to_latex(escape=True, bold_rows=True))
     
+def show_number_of_attack_samples_used(sampling_probabilities_01, sampling_probabilities_02, nr_episodes_per_client):
+    print("=== Absolute Number of Attack Samples used ===")
+    print("\n--- For Clients with even ID ---")
+    for behavior in Behavior:
+        if behavior == Behavior.NORMAL:
+            continue
+        print(f"{behavior}: {int(sampling_probabilities_01[behavior]*nr_episodes_per_client)}")
+     
+    print("\n--- For Clients with uneven ID ---")
+    for behavior in Behavior:
+        if behavior == Behavior.NORMAL:
+            continue
+        print(f"{behavior}: {int(sampling_probabilities_02[behavior]*nr_episodes_per_client)}")
+   
+    
 def evaluate(model, data_dict, tablefmt='latex_raw'):
         results = []
         labels= [-1,1]
@@ -160,7 +175,25 @@ def evaluate(model, data_dict, tablefmt='latex_raw'):
         n_samples = len(y_true_total)
         results.append(["GLOBAL", f'{(100 * accuracy):.2f}\%', f'{(100 * precision):.2f}\%', f'{(100 * recall):.2f}\%', f'{(100 * f1):.2f}\%', n_samples])
         print(tabulate(results, headers=["Behavior", "Accuracy", "Precision", "Recall", "F1-Score", "\\#Samples"], tablefmt=tablefmt)) 
+
+
+def experiment_show_performance_evaluations(experiment):
+    if len(experiment.server.clients) > 1:
+        agents = list(map(lambda client: client.agent, experiment.server.clients))
+    else:
+        agents = []
+    agents.append(experiment.server.global_agent)
+
+    for agent in agents:
+        print(f">>> Performance Evluations of {agent.get_name()} over all FL Training Rounds <<<\n")
+        print(f"- {agent.get_name()} (Rounds): {agent.total_accuracies.keys()}\n")
+        print(f"- {agent.get_name()} (Micro Accuracies): {list(agent.total_accuracies.values())}\n")
+        print(f"- {agent.get_name()} (Macro Accuracies):: {list(agent.mean_class_accuracies.values())}\n")
+        for behavior in Behavior:
+            print(f"- {agent.get_name()} ({behavior}): {list(agent.behavior_accuracies[behavior].values())}\n")
+        print("========== ========== ==========\n")
         
+                
         
 def get_training_datasets(training_data_dict, normal_label, abnormal_label):
     training_data_50 = np.empty([0,47])

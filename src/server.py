@@ -74,7 +74,11 @@ class Server:
         
         print(f"Training each of the {len(self.clients)} clients for a total of {nr_rounds*nr_episodes_per_round} episodes distributed over {nr_rounds} rounds with {nr_episodes_per_round} episodes per round.\n")
         # Performance evaluation for the randomly initialized agent
-        self.performance_evaluation(self.global_agent, self.test_data, 0)
+        # self.performance_evaluation(self.global_agent, self.test_data, 0)
+        agents = list(map(lambda client: client.agent, self.clients))
+        agents.append(self.global_agent)
+        for agent in agents:
+            self.performance_evaluation(agent, self.test_data, 0)
         
         for nr_round in range(1, nr_rounds+1):
 
@@ -124,6 +128,7 @@ class Server:
             if nr_round % evaluation_frequency == 0:
                 self.performance_evaluations['rounds'].append(nr_round)
                 #agents = list(map(lambda client: client.agent, self.clients))
+                self.performance_evaluation(client.agent, self.test_data, nr_round)
             
                 for client in self.clients:
                     if Evaluation.PERFORMANCE_EVALUATION.name in evaluations or Evaluation.LOCAL_PERFORMANCE_EVALUATION.name in evaluations:
